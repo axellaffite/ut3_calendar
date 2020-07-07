@@ -1,36 +1,53 @@
 package com.edt.ut3.backend.requests
 
+import com.edt.ut3.misc.minus
+import com.edt.ut3.misc.plus
 import com.edt.ut3.misc.toCelcatDateStr
-import retrofit2.Response
-import retrofit2.http.Headers
-import retrofit2.http.POST
+import okhttp3.*
+import java.io.IOException
 import java.util.*
+import kotlin.time.ExperimentalTime
+import kotlin.time.days
 
-interface CelcatService {
-    @Headers(
-        "Host: edt.univ-tlse3.fr",
-        "Accept: application/json, text/javascript",
-        "X-Requested-With: XMLHttpRequest")
-    @POST("Home/GetCalendarData")
-    suspend fun getEvents(celcatBody: String): String
-}
 
-object Utils {
-    fun generateCelcatBody(calStart: Date, calEnd: Date, studentGroups: List<String>) : String {
-        val federationIds = studentGroups.joinToString(separator = "&federationIds[]")
-        val start = calStart
-        val end = calEnd
-        val resType = 103
-        val calView = "agendaDay"
-        val colourScheme = 3
+//interface CelcatService {
+//    @Headers(
+//        "Accept: application/json, text/javascript",
+//        "X-Requested-With: XMLHttpRequest",
+//        "Content-Type: application/x-www-form-urlencoded; charset=UTF-8",
+//        "Connection: keep-alive")
+//    @POST("/calendar2/Home/GetCalendarData")
+//    fun getEvents(@Body celcatBody: String): Call<JsonObject>
+//}
 
-        return arrayOf(
-            "start=${start.toCelcatDateStr()}",
-            "end=${end.toCelcatDateStr()}",
-            "resType=$resType",
-            "calView=$calView",
-            "colourScheme$colourScheme",
-            "federationIds[]=$federationIds"
-        ).joinToString(separator = "&")
+
+class CelcatService {
+    @ExperimentalTime
+    @Throws(IOException::class)
+    fun getEvents(formations: List<String>) : Response {
+        val body = RequestsUtils.RequestBody().apply {
+                add("start", (Date() - (6.days * 31)).toCelcatDateStr())
+                add("end", (Date() + (6.days * 31)).toCelcatDateStr())
+                formations.map {
+                    add("federationIds%5B%5D", "it")
+                }
+            }.build()
+
+        val encodedBody = RequestBody.create(MediaType.parse("application/x-www-form-urlencoded; charset=UTF-8"), body)
+
+        println("body: $body")
+        println("body: $encodedBody")
+
+
+        val request = Request.Builder()
+            .url("https://edt.univ-tlse3.fr/calendar2/Home/GetCalendarData")
+            .addHeader("Accept", "application/json, text/javascript")
+            .addHeader("X-Requested-With", "XMLHttpRequest")
+            .addHeader("Content-Length", encodedBody.contentLength().toString())
+            .post(encodedBody)
+            .build()
+
+        return OkHttpClient().newCall(request).execute()
     }
+
 }

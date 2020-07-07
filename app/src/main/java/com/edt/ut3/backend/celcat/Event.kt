@@ -1,10 +1,13 @@
 package com.edt.ut3.backend.celcat
 
 import androidx.room.*
+import com.edt.ut3.backend.database.Converter
 import com.edt.ut3.backend.note.Note
 import com.edt.ut3.misc.Emoji
-import org.json.JSONArray
+import com.edt.ut3.misc.fromCelcatString
+import com.edt.ut3.misc.toList
 import org.json.JSONException
+import org.json.JSONObject
 import java.util.*
 
 @Entity(tableName = "event",
@@ -20,14 +23,71 @@ data class Event(
     var category: String?,
     var description: String?,
     var courseName: String?,
-    var sites: List<String>,
-    var start: Date,
-    var end: Date?,
+    @TypeConverters(Converter::class) var sites: List<String>,
+    @TypeConverters(Converter::class) var start: Date,
+    @TypeConverters(Converter::class) var end: Date?,
     var allday: Boolean,
     var backGroundColor: String?,
     var textColor: String?,
-    var noteID: Long?
+    @ColumnInfo(name = "note_id") var noteID: Long?
 ) {
+    companion object {
+        @Throws(JSONException::class)
+        fun fromJSON(obj: JSONObject) = obj.run {
+            val category = optString("eventCategory")
+            val course = parseCourse(optString("description")) ?: category
+            val start = Date().apply { fromCelcatString(getString("start")) }
+            val end = if (isNull("end")) start else Date().apply { fromCelcatString(getString("end")) }
+
+            Event(
+                id = getString("id"),
+                category = category,
+                description = parseDescription("description"),
+                courseName = course,
+                sites = optJSONArray("sites")?.toList<String?>()?.filterNotNull() ?: listOf(),
+                start = start,
+                end = end,
+                allday = getBoolean("allDay"),
+                backGroundColor = getString("backgroundColor"),
+                textColor = optString("textColor") ?: "#000000",
+                noteID = null
+            )
+        }
+
+        private fun parseDescription(description: String?) : String? =
+            description?.run {
+                if (isNullOrBlank()) return null
+
+                this.trim().lines().let { lines ->
+                    if (lines.size == 1) {
+                        return description
+                    }
+
+                    return lines.subList(1, lines.size).joinToString(separator = "\n")
+                }
+            }
+
+        private fun parseCourse(description: String?): String? =
+            description?.run {
+                if (isNullOrBlank()) return null
+
+                this.trim().lines().let { lines ->
+                    lines.forEach {
+                        if (it.matches(Regex("^\\w*\\s+-\\s+.*$"))) {
+                            return it
+                        }
+                    }
+
+                    if (lines.size > 1) {
+                        return lines[1]
+                    }
+
+                    return null
+                }
+            }
+
+    }
+
     fun categoryWithEmotions(): String? {
         return category?.let {
             when {
@@ -37,30 +97,5 @@ data class Event(
                 else -> category
             }
         }
-    }
-
-    class Converter {
-        @Throws(JSONException::class)
-        @TypeConverter
-        fun toList(string: String): List<String> {
-            val jsonArr = JSONArray(string)
-            val arr = mutableListOf<String>()
-            for (i in 0 until jsonArr.length()) {
-                arr.add(jsonArr.getString(i))
-            }
-
-            return arr
-        }
-
-        @TypeConverter
-        fun toString(list: List<String>): String {
-            return JSONArray(list).toString()
-        }
-
-        @TypeConverter
-        fun toTimestamp(date: Date) = date.time
-
-        @TypeConverter
-        fun fromTimestamp(time: Long) = Date(time)
     }
 }
