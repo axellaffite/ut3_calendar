@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Calendrier UT3</string>
+    <string name="title_calendar">Calendrier</string>
+    <string name="title_notes">Notes</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="addr_celcat" translatable="false">https://edt.univ-tlse3.fr/calendar2/</string>
+</resources>

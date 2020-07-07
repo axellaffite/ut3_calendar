@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">UT3 Calendar</string>
+    <string name="title_calendar">Calendar</string>
+    <string name="title_notes">Notes</string>
+</resources>
