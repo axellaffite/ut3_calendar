@@ -39,16 +39,19 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                 }
             }
 
+            setProgress(workDataOf(Progress to 50))
+
             val eventsArray = withContext(Dispatchers.Default) {
                 JSONArray(events).toList<JSONObject>()
             }
 
+            setProgress(workDataOf(Progress to 80))
+
             AppDatabase.getInstance(applicationContext).eventDao().insert(
                 *eventsArray.map { Event.fromJSON(it) }.toTypedArray()
             )
-
-            println(eventsArray)
         } catch (e: Exception) {
+            TODO("Catch exceptions properly")
             when (e) {
                 is IOException -> {}
                 is JSONException -> {}
