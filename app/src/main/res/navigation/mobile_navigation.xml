@@ -7,19 +7,19 @@
 
     <fragment
         android:id="@+id/navigation_calendar"
-        android:name="com.elzozor.ut3calendar.ui.calendar.CalendarFragment"
+        android:name="com.edt.ut3.ui.calendar.CalendarFragment"
         android:label="@string/title_calendar"
         tools:layout="@layout/fragment_calendar" />
 
     <fragment
         android:id="@+id/navigation_notes"
-        android:name="com.elzozor.ut3calendar.ui.notes.NotesFragment"
+        android:name="com.edt.ut3.ui.notes.NotesFragment"
         android:label="@string/title_notes"
         tools:layout="@layout/fragment_notes" />
 
     <fragment
         android:id="@+id/navigation_notifications"
-        android:name="com.elzozor.ut3calendar.ui.notifications.NotificationsFragment"
+        android:name="com.edt.ut3.ui.notifications.NotificationsFragment"
         android:label="@string/title_notifications"
         tools:layout="@layout/fragment_notifications" />
 </navigation>
