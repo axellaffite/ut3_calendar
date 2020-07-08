@@ -46,7 +46,7 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment-ktx:2.3.0'
     implementation 'androidx.navigation:navigation-ui-ktx:2.3.0'
     implementation 'androidx.work:work-runtime:2.3.4'
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
@@ -73,5 +73,8 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.1.0'
 
     implementation "com.squareup.retrofit2:converter-scalars:2.4.0"
+
+    //yoda
+    implementation 'com.github.ElZozor:yoda:v0.12'
 
 }

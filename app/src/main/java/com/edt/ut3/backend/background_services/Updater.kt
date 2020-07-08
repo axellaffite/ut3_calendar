@@ -2,6 +2,7 @@ package com.edt.ut3.backend.background_services
 
 
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
@@ -39,6 +40,8 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                 }
             }
 
+            Log.d("EVENTS", "Updater count1 : ${events.length}")
+
             setProgress(workDataOf(Progress to 50))
 
             val eventsArray = withContext(Dispatchers.Default) {
@@ -50,6 +53,8 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
             AppDatabase.getInstance(applicationContext).eventDao().insert(
                 *eventsArray.map { Event.fromJSON(it) }.toTypedArray()
             )
+
+            Log.d("EVENTS", "Updater count: ${eventsArray.size}")
         } catch (e: Exception) {
             TODO("Catch exceptions properly")
             when (e) {

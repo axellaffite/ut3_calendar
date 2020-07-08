@@ -6,6 +6,7 @@ import com.edt.ut3.backend.note.Note
 import com.edt.ut3.misc.Emoji
 import com.edt.ut3.misc.fromCelcatString
 import com.edt.ut3.misc.toList
+import com.elzozor.yoda.events.EventWrapper
 import org.json.JSONException
 import org.json.JSONObject
 import java.util.*
@@ -97,5 +98,11 @@ data class Event(
                 else -> category
             }
         }
+    }
+
+    class Wrapper(val event: Event): EventWrapper() {
+        override fun begin() = event.start
+
+        override fun end() = event.end ?: event.start
     }
 }

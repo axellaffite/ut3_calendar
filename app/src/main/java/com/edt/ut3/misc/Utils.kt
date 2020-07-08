@@ -57,6 +57,19 @@ fun Date.clean(vararg fields: Int) {
     }
 }
 
+fun Date.set(year: Int, month: Int, day: Int): Date = this.apply {
+    time = Calendar.getInstance().run {
+        set(Calendar.YEAR, year)
+        set(Calendar.MONTH, month)
+        set(Calendar.DAY_OF_MONTH, day)
+        time.clean(Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND, Calendar.MILLISECOND)
+
+        time.time
+    }
+}
+
+
+
 @Throws(JSONException::class)
 fun <T> JSONArray.toList(): List<T> =
     (0 until length()).map {
