@@ -4,10 +4,13 @@ import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -60,12 +63,25 @@ class CalendarFragment : Fragment() {
                 root.day_view.setViewBuilder { context: Context, eventWrapper: EventWrapper, x, y, w, h ->
                     Log.d("EVENT", "x: $x, y: $y, w: $w, h: $h")
 
-                    Pair(false, TextView(context).apply {
-                        (eventWrapper as Event.Wrapper).let { ev ->
-                            text = ev.event.courseName
-                            setBackgroundColor(Color.parseColor("#FF" + ev.event.backGroundColor?.substring(1)))
-                            setTextColor(Color.parseColor("#FF" + ev.event.textColor?.substring(1)))
-                        }
+                    Pair(false, CardView(context).apply {
+                        addView(
+                            TextView(context).apply {
+                                (eventWrapper as Event.Wrapper).let { ev ->
+                                    text = ev.event.courseName
+                                    setBackgroundColor(Color.parseColor("#FF" + ev.event.backGroundColor?.substring(1)))
+                                    setTextColor(Color.parseColor("#FF" + ev.event.textColor?.substring(1)))
+                                }
+
+                                layoutParams = LinearLayout.LayoutParams(
+                                    LinearLayout.LayoutParams.MATCH_PARENT,
+                                    LinearLayout.LayoutParams.MATCH_PARENT
+                                )
+
+                                gravity = Gravity.CENTER
+                            }
+                        )
+
+                        radius = context.resources.getDimension(R.dimen.event_radius)
                     })
                 }
 
@@ -75,9 +91,13 @@ class CalendarFragment : Fragment() {
                     job = lifecycleScope.launch {
                         withContext(IO) {
                             val events = withContext(Default) {
-                                li.filter { ev -> ev.start >= Date().set(2020, 1, 1)
-                                        && ev.start <= Date().set(2020, 6, 14)
+                                li.sortedBy { it.start }.filter { ev -> ev.start >= Date().set(2020, Calendar.JANUARY, 13)
+                                        && ev.start <= Date().set(2020, Calendar.JANUARY, 14)
                                 }.map { ev -> Event.Wrapper(ev) }
+                            }
+
+                            events.forEach {
+                                println(it.begin())
                             }
 
                             root.day_view.setEvents(events)

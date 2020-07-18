@@ -1,5 +1,6 @@
 package com.edt.ut3.backend.requests
 
+import android.util.Log
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.toCelcatDateStr
 import okhttp3.*
@@ -24,17 +25,16 @@ class CelcatService {
     @Throws(IOException::class)
     fun getEvents(formations: List<String>) : Response {
         val body = RequestsUtils.RequestBody().apply {
-                add("start", (Date().set(2020, 1, 1)).toCelcatDateStr())
+                add("start", (Date().set(2020, Calendar.JANUARY, 1)).toCelcatDateStr())
                 add("end", (Date().set(2020, 7, 1)).toCelcatDateStr())
                 formations.map {
-                    add("federationIds%5B%5D", "it")
+                    add("federationIds%5B%5D", it)
                 }
             }.build()
 
-        val encodedBody = RequestBody.create(MediaType.parse("application/x-www-form-urlencoded; charset=UTF-8"), body)
+        Log.d("CELCAT_SERVICE", "Request body: $body")
 
-        println("body: $body")
-        println("body: $encodedBody")
+        val encodedBody = RequestBody.create(MediaType.parse("application/x-www-form-urlencoded; charset=UTF-8"), body)
 
 
         val request = Request.Builder()

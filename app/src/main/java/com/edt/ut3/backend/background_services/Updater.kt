@@ -9,6 +9,8 @@ import androidx.work.workDataOf
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.AppDatabase
 import com.edt.ut3.backend.requests.CelcatService
+import com.edt.ut3.misc.forEach
+import com.edt.ut3.misc.map
 import com.edt.ut3.misc.toList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -33,29 +35,36 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
         var result = Result.success()
         try {
             val groups = listOf("LINF6CMA") //PreferencesManager(applicationContext).getGroups().toList<String>()
+            Log.d("UPDATER", "Downloading events for theses groups: $groups")
 
-            val events = withContext(Dispatchers.IO) {
-                CelcatService().let { service ->
-                    service.getEvents(groups).body()?.string() ?: throw IOException()
-                }
+
+            val eventsJSONArray = withContext(Dispatchers.IO) {
+                JSONArray(
+                CelcatService()
+                        .getEvents(groups)
+                        .body()
+                        ?.string()
+                        ?: throw IOException()
+                )
             }
-
-            Log.d("EVENTS", "Updater count1 : ${events.length}")
 
             setProgress(workDataOf(Progress to 50))
 
             val eventsArray = withContext(Dispatchers.Default) {
-                JSONArray(events).toList<JSONObject>()
+                eventsJSONArray.map {
+                    Event.fromJSON(it as JSONObject)
+                }
             }
+            Log.d("UPDATER", "Events count : ${eventsArray.size}")
+
 
             setProgress(workDataOf(Progress to 80))
 
             AppDatabase.getInstance(applicationContext).eventDao().insert(
-                *eventsArray.map { Event.fromJSON(it) }.toTypedArray()
+                *eventsArray.toTypedArray()
             )
-
-            Log.d("EVENTS", "Updater count: ${eventsArray.size}")
         } catch (e: Exception) {
+            e.printStackTrace()
             TODO("Catch exceptions properly")
             when (e) {
                 is IOException -> {}
