@@ -37,6 +37,8 @@ data class Event(
         @Throws(JSONException::class)
         fun fromJSON(obj: JSONObject, classes: Set<String>, courses: Set<String>) = obj.run {
             val parsedDescription = ParsedDescription(optString("description")?.fromHTML(), classes, courses)
+//            println(parsedDescription)
+
             val category = optString("eventCategory")?.fromHTML()
             val start = Date().apply { fromCelcatString(getString("start")) }
             val end = if (isNull("end")) start else Date().apply { fromCelcatString(getString("end")) }
@@ -99,20 +101,33 @@ data class Event(
         var precisions: String? = null
 
         init {
-            description?.trim()?.lines()?.forEach {
-                val precisionBuilder = StringBuilder()
+            val precisionBuilder = StringBuilder()
+            var precisionEmpty = true
 
+            println(description?.lines())
+
+            description?.lines()?.map { it.trim() }?.forEach {
                 when {
                     it.matches(Regex("\\d\\*")) -> { teacherID = it.toInt() }
                     classesNames.contains(it) -> classes.add(it)
                     coursesNames.contains(it) -> course = it
-                    else -> precisionBuilder.append(it)
+                    else -> if (precisionEmpty) {
+                        precisionBuilder.append(it)
+                    } else {
+                        precisionBuilder.append("\n").append(it)
+                    }
                 }
-
-                precisions = if (precisionBuilder.isNotEmpty()) {
-                    precisionBuilder.toString()
-                } else { null }
             }
+
+            precisions = if (precisionBuilder.isNotEmpty()) {
+                precisionBuilder.toString()
+            } else { null }
         }
+
+        override fun toString() = StringBuilder()
+            .append("course:").append(course).append("\n")
+            .append("classes:").append(classes).append("\n")
+            .append("teacherID:").append(teacherID).append("\n")
+            .append("precisions:").append(precisions).append("\n\n\n").toString()
     }
 }

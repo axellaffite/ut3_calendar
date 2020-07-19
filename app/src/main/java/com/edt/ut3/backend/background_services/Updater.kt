@@ -9,8 +9,10 @@ import androidx.work.workDataOf
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.AppDatabase
 import com.edt.ut3.backend.requests.CelcatService
+import com.edt.ut3.misc.fromHTML
 import com.edt.ut3.misc.map
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
@@ -36,10 +38,14 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
             val groups = listOf("LINF6CMA") //PreferencesManager(applicationContext).getGroups().toList<String>()
             Log.d("UPDATER", "Downloading events for theses groups: $groups")
 
-            val classes = getClasses().toSet()
+            val classes = getClasses().toHashSet()
+            val courses = getCourses().toHashSet()
+
+            println(classes)
+            println(courses)
 
 
-            val eventsJSONArray = withContext(Dispatchers.IO) {
+            val eventsJSONArray = withContext(IO) {
                 JSONArray(
                 CelcatService()
                         .getEvents(groups)
@@ -51,9 +57,9 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
 
             setProgress(workDataOf(Progress to 50))
 
-            val eventsArray = withContext(Dispatchers.Default) {
+            val eventsArray = withContext(Default) {
                 eventsJSONArray.map {
-                    Event.fromJSON(it as JSONObject, classes)
+                    Event.fromJSON(it as JSONObject, classes, courses)
                 }
             }
             Log.d("UPDATER", "Events count : ${eventsArray.size}")
@@ -87,12 +93,19 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
         val data = CelcatService().getClasses().body()?.string() ?: throw IOException()
 
         JSONObject(data).getJSONArray("results").map {
-            (it as JSONObject).let { json ->
-                println(json.getString("id"))
-                json.getString("id")
-            }
+            (it as JSONObject).run { getString("id").fromHTML().trim() }
         }.also {
             println("Classes count : ${it.size}")
+        }
+    }
+
+    private suspend fun getCourses() = withContext(IO) {
+        val data = CelcatService().getCoursesNames().body()?.string() ?: throw IOException()
+
+        JSONObject(data).getJSONArray("results").map {
+            (it as JSONObject).run { getString("text").fromHTML().trim() }
+        }.also {
+            println("Courses count: ${it.size}")
         }
     }
 }
