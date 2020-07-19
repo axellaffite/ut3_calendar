@@ -9,10 +9,9 @@ import androidx.work.workDataOf
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.AppDatabase
 import com.edt.ut3.backend.requests.CelcatService
-import com.edt.ut3.misc.forEach
 import com.edt.ut3.misc.map
-import com.edt.ut3.misc.toList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -37,6 +36,8 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
             val groups = listOf("LINF6CMA") //PreferencesManager(applicationContext).getGroups().toList<String>()
             Log.d("UPDATER", "Downloading events for theses groups: $groups")
 
+            val classes = getClasses().toSet()
+
 
             val eventsJSONArray = withContext(Dispatchers.IO) {
                 JSONArray(
@@ -52,7 +53,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
 
             val eventsArray = withContext(Dispatchers.Default) {
                 eventsJSONArray.map {
-                    Event.fromJSON(it as JSONObject)
+                    Event.fromJSON(it as JSONObject, classes)
                 }
             }
             Log.d("UPDATER", "Events count : ${eventsArray.size}")
@@ -79,5 +80,19 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
 
         setProgress(workDataOf(Progress to 100))
         result
+    }
+
+    @Throws(IOException::class)
+    private suspend fun getClasses() = withContext(IO) {
+        val data = CelcatService().getClasses().body()?.string() ?: throw IOException()
+
+        JSONObject(data).getJSONArray("results").map {
+            (it as JSONObject).let { json ->
+                println(json.getString("id"))
+                json.getString("id")
+            }
+        }.also {
+            println("Classes count : ${it.size}")
+        }
     }
 }

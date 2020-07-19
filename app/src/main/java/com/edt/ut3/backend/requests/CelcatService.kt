@@ -24,7 +24,7 @@ class CelcatService {
     @ExperimentalTime
     @Throws(IOException::class)
     fun getEvents(formations: List<String>) : Response {
-        val body = RequestsUtils.RequestBody().apply {
+        val body = RequestsUtils.EventBody().apply {
                 add("start", (Date().set(2020, Calendar.JANUARY, 1)).toCelcatDateStr())
                 add("end", (Date().set(2020, 7, 1)).toCelcatDateStr())
                 formations.map {
@@ -48,4 +48,24 @@ class CelcatService {
         return OkHttpClient().newCall(request).execute()
     }
 
+
+    @Throws(IOException::class)
+    fun getClasses() : Response {
+        val request = Request.Builder()
+            .url("https://edt.univ-tlse3.fr/calendar2/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=1000000&pageNumber=1&resType=102&_=1595177163927")
+            .get()
+            .build()
+
+        return OkHttpClient().newCall(request).execute()
+    }
+
+    @Throws(IOException::class)
+    fun getCoursesNames() : Response {
+        val request = Request.Builder()
+            .url("https://edt.univ-tlse3.fr/calendar2/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=10000000&pageNumber=1&resType=100&_=1595183277988")
+            .get()
+            .build()
+
+        return OkHttpClient().newCall(request).execute()
+    }
 }

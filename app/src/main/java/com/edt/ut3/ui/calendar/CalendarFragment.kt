@@ -3,6 +3,7 @@ package com.edt.ut3.ui.calendar
 import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
+import android.text.TextUtils
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -60,56 +61,60 @@ class CalendarFragment : Fragment() {
 
         return inflater.inflate(R.layout.fragment_calendar, container, false).also { root ->
             calendarViewModel.getEvents(requireContext()).observe(viewLifecycleOwner, Observer { evLi ->
-                root.day_view.setViewBuilder { context: Context, eventWrapper: EventWrapper, x, y, w, h ->
-                    Log.d("EVENT", "x: $x, y: $y, w: $w, h: $h")
-
-                    Pair(false, CardView(context).apply {
-                        addView(
-                            TextView(context).apply {
-                                (eventWrapper as Event.Wrapper).let { ev ->
-                                    text = ev.event.courseName
-                                    setBackgroundColor(Color.parseColor("#FF" + ev.event.backGroundColor?.substring(1)))
-                                    setTextColor(Color.parseColor("#FF" + ev.event.textColor?.substring(1)))
-                                }
-
-                                layoutParams = LinearLayout.LayoutParams(
-                                    LinearLayout.LayoutParams.MATCH_PARENT,
-                                    LinearLayout.LayoutParams.MATCH_PARENT
-                                )
-
-                                gravity = Gravity.CENTER
-                            }
-                        )
-
-                        radius = context.resources.getDimension(R.dimen.event_radius)
-                    })
-                }
-
-                evLi?.let { li ->
-                    Log.d("EVENTS", "Count: ${evLi.size}")
-                    job?.cancel()
-                    job = lifecycleScope.launch {
-                        withContext(IO) {
-                            val events = withContext(Default) {
-                                li.sortedBy { it.start }.filter { ev -> ev.start >= Date().set(2020, Calendar.JANUARY, 13)
-                                        && ev.start <= Date().set(2020, Calendar.JANUARY, 14)
-                                }.map { ev -> Event.Wrapper(ev) }
-                            }
-
-                            events.forEach {
-                                println(it.begin())
-                            }
-
-                            root.day_view.setEvents(events)
-
-                            withContext(Main) {
-                                root.day_view.requestLayout()
-                                Log.d("EVENTS", "Event count: ${events.size}")
-                            }
-                        }
-                    }
-                }
+                handleEventsChange(root, evLi)
             })
+        }
+    }
+
+    private fun handleEventsChange(root: View, eventList: List<Event>?) {
+        if (eventList == null) return
+
+        root.day_view.setViewBuilder(this::buildEventView)
+        filterEvents(root, eventList)
+    }
+
+    private fun buildEventView(context: Context, eventWrapper: EventWrapper, x: Int, y: Int, w:Int, h: Int)
+            : Pair<Boolean, View> {
+        return Pair(false, CardView(context).apply {
+            addView(
+                TextView(context).apply {
+                    (eventWrapper as Event.Wrapper).let { ev ->
+                        text = ev.event.courseName
+                        setBackgroundColor(Color.parseColor("#FF" + ev.event.backGroundColor?.substring(1)))
+                        setTextColor(Color.parseColor("#FF" + ev.event.textColor?.substring(1)))
+                    }
+
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT
+                    )
+
+                    gravity = Gravity.CENTER
+                }
+            )
+
+            radius = context.resources.getDimension(R.dimen.event_radius)
+        })
+    }
+
+    private fun filterEvents(root: View, eventList: List<Event>) {
+        job?.cancel()
+        job = lifecycleScope.launch {
+            withContext(IO) {
+                val events = withContext(Default) {
+                    eventList.filter {
+                            ev -> ev.start >= Date().set(2020, Calendar.JANUARY, 13)
+                            && ev.start <= Date().set(2020, Calendar.JANUARY, 14)
+                    }.map { ev -> Event.Wrapper(ev) }
+                }
+
+                root.day_view.autoFitHours = true
+                root.day_view.setEvents(events)
+
+                withContext(Main) {
+                    root.day_view.requestLayout()
+                }
+            }
         }
     }
 }

@@ -1,15 +1,9 @@
 package com.edt.ut3.backend.requests
 
 object RequestsUtils {
-    
-    class RequestBody {
-        private val body = StringBuilder()
 
-        init {
-            this.add("resType", 103)
-                .add("calView", "agendaDay")
-                .add("colourScheme", 3)
-        }
+    open class Body {
+        private val body = StringBuilder()
 
         fun add(key: String, value: Any) = apply {
             if (body.isNotEmpty()) {
@@ -20,5 +14,13 @@ object RequestsUtils {
         }
 
         fun build() = body.toString()
+    }
+    
+    class EventBody : Body() {
+        init {
+            this.add("resType", 103)
+                .add("calView", "agendaDay")
+                .add("colourScheme", 3)
+        }
     }
 }
