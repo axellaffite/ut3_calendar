@@ -11,7 +11,6 @@ import com.edt.ut3.backend.database.AppDatabase
 import com.edt.ut3.backend.requests.CelcatService
 import com.edt.ut3.misc.fromHTML
 import com.edt.ut3.misc.map
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.coroutineScope
@@ -103,7 +102,11 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
         val data = CelcatService().getCoursesNames().body()?.string() ?: throw IOException()
 
         JSONObject(data).getJSONArray("results").map {
-            (it as JSONObject).run { getString("text").fromHTML().trim() }
+            (it as JSONObject).run {
+                val text = getString("text").fromHTML().trim()
+                val id = getString("id").fromHTML().trim()
+                "$text [$id]"
+            }
         }.also {
             println("Courses count: ${it.size}")
         }

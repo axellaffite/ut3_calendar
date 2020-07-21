@@ -3,7 +3,6 @@ package com.edt.ut3.ui.calendar
 import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
-import android.text.TextUtils
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -46,6 +45,17 @@ class CalendarFragment : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
+        return inflater.inflate(R.layout.fragment_calendar, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        calendarViewModel.getEvents(requireContext()).observe(viewLifecycleOwner, Observer { evLi ->
+            println("Event database has been updated")
+            handleEventsChange(view, evLi)
+        })
+
         val worker = PeriodicWorkRequestBuilder<Updater>(1, TimeUnit.HOURS).build()
         WorkManager.getInstance(requireContext()).let {
             it.enqueueUniquePeriodicWork("event_update", ExistingPeriodicWorkPolicy.REPLACE, worker)
@@ -56,12 +66,6 @@ class CalendarFragment : Fragment() {
 
                     Log.i("PROGRESS", value.toString())
                 }
-            })
-        }
-
-        return inflater.inflate(R.layout.fragment_calendar, container, false).also { root ->
-            calendarViewModel.getEvents(requireContext()).observe(viewLifecycleOwner, Observer { evLi ->
-                handleEventsChange(root, evLi)
             })
         }
     }
@@ -79,7 +83,7 @@ class CalendarFragment : Fragment() {
             addView(
                 TextView(context).apply {
                     (eventWrapper as Event.Wrapper).let { ev ->
-                        text = ev.event.courseName
+                        text = generateCardContents(ev.event)
                         setBackgroundColor(Color.parseColor("#FF" + ev.event.backGroundColor?.substring(1)))
                         setTextColor(Color.parseColor("#FF" + ev.event.textColor?.substring(1)))
                     }
@@ -116,5 +120,26 @@ class CalendarFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun generateCardContents(event: Event) : String {
+        val description = StringBuilder()
+        if (event.locations.size == 1) {
+            description.append(event.locations.first())
+        }
+
+        if (event.courseName != null) {
+            if (description.isNotEmpty()) {
+                description.append("\n")
+            }
+
+            description.append(event.courseName)
+        }
+
+        if (description.isEmpty()) {
+            description.append(event.description)
+        }
+
+        return description.toString()
     }
 }

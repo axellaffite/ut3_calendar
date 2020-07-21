@@ -10,6 +10,7 @@ import com.edt.ut3.misc.toList
 import com.elzozor.yoda.events.EventWrapper
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.IOException
 import java.util.*
 
 @Entity(tableName = "event",
@@ -25,6 +26,7 @@ data class Event(
     var category: String?,
     var description: String?,
     var courseName: String?,
+    @TypeConverters(Converter::class) var locations: List<String>,
     @TypeConverters(Converter::class) var sites: List<String>,
     @TypeConverters(Converter::class) var start: Date,
     @TypeConverters(Converter::class) var end: Date?,
@@ -36,10 +38,9 @@ data class Event(
     companion object {
         @Throws(JSONException::class)
         fun fromJSON(obj: JSONObject, classes: Set<String>, courses: Set<String>) = obj.run {
-            val parsedDescription = ParsedDescription(optString("description")?.fromHTML(), classes, courses)
-//            println(parsedDescription)
+            val parsedDescription = ParsedDescription(optString("description").fromHTML(), classes, courses)
 
-            val category = optString("eventCategory")?.fromHTML()
+            val category = optString("eventCategory").fromHTML()
             val start = Date().apply { fromCelcatString(getString("start")) }
             val end = if (isNull("end")) start else Date().apply { fromCelcatString(getString("end")) }
 
@@ -48,12 +49,13 @@ data class Event(
                 category = category,
                 description = parsedDescription.precisions,
                 courseName = parsedDescription.course,
+                locations = parsedDescription.classes,
                 sites = optJSONArray("sites")?.toList<String?>()?.filterNotNull()?.map { it.fromHTML().trim() } ?: listOf(),
                 start = start,
                 end = end,
                 allday = getBoolean("allDay"),
                 backGroundColor = getString("backgroundColor").fromHTML(),
-                textColor = optString("textColor")?.fromHTML() ?: "#000000",
+                textColor = optString("textColor").fromHTML() ?: "#000000",
                 noteID = null
             )
         }
@@ -104,8 +106,6 @@ data class Event(
             val precisionBuilder = StringBuilder()
             var precisionEmpty = true
 
-            println(description?.lines())
-
             description?.lines()?.map { it.trim() }?.forEach {
                 when {
                     it.matches(Regex("\\d\\*")) -> { teacherID = it.toInt() }
@@ -122,6 +122,19 @@ data class Event(
             precisions = if (precisionBuilder.isNotEmpty()) {
                 precisionBuilder.toString()
             } else { null }
+
+            course = cleanCourseName()
+        }
+
+        private fun cleanCourseName(): String? {
+            return try {
+                course?.let {
+                    val (_, newCourse) = Regex("(\\w+\\s-) (.+)").find(it)?.destructured ?: throw IOException()
+                    newCourse
+                }
+            } catch (e: IOException) {
+                course
+            }
         }
 
         override fun toString() = StringBuilder()
