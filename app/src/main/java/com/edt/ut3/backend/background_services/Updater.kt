@@ -71,7 +71,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
             )
         } catch (e: Exception) {
             e.printStackTrace()
-            TODO("Catch exceptions properly")
+//            TODO("Catch exceptions properly")
             when (e) {
                 is IOException -> {}
                 is JSONException -> {}

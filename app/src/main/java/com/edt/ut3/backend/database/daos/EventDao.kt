@@ -1,5 +1,6 @@
 package com.edt.ut3.backend.database.daos
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.edt.ut3.backend.celcat.Event
 
@@ -20,12 +21,21 @@ interface EventDao {
     @Query("SELECT * FROM event")
     suspend fun selectAll(): List<Event>
 
+    @Query("SELECT * FROM event")
+    fun selectAllLD(): LiveData<List<Event>>
+
     @Query("SELECT * FROM event WHERE id in (:ids)")
     suspend fun selectByIDs(vararg ids: String): List<Event>
+
+    @Query("SELECT * FROM event WHERE id in (:ids)")
+    fun selectByIDsLD(vararg ids: String): LiveData<List<Event>>
 
     @Query("SELECT * FROM event WHERE :noteIDs in (:noteIDs)")
     suspend fun selectByNotesIDs(noteIDs: Long): List<Event>
 
     @Query("SELECT * FROM event WHERE start BETWEEN :start AND :end")
     suspend fun getFromTo(start: Long, end: Long): List<Event>
+
+    @Query("SELECT * FROM event WHERE start BETWEEN :start AND :end")
+    fun getFromToLD(start: Long, end: Long): LiveData<List<Event>>
 }
