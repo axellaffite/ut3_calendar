@@ -4,12 +4,14 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.daos.EventDao
 import com.edt.ut3.backend.database.daos.NoteDao
 import com.edt.ut3.backend.note.Note
 
 @Database(entities = [Note::class, Event::class], version = 1, exportSchema = false)
+@TypeConverters(Converter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun eventDao() : EventDao
     abstract fun noteDao() : NoteDao

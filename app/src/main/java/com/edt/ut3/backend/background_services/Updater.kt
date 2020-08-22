@@ -2,40 +2,113 @@ package com.edt.ut3.backend.background_services
 
 
 import android.content.Context
-import androidx.lifecycle.MutableLiveData
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
+import com.edt.ut3.backend.celcat.Event
+import com.edt.ut3.backend.database.AppDatabase
+import com.edt.ut3.backend.requests.CelcatService
+import com.edt.ut3.misc.fromHTML
+import com.edt.ut3.misc.map
+import kotlinx.coroutines.Dispatchers.Default
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
+import java.io.IOException
 import kotlin.time.ExperimentalTime
 
 class Updater(appContext: Context, workerParams: WorkerParameters):
     CoroutineWorker(appContext, workerParams) {
 
     companion object {
-        enum class Status {Nothing, Running, Success, Failure}
-        var status = MutableLiveData<Status>(Status.Nothing)
-    }
-
-    private fun updateStatus(stat: Status) {
-        status.postValue(stat)
+        const val Progress = "progress"
     }
 
     @ExperimentalTime
     override suspend fun doWork(): Result = coroutineScope {
-//        updateStatus(Status.Running)
-//
-//        val service = RequestsManager(applicationContext).celcatService()
-//        val offset = (31*6).days // +- 6 months
-//        val events = service.getEventsCelcatBody(
-//            Date() + offset,
-//            Date() - offset,
-//            PreferencesManager(applicationContext).getGroups().toList()
-//        )
+        setProgress(workDataOf(Progress to 0))
 
-        TODO("Put events into the database")
-//        AppDatabase.getInstance(applicationContext).eventDao().insert(*events.toTypedArray())
+        var result = Result.success()
+        try {
+            val groups = listOf("LINF6CMA") //PreferencesManager(applicationContext).getGroups().toList<String>()
+            Log.d("UPDATER", "Downloading events for theses groups: $groups")
 
-        updateStatus(Status.Success)
-        Result.success()
+            val classes = getClasses().toHashSet()
+            val courses = getCourses().toHashSet()
+
+            println(classes)
+            println(courses)
+
+
+            val eventsJSONArray = withContext(IO) {
+                JSONArray(
+                CelcatService()
+                        .getEvents(groups)
+                        .body()
+                        ?.string()
+                        ?: throw IOException()
+                )
+            }
+
+            setProgress(workDataOf(Progress to 50))
+
+            val eventsArray = withContext(Default) {
+                eventsJSONArray.map {
+                    Event.fromJSON(it as JSONObject, classes, courses)
+                }
+            }
+            Log.d("UPDATER", "Events count : ${eventsArray.size}")
+
+
+            setProgress(workDataOf(Progress to 80))
+
+            AppDatabase.getInstance(applicationContext).eventDao().insert(
+                *eventsArray.toTypedArray()
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            TODO("Catch exceptions properly")
+            when (e) {
+                is IOException -> {}
+                is JSONException -> {}
+                else -> {}
+            }
+
+            e.printStackTrace()
+
+            result = Result.failure()
+        }
+
+        setProgress(workDataOf(Progress to 100))
+        result
+    }
+
+    @Throws(IOException::class)
+    private suspend fun getClasses() = withContext(IO) {
+        val data = CelcatService().getClasses().body()?.string() ?: throw IOException()
+
+        JSONObject(data).getJSONArray("results").map {
+            (it as JSONObject).run { getString("id").fromHTML().trim() }
+        }.also {
+            println("Classes count : ${it.size}")
+        }
+    }
+
+    private suspend fun getCourses() = withContext(IO) {
+        val data = CelcatService().getCoursesNames().body()?.string() ?: throw IOException()
+
+        JSONObject(data).getJSONArray("results").map {
+            (it as JSONObject).run {
+                val text = getString("text").fromHTML().trim()
+                val id = getString("id").fromHTML().trim()
+                "$text [$id]"
+            }
+        }.also {
+            println("Courses count: ${it.size}")
+        }
     }
 }

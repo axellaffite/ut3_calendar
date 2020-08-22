@@ -1,6 +1,8 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
 
 android {
     compileSdkVersion 30
@@ -44,7 +46,7 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment-ktx:2.3.0'
     implementation 'androidx.navigation:navigation-ui-ktx:2.3.0'
     implementation 'androidx.work:work-runtime:2.3.4'
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
@@ -61,15 +63,18 @@ dependencies {
     // Room
     def room_version = "2.2.5"
     implementation "androidx.room:room-runtime:$room_version"
-    annotationProcessor "androidx.room:room-compiler:$room_version" // For Kotlin use kapt instead of annotationProcessor
+    kapt "androidx.room:room-compiler:$room_version" // For Kotlin use kapt instead of annotationProcessor
     // optional - Kotlin Extensions and Coroutines support for Room
     implementation "androidx.room:room-ktx:$room_version"
     // optional - RxJava support for Room
     implementation "androidx.room:room-rxjava2:$room_version"
     //Retrofit
-    implementation 'com.squareup.retrofit2:retrofit:2.1.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.1.0'
 
     implementation "com.squareup.retrofit2:converter-scalars:2.4.0"
+
+    //yoda
+    implementation 'com.github.ElZozor:yoda:v0.12'
 
 }

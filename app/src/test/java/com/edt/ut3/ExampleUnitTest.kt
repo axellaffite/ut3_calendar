@@ -35,4 +35,12 @@ class ExampleUnitTest {
             it.add(Calendar.HOUR_OF_DAY, n)
             it.time
         }
+
+    @Test
+    fun date_build_test() {
+        val today = Date().timeCleaned()
+        val today_test = Date().set(2020, Calendar.JULY, 18)
+
+        assert(today_test == today)
+    }
 }

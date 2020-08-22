@@ -1,20 +1,13 @@
 package com.edt.ut3
 
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
-import com.edt.ut3.backend.requests.RequestsManager
-import com.edt.ut3.backend.requests.Utils.generateCelcatBody
-import com.edt.ut3.misc.minus
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import java.util.*
 import kotlin.time.ExperimentalTime
-import kotlin.time.days
 
 class MainActivity : AppCompatActivity() {
 
