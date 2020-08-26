@@ -23,7 +23,8 @@ class EventView(context: Context, ev: Event.Wrapper): CardView(context) {
         addView(
             TextView(context).apply {
                 text = generateCardContents(ev.event)
-                setBackgroundColor(Color.parseColor("#FF" + ev.event.backGroundColor?.substring(1)))
+                setBackgroundColor(Color.parseColor("#FF" + ev.event.backgroundColor?.substring(1)))
+                setBackgroundColor(ev.event.darkBackgroundColor(context))
                 setTextColor(Color.parseColor("#FF" + ev.event.textColor?.substring(1)))
 
                 layoutParams = LinearLayout.LayoutParams(
@@ -67,6 +68,13 @@ class EventView(context: Context, ev: Event.Wrapper): CardView(context) {
                 elevation = 0f
                 startTime = 0L
                 true
+            }
+
+            MotionEvent.ACTION_HOVER_EXIT, MotionEvent.ACTION_CANCEL -> {
+                elevationJob?.cancel()
+                elevation = 0f
+                startTime = 0L
+                false
             }
 
             else -> false

@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -22,6 +23,7 @@ import com.edt.ut3.misc.plus
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.timeCleaned
 import com.elzozor.yoda.events.EventWrapper
+import com.google.android.material.appbar.AppBarLayout
 import kotlinx.android.synthetic.main.fragment_calendar.*
 import kotlinx.android.synthetic.main.fragment_calendar.view.*
 import kotlinx.coroutines.Dispatchers.Default
@@ -32,6 +34,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.math.abs
 import kotlin.time.ExperimentalTime
 import kotlin.time.days
 
@@ -40,6 +43,9 @@ class CalendarFragment : Fragment() {
     private val calendarViewModel by viewModels<CalendarViewModel> { defaultViewModelProviderFactory }
 
     private var job : Job? = null
+
+    private var shouldBlockScroll = false
+    private var canBlockScroll = false
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -88,83 +94,23 @@ class CalendarFragment : Fragment() {
                 handleEventsChange(requireView(), it)
             }
         }
-//
-//        motionLayout.sideScrollListener.onScrollUpListener = {
-//            println("scrolling up")
-//            unfoldCalendar()
-//            true
-//        }
-//
-//        motionLayout.sideScrollListener.onScrollDownListener = {
-//            println("scrolling Down")
-//            true
-//        }
-//        day_scroll.setOnTouchListener { _, ev ->
-//            motionLayout.sideScrollListener.onInterceptTouchEvent(ev)
-//        }
-    }
-//
-//    private fun handleTouchEvent(ev: MotionEvent): Boolean {
-//        if (offset_y <= 0f) {
-//            foldCalendar()
-//        }
-//
-//        when (ev.action) {
-//            MotionEvent.ACTION_UP -> {
-//                offset_y = 0f
-//                day_scroll.performClick()
-//            }
-//
-//            MotionEvent.ACTION_DOWN -> offset_start = ev.rawY
-//
-//            MotionEvent.ACTION_MOVE -> {
-//                if (day_scroll.scrollY > 0) {
-//                    offset_y = 0f
-//                    return false
-//                }
-//
-//                offset_y = ev.rawY - offset_start
-//                if (offset_y > max_offset && offset_start < day_scroll.y + day_scroll.measuredHeight.toFloat() * 1f/3f) {
-//                    unfoldCalendar()
-//                    return true
-//                }
-//
-//                if (!scroll_enable) {
-//                    day_scroll.scrollTo(0,0)
-//                    return true
-//                }
-//
-//                if (!calendarFold) {
-//                    return true
-//                }
-//            }
-//        }
-//
-//        return false
-//    }
 
+        app_bar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->
+            println("$verticalOffset ${appBarLayout.totalScrollRange} ${abs(verticalOffset) == appBarLayout.totalScrollRange}")
 
-    @Synchronized
-    private fun foldCalendar(){
-//        if (!calendarFold) {
-//            motionLayout.transitionToStart()
-//            fold_job?.cancel()
-//            fold_job = lifecycleScope.launchWhenResumed {
-//                delay(motionLayout.transitionTimeMs)
-//                scroll_enable = true
-//            }
-//            calendarFold = !calendarFold
-//        }
-    }
+            shouldBlockScroll = canBlockScroll && (verticalOffset + appBarLayout.totalScrollRange == 0)
+            canBlockScroll = (verticalOffset + appBarLayout.totalScrollRange > 0)
+        })
 
-    @Synchronized
-    private fun unfoldCalendar() {
-//        if (calendarFold) {
-//            motionLayout.transitionToEnd()
-//            calendarFold = !calendarFold
-//            scroll_enable = false
-//            fold_job?.cancel()
-//        }
+        day_scroll.setOnScrollChangeListener { _: NestedScrollView?, _, scrollY, _, oldScrollY ->
+            println("oldScrollY: $oldScrollY scrollY: $scrollY")
+            when {
+                shouldBlockScroll -> {
+                    day_scroll.scrollTo(0,0)
+                    shouldBlockScroll = false
+                }
+            }
+        }
     }
 
     @ExperimentalTime
