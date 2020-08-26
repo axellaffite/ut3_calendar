@@ -2,13 +2,11 @@ package com.edt.ut3.ui.calendar
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import android.view.*
-import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.cardview.widget.CardView
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -30,7 +28,6 @@ import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
@@ -43,12 +40,6 @@ class CalendarFragment : Fragment() {
     private val calendarViewModel by viewModels<CalendarViewModel> { defaultViewModelProviderFactory }
 
     private var job : Job? = null
-    private var calendarFold = true
-    private var offset_y = 0f
-    private var offset_start = 0f
-    private val max_offset = 120f
-    private var scroll_enable = true
-    private var fold_job : Job? = null
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -97,81 +88,83 @@ class CalendarFragment : Fragment() {
                 handleEventsChange(requireView(), it)
             }
         }
-
-        day_scroll.setOnTouchListener { _, ev ->
-            handleTouchEvent(ev)
-        }
-    }
-
-    private fun handleTouchEvent(ev: MotionEvent): Boolean {
-        if (offset_y <= 0f) {
-            foldCalendar()
-        }
-
-        when (ev.action) {
-            MotionEvent.ACTION_UP -> {
-                offset_y = 0f
-                day_scroll.performClick()
-            }
-
-            MotionEvent.ACTION_DOWN -> offset_start = ev.rawY
-
-            MotionEvent.ACTION_MOVE -> {
-                if (day_scroll.scrollY > 0) {
-                    offset_y = 0f
-                    return false
-                }
-
-                offset_y = ev.rawY - offset_start
-                updateLayoutConstraint(offset_y)
-                if (offset_y > max_offset) {
-                    unfoldCalendar()
-                    return true
-                }
-
-                if (!scroll_enable) {
-                    day_scroll.scrollTo(0,0)
-                    return true
-                }
-
-                if (!calendarFold) {
-                    return true
-                }
-            }
-        }
-
-        return false
-    }
-
-    private fun updateLayoutConstraint(offsetY: Float) {
-//        val params = day_scroll.layoutParams as ConstraintLayout.LayoutParams
-//        params.topMargin = offsetY.toInt()
 //
-//        day_scroll.layoutParams = params
-        day_scroll.y = offsetY
+//        motionLayout.sideScrollListener.onScrollUpListener = {
+//            println("scrolling up")
+//            unfoldCalendar()
+//            true
+//        }
+//
+//        motionLayout.sideScrollListener.onScrollDownListener = {
+//            println("scrolling Down")
+//            true
+//        }
+//        day_scroll.setOnTouchListener { _, ev ->
+//            motionLayout.sideScrollListener.onInterceptTouchEvent(ev)
+//        }
     }
+//
+//    private fun handleTouchEvent(ev: MotionEvent): Boolean {
+//        if (offset_y <= 0f) {
+//            foldCalendar()
+//        }
+//
+//        when (ev.action) {
+//            MotionEvent.ACTION_UP -> {
+//                offset_y = 0f
+//                day_scroll.performClick()
+//            }
+//
+//            MotionEvent.ACTION_DOWN -> offset_start = ev.rawY
+//
+//            MotionEvent.ACTION_MOVE -> {
+//                if (day_scroll.scrollY > 0) {
+//                    offset_y = 0f
+//                    return false
+//                }
+//
+//                offset_y = ev.rawY - offset_start
+//                if (offset_y > max_offset && offset_start < day_scroll.y + day_scroll.measuredHeight.toFloat() * 1f/3f) {
+//                    unfoldCalendar()
+//                    return true
+//                }
+//
+//                if (!scroll_enable) {
+//                    day_scroll.scrollTo(0,0)
+//                    return true
+//                }
+//
+//                if (!calendarFold) {
+//                    return true
+//                }
+//            }
+//        }
+//
+//        return false
+//    }
+
 
     @Synchronized
     private fun foldCalendar(){
-        if (!calendarFold) {
-            motionLayout.transitionToStart()
-            fold_job?.cancel()
-            fold_job = lifecycleScope.launchWhenResumed {
-                delay(motionLayout.transitionTimeMs)
-                scroll_enable = true
-            }
-            calendarFold = !calendarFold
-        }
+//        if (!calendarFold) {
+//            motionLayout.transitionToStart()
+//            fold_job?.cancel()
+//            fold_job = lifecycleScope.launchWhenResumed {
+//                delay(motionLayout.transitionTimeMs)
+//                scroll_enable = true
+//            }
+//            calendarFold = !calendarFold
+//        }
     }
 
     @Synchronized
     private fun unfoldCalendar() {
-        if (calendarFold) {
-            motionLayout.transitionToEnd()
-            calendarFold = !calendarFold
-            scroll_enable = false
-            fold_job?.cancel()
-        }
+//        if (calendarFold) {
+//            motionLayout.transitionToEnd()
+//            calendarFold = !calendarFold
+//            scroll_enable = false
+//            fold_job?.cancel()
+//        }
     }
 
     @ExperimentalTime
@@ -184,26 +177,22 @@ class CalendarFragment : Fragment() {
 
     private fun buildEventView(context: Context, eventWrapper: EventWrapper, x: Int, y: Int, w:Int, h: Int)
             : Pair<Boolean, View> {
-        return Pair(false, CardView(context).apply {
-            addView(
-                TextView(context).apply {
-                    (eventWrapper as Event.Wrapper).let { ev ->
-                        text = generateCardContents(ev.event)
-                        setBackgroundColor(Color.parseColor("#FF" + ev.event.backGroundColor?.substring(1)))
-                        setTextColor(Color.parseColor("#FF" + ev.event.textColor?.substring(1)))
-                    }
-
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.MATCH_PARENT
-                    )
-
-                    gravity = Gravity.CENTER
-                }
-            )
-
-            radius = context.resources.getDimension(R.dimen.event_radius)
-            cardElevation = 0f
+        return Pair(false, EventView(context, eventWrapper as Event.Wrapper).apply {
+            setOnClickListener {
+//                PopupMenu(context, this).apply {
+//                    inflate(R.menu.event_menu)
+//                    setOnMenuItemClickListener {
+//                        when (it.itemId) {
+//                            R.id.add_note -> {
+//                                BottomSheetBehavior.from<CardView>(requireView().bottomNav).setState(STATE_EXPANDED)/*.state = STATE_EXPANDED*/
+//                            }
+//                            else -> println("wtf")
+//                        }
+//
+//                        false
+//                    }
+//                }.show()
+            }
         })
     }
 
@@ -230,26 +219,5 @@ class CalendarFragment : Fragment() {
                 }
             }
         }
-    }
-
-    private fun generateCardContents(event: Event) : String {
-        val description = StringBuilder()
-        if (event.locations.size == 1) {
-            description.append(event.locations.first())
-        }
-
-        if (event.courseName != null) {
-            if (description.isNotEmpty()) {
-                description.append("\n")
-            }
-
-            description.append(event.courseName)
-        }
-
-        if (description.isEmpty()) {
-            description.append(event.description)
-        }
-
-        return description.toString()
     }
 }

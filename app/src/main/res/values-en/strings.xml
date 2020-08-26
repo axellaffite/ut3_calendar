@@ -3,4 +3,5 @@
     <string name="app_name">UT3 Calendar</string>
     <string name="title_calendar">Calendar</string>
     <string name="title_notes">Notes</string>
+    <string name="add_note">Add a note</string>
 </resources>

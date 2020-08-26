@@ -4,4 +4,5 @@
     <string name="title_notes">Notes</string>
     <string name="title_notifications">Notifications</string>
     <string name="addr_celcat" translatable="false">https://edt.univ-tlse3.fr</string>
+    <string name="add_note">Ajouter une note</string>
 </resources>
