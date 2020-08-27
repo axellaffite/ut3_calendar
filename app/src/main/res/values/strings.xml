@@ -5,4 +5,11 @@
     <string name="title_notifications">Notifications</string>
     <string name="addr_celcat" translatable="false">https://edt.univ-tlse3.fr</string>
     <string name="add_note">Ajouter une note</string>
+    <string name="enable_update_notifications">Activer les notifications</string>
+    <string name="light">Clair</string>
+    <string name="dark">Sombre</string>
+    <string name="theme">Thème</string>
+    <string name="application">Application</string>
+    <string name="calendar_link">Lien vers votre calendrier Celcat</string>
+    <string name="not_valid_link">Lien non valide</string>
 </resources>

@@ -8,9 +8,11 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.AppDatabase
+import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.CelcatService
 import com.edt.ut3.misc.fromHTML
 import com.edt.ut3.misc.map
+import com.edt.ut3.misc.toList
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.coroutineScope
@@ -34,7 +36,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
 
         var result = Result.success()
         try {
-            val groups = listOf("LINF6CMA") //PreferencesManager(applicationContext).getGroups().toList<String>()
+            val groups = PreferencesManager(applicationContext).getGroups().toList<String>()
             Log.d("UPDATER", "Downloading events for theses groups: $groups")
 
             val classes = getClasses().toHashSet()

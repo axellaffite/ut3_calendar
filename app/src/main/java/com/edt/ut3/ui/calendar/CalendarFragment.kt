@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -22,6 +23,7 @@ import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.misc.plus
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.timeCleaned
+import com.edt.ut3.ui.custom_views.overlay_layout.OverlayBehavior
 import com.elzozor.yoda.events.EventWrapper
 import com.google.android.material.appbar.AppBarLayout
 import kotlinx.android.synthetic.main.fragment_calendar.*
@@ -78,6 +80,10 @@ class CalendarFragment : Fragment() {
         calendarViewModel.getEvents(requireContext()).value?.let {
             handleEventsChange(requireView(), it)
         }
+
+        requireActivity().supportFragmentManager.beginTransaction()
+            .add(R.id.settings, CalendarSettingsFragment())
+            .commit()
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -98,7 +104,9 @@ class CalendarFragment : Fragment() {
         app_bar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->
             println("$verticalOffset ${appBarLayout.totalScrollRange} ${abs(verticalOffset) == appBarLayout.totalScrollRange}")
 
-            shouldBlockScroll = canBlockScroll && (verticalOffset + appBarLayout.totalScrollRange == 0)
+            val canSwipe = (verticalOffset + appBarLayout.totalScrollRange == 0)
+            shouldBlockScroll = canBlockScroll && canSwipe
+            ((front_layout.layoutParams as CoordinatorLayout.LayoutParams).behavior as OverlayBehavior).canSwipe = canSwipe
             canBlockScroll = (verticalOffset + appBarLayout.totalScrollRange > 0)
         })
 
@@ -108,6 +116,7 @@ class CalendarFragment : Fragment() {
                 shouldBlockScroll -> {
                     day_scroll.scrollTo(0,0)
                     shouldBlockScroll = false
+                    ((front_layout.layoutParams as CoordinatorLayout.LayoutParams).behavior as OverlayBehavior).canSwipe = true
                 }
             }
         }

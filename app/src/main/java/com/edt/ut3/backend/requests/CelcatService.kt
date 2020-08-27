@@ -24,9 +24,10 @@ class CelcatService {
     @ExperimentalTime
     @Throws(IOException::class)
     fun getEvents(formations: List<String>) : Response {
+        //TODO Changer la date pour quelque chose de dynamique !
         val body = RequestsUtils.EventBody().apply {
                 add("start", (Date().set(2020, Calendar.JANUARY, 1)).toCelcatDateStr())
-                add("end", (Date().set(2020, 7, 1)).toCelcatDateStr())
+                add("end", (Date().set(2024, 7, 1)).toCelcatDateStr())
                 formations.map {
                     add("federationIds%5B%5D", it)
                 }

@@ -1,6 +1,7 @@
 package com.edt.ut3.backend.preferences
 
 import android.content.Context
+import androidx.preference.PreferenceManager
 import org.json.JSONArray
 import org.json.JSONException
 
@@ -11,7 +12,7 @@ class PreferencesManager(private val context: Context) {
         const val Groups = "groups"
     }
 
-    private val preferences = context.getSharedPreferences(Preferences_File, Context.MODE_PRIVATE)
+    private val preferences = PreferenceManager.getDefaultSharedPreferences(context)
 
     @Throws(JSONException::class)
     fun getGroups(): JSONArray {
