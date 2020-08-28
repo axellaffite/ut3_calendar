@@ -9,11 +9,14 @@
             android:key="theme"
             app:title="@string/theme"
             android:entryValues="@array/themesAlias"
-            android:entries="@array/themes"/>
+            android:entries="@array/themes"
+            android:icon="@drawable/ic_theme" />
 
         <CheckBoxPreference
             android:key="notification"
-            android:title="@string/enable_update_notifications" />
+            android:title="@string/enable_update_notifications"
+            android:summary="@string/summary_notifications"
+            android:icon="@drawable/ic_notifications"/>
 
     </PreferenceCategory>
 
@@ -22,7 +25,9 @@
 
         <EditTextPreference
             android:key="section"
-            app:title="@string/calendar_link"/>
+            app:title="@string/calendar_link"
+            android:summary="@string/summary_link"
+            android:icon="@drawable/ic_group"/>
 
     </PreferenceCategory>
 

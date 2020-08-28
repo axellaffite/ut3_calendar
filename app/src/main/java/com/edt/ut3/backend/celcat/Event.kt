@@ -10,7 +10,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.util.*
-import com.edt.ut3.misc.DestructedColor
 
 @Entity(tableName = "event",
     foreignKeys = [

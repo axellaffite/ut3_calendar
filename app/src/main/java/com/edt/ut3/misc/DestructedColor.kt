@@ -72,9 +72,5 @@ class DestructedColor(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 
         return DestructedColor(this) * coeff
     }
 
-    fun toInt() = (r.toInt() shl 16 + g.toInt() shl 8 + b.toInt())
-
-    fun toColor() = Color.rgb(r.toInt(), g.toInt(), b.toInt())
-
     fun toArgb() = Color.argb(255, r.toInt(), g.toInt(), b.toInt())
 }

@@ -9,14 +9,14 @@
         <item name="background">@android:color/white</item>
     </style>
 
-    <style name="DarkTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="DarkTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/darkColorPrimary</item>
-        <item name="colorPrimaryDark">@color/darkColorPrimaryDark</item>
-        <item name="colorAccent">@color/darkColorAccent</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
         <item name="android:listDivider">@android:color/white</item>
 
-        <item name="background">@color/darkColorPrimary</item>
+        <item name="background">@color/colorPrimary</item>
     </style>
 
 </resources>

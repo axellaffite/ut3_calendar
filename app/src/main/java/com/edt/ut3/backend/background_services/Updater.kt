@@ -3,9 +3,9 @@ package com.edt.ut3.backend.background_services
 
 import android.content.Context
 import android.util.Log
-import androidx.work.CoroutineWorker
-import androidx.work.WorkerParameters
-import androidx.work.workDataOf
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
+import androidx.work.*
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.AppDatabase
 import com.edt.ut3.backend.preferences.PreferencesManager
@@ -21,6 +21,7 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 import kotlin.time.ExperimentalTime
 
 class Updater(appContext: Context, workerParams: WorkerParameters):
@@ -28,6 +29,24 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
 
     companion object {
         const val Progress = "progress"
+
+        fun scheduleUpdate(context: Context) {
+            val worker = PeriodicWorkRequestBuilder<Updater>(1, TimeUnit.HOURS).build()
+            WorkManager.getInstance(context).let {
+                it.enqueueUniquePeriodicWork("event_update", ExistingPeriodicWorkPolicy.KEEP, worker)
+            }
+        }
+
+        fun forceUpdate(context: Context, viewLifecycleOwner: LifecycleOwner? = null, observer: Observer<WorkInfo>? = null) {
+            val worker = OneTimeWorkRequestBuilder<Updater>().build()
+            WorkManager.getInstance(context).let {
+                it.enqueueUniqueWork("event_update_force", ExistingWorkPolicy.KEEP, worker)
+
+                if (viewLifecycleOwner != null && observer != null) {
+                    it.getWorkInfoByIdLiveData(worker.id).observe(viewLifecycleOwner, observer)
+                }
+            }
+        }
     }
 
     @ExperimentalTime

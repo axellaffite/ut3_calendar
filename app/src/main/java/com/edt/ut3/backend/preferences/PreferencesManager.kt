@@ -23,4 +23,8 @@ class PreferencesManager(private val context: Context) {
         preferences.edit().putString(Groups, groups.toString()).apply()
     }
 
+    fun getTheme() : Int {
+        return preferences.getString("theme", null)?.toInt() ?: 0
+    }
+
 }

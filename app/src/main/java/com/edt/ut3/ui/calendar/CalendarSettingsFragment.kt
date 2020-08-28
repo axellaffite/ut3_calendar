@@ -9,7 +9,6 @@ import android.widget.EditText
 import androidx.core.widget.doOnTextChanged
 import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
-import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.edt.ut3.R
 import org.json.JSONArray
@@ -20,15 +19,13 @@ class CalendarSettingsFragment: PreferenceFragmentCompat() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        preferenceManager.run {
-            findPreference<ListPreference>("theme")?.let { theme ->
-                theme.setOnPreferenceChangeListener { _, newValue -> themeSelector(theme, newValue) }
-            }
+        findPreference<ListPreference>("theme")?.let { theme ->
+            theme.setOnPreferenceChangeListener { _, newValue -> themeSelector(theme, newValue) }
+        }
 
-            findPreference<EditTextPreference>("section")?.let { editText ->
-                editText.setOnBindEditTextListener(EditTextListener(requireContext()))
-                editText.setOnPreferenceChangeListener { _, link -> setSections(link as String) }
-            }
+        findPreference<EditTextPreference>("section")?.let { editText ->
+            editText.setOnBindEditTextListener(EditTextListener(requireContext()))
+            editText.setOnPreferenceChangeListener { _, link -> setSections(link as String) }
         }
 
         return super.onCreateView(inflater, container, savedInstanceState)
@@ -37,15 +34,13 @@ class CalendarSettingsFragment: PreferenceFragmentCompat() {
     private fun themeSelector(preference: ListPreference, value: Any) : Boolean {
         val index = (value as String).toInt()
 
-        when (index) {
-            0 -> {
-                requireActivity().theme.applyStyle(R.style.AppTheme, true)
-                requireActivity().recreate()
+        requireActivity().run {
+            when (index) {
+                0 -> theme.applyStyle(R.style.AppTheme, true)
+                1 -> theme.applyStyle(R.style.DarkTheme, true)
             }
-            1 -> {
-                requireActivity().theme.applyStyle(R.style.DarkTheme, true)
-                requireActivity().recreate()
-            }
+
+            recreate()
         }
 
         return true

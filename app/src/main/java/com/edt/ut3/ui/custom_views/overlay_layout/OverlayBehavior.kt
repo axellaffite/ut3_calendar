@@ -8,6 +8,7 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.animation.doOnEnd
+import com.edt.ut3.misc.toDp
 import kotlin.math.abs
 
 
@@ -28,7 +29,7 @@ import kotlin.math.abs
 class OverlayBehavior<V : View>(context: Context, attrs: AttributeSet) :
     CoordinatorLayout.Behavior<V>(context, attrs) {
 
-    enum class Position {IDLE, LEFT}
+    enum class Position {IDLE, LEFT, RIGHT}
 
     var startX = 0f
     var offsetX = 0f
@@ -40,10 +41,9 @@ class OverlayBehavior<V : View>(context: Context, attrs: AttributeSet) :
     var canAnimate = true
 
     var canSwipe = false
-        set(value) {
-            println("can swipe edited: $value")
-            field = value
-        }
+
+    var onSwipingLeft : (() -> Unit)? = null
+    var onSwipingRight : (() -> Unit)? = null
 
     /**
      * Determines whether or not the event must
@@ -74,13 +74,21 @@ class OverlayBehavior<V : View>(context: Context, attrs: AttributeSet) :
                 offsetY = ev.rawY - startY
 
                 println("intercept: $offsetX $offsetY")
-                return if (status == Position.LEFT) {
-                    offsetX > 50f
-                } else {
-                    (canSwipe
-                            && canAnimate
-                            && abs(offsetX) > abs(offsetY)
-                            && abs(offsetX) > 10f)
+                return when (status) {
+                    Position.LEFT -> {
+                        offsetX > 50f
+                    }
+
+                    Position.RIGHT -> {
+                        offsetX < -50f
+                    }
+
+                    else -> {
+                        (canSwipe
+                                && canAnimate
+                                && abs(offsetX) > abs(offsetY)
+                                && abs(offsetX) > 10f)
+                    }
                 }
 
             }
@@ -97,12 +105,32 @@ class OverlayBehavior<V : View>(context: Context, attrs: AttributeSet) :
                 offsetX = ev.rawX - startX
                 offsetY = ev.rawY - startY
 
-                if (offsetX < 0 || child.x < 0 && offsetX > 0) {
-                    child.translationX = (viewX + offsetX).coerceIn(-max, 0f)
-                    abs(offsetX) > abs(offsetY)
+                val moved = when (status) {
+                    Position.IDLE -> {
+                        child.translationX = (viewX + offsetX).coerceIn(-max, max)
+                        if (abs(offsetX) > abs(offsetY)) {
+                            if (child.x < 0f) {
+                                onSwipingLeft?.let { it() }
+                            } else if (child.x > 0f) {
+                                onSwipingRight?.let { it() }
+                            }
+                        }
+
+                        true
+                    }
+
+                    Position.LEFT -> {
+                        child.translationX = (viewX + offsetX).coerceIn(-max, 0f)
+                        offsetX > 0
+                    }
+
+                    Position.RIGHT -> {
+                        child.translationX = (viewX + offsetX).coerceIn(0f, max)
+                        offsetX < 0
+                    }
                 }
 
-                return false
+                return moved && abs(offsetX) > abs(offsetY)
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
@@ -119,11 +147,7 @@ class OverlayBehavior<V : View>(context: Context, attrs: AttributeSet) :
     }
 
     private fun maxForView(view: View): Float {
-        val px = TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP,
-            40f,
-            view.context.resources.displayMetrics
-        )
+        val px = 40.toDp(view.context)
 
         return view.width - px
     }
@@ -133,15 +157,27 @@ class OverlayBehavior<V : View>(context: Context, attrs: AttributeSet) :
                 || (status == Position.LEFT && child.x < -(child.width * (5f/9f)))
     }
 
+    private fun shouldGoRight(child: View): Boolean {
+        return (status == Position.IDLE && child.x > (child.width * (4f/9f))
+                || status == Position.RIGHT && child.x > (child.width * (5f/9f)))
+    }
+
     private fun moveView(view: View) {
         val callback : ((View) -> Unit)
 
-        if (shouldGoLeft(view)) {
-            status = Position.LEFT
-            callback = { v -> moveViewLeft(v) }
-        } else {
-            status = Position.IDLE
-            callback = { v -> moveViewIdle(v) }
+        when {
+            shouldGoLeft(view) -> {
+                status = Position.LEFT
+                callback = { v -> moveViewLeft(v) }
+            }
+            shouldGoRight(view) -> {
+                status = Position.RIGHT
+                callback = { v -> moveViewRight(v) }
+            }
+            else -> {
+                status = Position.IDLE
+                callback = { v -> moveViewIdle(v) }
+            }
         }
 
         animateIfPossible(callback, view)
@@ -163,11 +199,11 @@ class OverlayBehavior<V : View>(context: Context, attrs: AttributeSet) :
 
         ObjectAnimator.ofFloat(v, "translationX", pos).apply {
             duration = animationDuration
-            start()
-
             doOnEnd {
                 canAnimate = true
             }
+
+            start()
         }
     }
 
@@ -177,11 +213,25 @@ class OverlayBehavior<V : View>(context: Context, attrs: AttributeSet) :
 
         ObjectAnimator.ofFloat(v, "translationX", -pos).apply {
             duration = animationDuration
-            start()
-
             doOnEnd {
                 canAnimate = true
             }
+
+            start()
+        }
+    }
+
+    private fun moveViewRight(v: View) {
+        val pos = maxForView(v)
+        val animationDuration = interpolate(pos, 500f, abs(offsetX)).toLong()
+
+        ObjectAnimator.ofFloat(v, "translationX", pos).apply {
+            duration = animationDuration
+            doOnEnd {
+                canAnimate = true
+            }
+
+            start()
         }
     }
 

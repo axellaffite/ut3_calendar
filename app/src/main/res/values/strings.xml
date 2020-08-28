@@ -2,7 +2,7 @@
     <string name="app_name">Calendrier UT3</string>
     <string name="title_calendar">Calendrier</string>
     <string name="title_notes">Notes</string>
-    <string name="title_notifications">Notifications</string>
+    <string name="title_map">Carte</string>
     <string name="addr_celcat" translatable="false">https://edt.univ-tlse3.fr</string>
     <string name="add_note">Ajouter une note</string>
     <string name="enable_update_notifications">Activer les notifications</string>
@@ -12,4 +12,10 @@
     <string name="application">Application</string>
     <string name="calendar_link">Lien vers votre calendrier Celcat</string>
     <string name="not_valid_link">Lien non valide</string>
+    <string name="summary_notifications">Cette option permet d\'activer ou non les notifications à chaque mise à jour de l\'emploi du temps. Elles indiqueront combien de cours on étés ajoutés, supprimés, modifiés. Dans tous les cas vous pourrez les retrouver dans l\'onglet \"Nouveautés\"</string>
+    <string name="summary_link">Il s\'agit du lien vers votre calendrier Celcat configuré pour votre / vos groupe(s). N\'oubliez pas d\'ajouter au moins un groupe avant de copier le lien.</string>
+    <string name="update_failed">La mise à jour a échoué</string>
+    <string name="action_retry">Réessayer</string>
+    <string name="update_succeeded">Emploi du temps mis à jour avec succès !</string>
+    <string name="map_search_hint">Un batiment, un restaurant, ...</string>
 </resources>
