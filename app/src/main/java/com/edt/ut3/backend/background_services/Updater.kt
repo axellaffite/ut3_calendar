@@ -77,19 +77,42 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
 
             setProgress(workDataOf(Progress to 50))
 
-            val eventsArray = withContext(Default) {
+            val receivedEvent = withContext(Default) {
                 eventsJSONArray.map {
                     Event.fromJSON(it as JSONObject, classes, courses)
                 }
             }
-            Log.d("UPDATER", "Events count : ${eventsArray.size}")
+            Log.d("UPDATER", "Events count : ${receivedEvent.size}")
 
 
             setProgress(workDataOf(Progress to 80))
 
-            AppDatabase.getInstance(applicationContext).eventDao().insert(
-                *eventsArray.toTypedArray()
-            )
+            AppDatabase.getInstance(applicationContext).run{
+                /* get all the event and their id before the update */
+                val oldEvent: List<Event> = eventDao().selectAll()
+                val oldEventID : List<String> = oldEvent.map { it -> it.id }
+                /* get id of received events */
+                val receivedEventID : List<String> = receivedEvent.map { it -> it.id }
+
+                /*  Compute all events ID changes since last update */
+                val newEventsID = receivedEventID.toList().toHashSet().apply{ removeAll(oldEventID) }
+                val removedEventsID = oldEventID.toList().toHashSet().apply{ removeAll(receivedEventID)}
+                val updatedEventsID = receivedEventID.toList().toHashSet().apply { retainAll(oldEventID) }
+
+                /* retrieve corresponding events */
+                val newEvents = receivedEvent.filter { newEventsID.contains(it.id) }
+                val removedEvent = oldEvent.filter {removedEventsID.contains(it.id)}
+                val updatedEvent = receivedEvent.filter { updatedEventsID.contains(it.id) }
+
+                eventDao().insert(*receivedEvent.toTypedArray())
+                eventDao().delete(*receivedEvent.toTypedArray())
+                eventDao().update(*receivedEvent.toTypedArray())
+                //TODO Check if this is the first update or if the user disable the notification
+
+                /*  insert all new events */
+                eventDao().insert(*receivedEvent.toTypedArray())
+
+            }
         } catch (e: Exception) {
             e.printStackTrace()
 //            TODO("Catch exceptions properly")
