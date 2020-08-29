@@ -3,4 +3,19 @@
     <string name="app_name">UT3 Calendar</string>
     <string name="title_calendar">Calendar</string>
     <string name="title_notes">Notes</string>
+    <string name="add_note">Add a note</string>
+    <string name="enable_update_notifications">Enable notifications</string>
+    <string name="title_map">Map</string>
+    <string name="light">Light</string>
+    <string name="dark">Dark</string>
+    <string name="theme">Theme</string>
+    <string name="application">Application</string>
+    <string name="calendar_link">Link to your Celcat calendar</string>
+    <string name="not_valid_link">Not a valid link</string>
+    <string name="summary_notifications">This option allows to activate or not the notifications for each schedule update. They will indicate how many courses have been added, deleted and edited. In any case you can find them in the \"News\" tab.</string>
+    <string name="summary_link">This is the link to you Celcat calendar configured for your group(s). Remember to add at least one group before copying the link.</string>
+    <string name="update_failed">Update has failed</string>
+    <string name="action_retry">Retry</string>
+    <string name="update_succeeded">Schedule successfully updated!</string>
+    <string name="map_search_hint">A building, a restaurant, ...</string>
 </resources>

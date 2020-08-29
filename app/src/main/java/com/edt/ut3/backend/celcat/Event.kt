@@ -1,12 +1,10 @@
 package com.edt.ut3.backend.celcat
 
+import android.content.Context
 import androidx.room.*
 import com.edt.ut3.backend.database.Converter
 import com.edt.ut3.backend.note.Note
-import com.edt.ut3.misc.Emoji
-import com.edt.ut3.misc.fromCelcatString
-import com.edt.ut3.misc.fromHTML
-import com.edt.ut3.misc.toList
+import com.edt.ut3.misc.*
 import com.elzozor.yoda.events.EventWrapper
 import org.json.JSONException
 import org.json.JSONObject
@@ -31,7 +29,7 @@ data class Event(
     @TypeConverters(Converter::class) var start: Date,
     @TypeConverters(Converter::class) var end: Date?,
     var allday: Boolean,
-    var backGroundColor: String?,
+    var backgroundColor: String?,
     var textColor: String?,
     @ColumnInfo(name = "note_id") var noteID: Long?
 ) {
@@ -54,7 +52,7 @@ data class Event(
                 start = start,
                 end = end,
                 allday = getBoolean("allDay"),
-                backGroundColor = getString("backgroundColor").fromHTML(),
+                backgroundColor = getString("backgroundColor").fromHTML(),
                 textColor = optString("textColor").fromHTML() ?: "#000000",
                 noteID = null
             )
@@ -72,6 +70,29 @@ data class Event(
                 else -> category
             }
         }
+    }
+
+    /**
+     * Convert the background color into a darker color.
+     * In case where the background color is missing (e.g. null)
+     * the primaryColor is returned by the function.
+     *
+     * @param context Application context
+     * @return The darkened color
+     */
+    fun darkBackgroundColor(context: Context) : Int {
+        return DestructedColor.fromCelcatColor(context, backgroundColor).changeLuminosity().toArgb()
+    }
+
+    /**
+     * Convert the background color into an Int and returns it.
+     * In case of null background color, the primaryColor is returned.
+     *
+     * @param context Application context
+     * @return The converted color
+     */
+    fun lightBackgroundColor(context: Context) : Int {
+        return DestructedColor.fromCelcatColor(context, backgroundColor).toArgb()
     }
 
     /**
@@ -137,10 +158,12 @@ data class Event(
             }
         }
 
-        override fun toString() = StringBuilder()
-            .append("course:").append(course).append("\n")
-            .append("classes:").append(classes).append("\n")
-            .append("teacherID:").append(teacherID).append("\n")
-            .append("precisions:").append(precisions).append("\n\n\n").toString()
+        override fun toString() = """course:${course}
+            |classes:${classes}
+            |teacherID:${teacherID}
+            |precisions:${precisions}
+            |
+            |
+        """.trimMargin()
     }
 }

@@ -1,33 +1,26 @@
 package com.edt.ut3.backend.requests
 
 import android.util.Log
-import com.edt.ut3.misc.set
+import com.edt.ut3.misc.plus
+import com.edt.ut3.misc.timeCleaned
 import com.edt.ut3.misc.toCelcatDateStr
 import okhttp3.*
 import java.io.IOException
 import java.util.*
 import kotlin.time.ExperimentalTime
-
-
-//interface CelcatService {
-//    @Headers(
-//        "Accept: application/json, text/javascript",
-//        "X-Requested-With: XMLHttpRequest",
-//        "Content-Type: application/x-www-form-urlencoded; charset=UTF-8",
-//        "Connection: keep-alive")
-//    @POST("/calendar2/Home/GetCalendarData")
-//    fun getEvents(@Body celcatBody: String): Call<JsonObject>
-//}
+import kotlin.time.days
 
 
 class CelcatService {
     @ExperimentalTime
     @Throws(IOException::class)
     fun getEvents(formations: List<String>) : Response {
+        val today = Date().timeCleaned()
+
         val body = RequestsUtils.EventBody().apply {
-                add("start", (Date().set(2020, Calendar.JANUARY, 1)).toCelcatDateStr())
-                add("end", (Date().set(2020, 7, 1)).toCelcatDateStr())
-                formations.map {
+                add("start", (today).toCelcatDateStr())
+                add("end", (today + 365.days).toCelcatDateStr())
+                formations.forEach {
                     add("federationIds%5B%5D", it)
                 }
             }.build()
@@ -45,7 +38,7 @@ class CelcatService {
             .post(encodedBody)
             .build()
 
-        return OkHttpClient().newCall(request).execute()
+        return HttpClientProvider.generateNewClient().newCall(request).execute()
     }
 
 
@@ -56,7 +49,7 @@ class CelcatService {
             .get()
             .build()
 
-        return OkHttpClient().newCall(request).execute()
+        return HttpClientProvider.generateNewClient().newCall(request).execute()
     }
 
     @Throws(IOException::class)
@@ -66,6 +59,6 @@ class CelcatService {
             .get()
             .build()
 
-        return OkHttpClient().newCall(request).execute()
+        return HttpClientProvider.generateNewClient().newCall(request).execute()
     }
 }

@@ -1,7 +1,9 @@
 package com.edt.ut3.misc
 
+import android.content.Context
 import android.text.Html
 import android.text.format.DateFormat
+import android.util.TypedValue
 import org.json.JSONArray
 import org.json.JSONException
 import java.text.SimpleDateFormat
@@ -102,3 +104,11 @@ fun String.fromHTML() : String {
         Html.fromHtml(this).toString();
     }
 }
+
+
+
+fun Number.toDp(context: Context) = TypedValue.applyDimension(
+    TypedValue.COMPLEX_UNIT_DIP,
+    this.toFloat(),
+    context.resources.displayMetrics
+)

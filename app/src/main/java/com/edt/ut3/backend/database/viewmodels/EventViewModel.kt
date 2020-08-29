@@ -10,4 +10,7 @@ class EventViewModel(context: Context) {
     suspend fun getEventsByIDs(vararg ids: String) = dao.selectByIDs(*ids)
 
     suspend fun getEvents() = dao.selectAll()
+
+    fun getEventLD() = dao.selectAllLD()
+
 }
