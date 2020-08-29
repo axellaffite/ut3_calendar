@@ -38,7 +38,7 @@ class CelcatService {
             .post(encodedBody)
             .build()
 
-        return OkHttpClient().newCall(request).execute()
+        return HttpClientProvider.generateNewClient().newCall(request).execute()
     }
 
 
@@ -49,7 +49,7 @@ class CelcatService {
             .get()
             .build()
 
-        return OkHttpClient().newCall(request).execute()
+        return HttpClientProvider.generateNewClient().newCall(request).execute()
     }
 
     @Throws(IOException::class)
@@ -59,6 +59,6 @@ class CelcatService {
             .get()
             .build()
 
-        return OkHttpClient().newCall(request).execute()
+        return HttpClientProvider.generateNewClient().newCall(request).execute()
     }
 }

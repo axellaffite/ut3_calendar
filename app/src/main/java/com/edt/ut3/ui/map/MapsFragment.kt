@@ -3,10 +3,13 @@ package com.edt.ut3.ui.map
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.CompoundButton
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.edt.ut3.R
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -20,6 +23,10 @@ import kotlin.collections.HashSet
 import com.edt.ut3.ui.map.SearchPlaceAdapter.Place
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipDrawable
+import kotlinx.coroutines.Dispatchers.Default
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.withContext
 
 class MapsFragment : Fragment() {
 
@@ -33,14 +40,27 @@ class MapsFragment : Fragment() {
          * install it inside the SupportMapFragment. This method will only be triggered once the
          * user has installed Google Play services and returned to the app.
          */
-        val sydney = LatLng(-34.0, 151.0)
-        googleMap.addMarker(MarkerOptions().position(sydney).title("La grosse teub a dudule"))
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(LatLngBounds(LatLng(43.555626, 1.481780), LatLng(43.566357, 1.461509)), 0))
+        val paulSabatier = LatLng(43.5618994,1.4678633)
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(paulSabatier, 15f))
+
+        googleMap.setOnMapClickListener {
+            filters_container.visibility = GONE
+            search_result.visibility = GONE
+            search_bar.clearFocus()
+        }
+
+        googleMap.setOnCameraMoveListener {
+            filters_container.visibility = GONE
+            search_result.visibility = GONE
+            search_bar.clearFocus()
+        }
     }
 
     private val selectedCategories = HashSet<String>()
     private val allCategories = HashSet<String>()
     private val places = hashMapOf<String, List<Place>>()
+
+    private var searchJob : Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -65,6 +85,22 @@ class MapsFragment : Fragment() {
         )
 
         places["batiment"] = listOf(
+            Place("batiment", "asas", LatLng(1.0, 1.0)),
+            Place("batiment", "qzdqzd", LatLng(1.0, 1.0)),
+            Place("batiment", "wdvdvx", LatLng(1.0, 1.0)),
+            Place("batiment", "qzggfdqz", LatLng(1.0, 1.0)),
+            Place("batiment", "asas", LatLng(1.0, 1.0)),
+            Place("batiment", "qzdqzd", LatLng(1.0, 1.0)),
+            Place("batiment", "wdvdvx", LatLng(1.0, 1.0)),
+            Place("batiment", "qzggfdqz", LatLng(1.0, 1.0)),
+            Place("batiment", "asas", LatLng(1.0, 1.0)),
+            Place("batiment", "qzdqzd", LatLng(1.0, 1.0)),
+            Place("batiment", "wdvdvx", LatLng(1.0, 1.0)),
+            Place("batiment", "qzggfdqz", LatLng(1.0, 1.0)),
+            Place("batiment", "asas", LatLng(1.0, 1.0)),
+            Place("batiment", "qzdqzd", LatLng(1.0, 1.0)),
+            Place("batiment", "wdvdvx", LatLng(1.0, 1.0)),
+            Place("batiment", "qzggfdqz", LatLng(1.0, 1.0)),
             Place("batiment", "asas", LatLng(1.0, 1.0)),
             Place("batiment", "qzdqzd", LatLng(1.0, 1.0)),
             Place("batiment", "wdvdvx", LatLng(1.0, 1.0)),
@@ -110,14 +146,27 @@ class MapsFragment : Fragment() {
         search_bar.doOnTextChanged { text, _, _, _ ->
             filterResults(text.toString())
         }
+
+        search_bar.setOnClickListener {
+            search_result.visibility = VISIBLE
+            filters_container.visibility = VISIBLE
+        }
     }
 
     private fun filterResults(text: String) {
-        val lowerCaseText = text.toLowerCase(Locale.getDefault())
-        val result = places.filterKeys { selectedCategories.isEmpty() || selectedCategories.contains(it) }
-            .flatMap { it.value }
-            .filter { it.value.toLowerCase(Locale.getDefault()).contains(lowerCaseText) }.toSet()
+        searchJob?.cancel()
+        searchJob = lifecycleScope.launchWhenResumed {
+            val lowerCaseText = text.toLowerCase(Locale.getDefault())
+            val result = withContext(Default) {
+                places.filterKeys { selectedCategories.isEmpty() || selectedCategories.contains(it) }
+                    .flatMap { it.value }
+                    .filter { it.value.toLowerCase(Locale.getDefault()).contains(lowerCaseText) }
+                    .toTypedArray()
+            }
 
-        search_result.adapter = SearchPlaceAdapter(requireContext(), result.toTypedArray())
+            withContext(Main) {
+                search_result.adapter = SearchPlaceAdapter(requireContext(), result)
+            }
+        }
     }
 }
