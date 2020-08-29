@@ -81,4 +81,10 @@ dependencies {
     //Preferences
     implementation 'androidx.preference:preference:1.1.1'
 
+    //Picasso
+    implementation 'com.squareup.picasso:picasso:2.71828'
+
+    //osmdroid as google map replacement
+    implementation 'org.osmdroid:osmdroid-android:6.1.8'
+
 }

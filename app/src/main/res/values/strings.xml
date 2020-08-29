@@ -18,4 +18,9 @@
     <string name="action_retry">Réessayer</string>
     <string name="update_succeeded">Emploi du temps mis à jour avec succès !</string>
     <string name="map_search_hint">Un batiment, un restaurant, ...</string>
+    <string name="unknown_error">Une erreur est survenue pendant la mise à jour des données</string>
+    <string name="unable_to_retrieve_data">Impossible de récupérer les lieux, vérifiez votre connexion internet.</string>
+    <string name="unknow_error">Impossible de traiter les données reçues</string>
+    <string name="action_ok">ok</string>
+    <string name="no_description_available">Pas de description disponible pour ce lieu</string>
 </resources>
