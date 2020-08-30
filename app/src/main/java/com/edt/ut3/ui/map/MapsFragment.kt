@@ -1,6 +1,12 @@
 package com.edt.ut3.ui.map
 
+import android.Manifest
 import android.app.Activity
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -11,16 +17,15 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.CompoundButton
 import androidx.activity.addCallback
+import androidx.core.app.ActivityCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.observe
-import com.edt.ut3.BuildConfig
 import com.edt.ut3.R
 import com.edt.ut3.ui.map.SearchPlaceAdapter.Place
-import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipDrawable
@@ -29,6 +34,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_maps.*
 import kotlinx.android.synthetic.main.fragment_maps.view.*
 import kotlinx.coroutines.Dispatchers.Default
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -62,19 +68,17 @@ class MapsFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
+        // Do not remove this line until we use osmdroid
         map.onPause()
     }
 
     override fun onResume() {
         super.onResume()
+        // Do not remove this line until we use omsdroid
         map.onResume()
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_maps, container, false)
     }
 
@@ -83,10 +87,7 @@ class MapsFragment : Fragment() {
 
         configureMap()
         setupListeners()
-
-        val paulSabatier = GeoPoint(43.5618994,1.4678633)
-        smoothMoveTo(paulSabatier, 15.0)
-        map.controller.animateTo(paulSabatier, 15.0, 1L)
+        moveToPaulSabatier()
 
         startDownloadJob()
     }
@@ -97,7 +98,7 @@ class MapsFragment : Fragment() {
      *
      */
     private fun configureMap() {
-        Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID
+        Configuration.getInstance().userAgentValue = requireActivity().packageName
 
         map.apply {
             // Which tile source will gives
@@ -114,7 +115,6 @@ class MapsFragment : Fragment() {
 
             // Disable the awful zoom buttons as the
             // user can now zoom with its fingers
-            //TODO correct this as it doesn't works
             zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
 
 
@@ -144,7 +144,49 @@ class MapsFragment : Fragment() {
             }
 
             overlays.add(overlay)
+
+            setupLocationListener()
         }
+    }
+
+    private fun setupLocationListener() {
+        val listener = object: LocationListener {
+            override fun onLocationChanged(p0: Location) {
+                view?.let {
+                    it.map.overlays.add(Marker(map).apply {
+                        title = "position"
+                        position = GeoPoint(p0)
+                    })
+                }
+            }
+
+            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+            }
+
+        }
+
+        val manager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ),
+                0
+            )
+
+            return
+        }
+
+        manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 0f, listener)
     }
 
     /**
@@ -153,65 +195,230 @@ class MapsFragment : Fragment() {
     private fun setupListeners() {
         //text, start, before, count
         search_bar.doOnTextChanged { text, _, _, _ ->
-            filterResults(text.toString())
+            handleTextChanged(text.toString())
         }
 
         search_bar.setOnClickListener {
             refreshPlaces()
-            filterResults(search_bar.text.toString())
+            handleTextChanged(search_bar.text.toString())
             state.value = State.SEARCHING
         }
 
         state.observe(viewLifecycleOwner) { handleStateChange(it) }
 
-        handleBackButtonClick()
+        setupBackButtonPressCallback()
     }
 
-    private fun handleBackButtonClick() {
+    /**
+     * Simply redirect to the filterResults function
+     * that will filter the results.
+     *
+     * @param text The search bar text
+     */
+    private fun handleTextChanged(text: String) = filterResults(text)
+
+    /**
+     * Filter the results and assign a job to it.
+     * When the function is called a second time
+     * while the job isn't finished yet, the previous
+     * one is canceled and replaced by the new one.
+     *
+     * @param text The search bar text
+     */
+    private fun filterResults(text: String) {
+        searchJob?.cancel()
+        searchJob = lifecycleScope.launchWhenResumed {
+            // We first set the text to lower case in order
+            // to do a non-sensitive case search.
+            val lowerCaseText = text.toLowerCase(Locale.getDefault())
+
+            // We then filter the result and assign them to a variable
+            val matchingPlaces = withContext(Default) {
+                // Filtering the keys to keep only the ones that matches
+                // the selected categories.
+                // If no category is selected the Map is kept as it.
+                val searchingMap = if (selectedCategories.isEmpty()) {
+                    places
+                } else {
+                    places.filterKeys { selectedCategories.contains(it) }
+                }
+
+                // We then flat map every values for every remaining keys
+                // to obtain them in a single Collection
+                // After that, we keep only the ones that contains the
+                // search bar text and return them
+                searchingMap.
+                    flatMap { it.value }
+                    .filter { it.title.toLowerCase(Locale.getDefault()).contains(lowerCaseText) }
+                    .toTypedArray()
+            }
+
+            // We them add them to the ListView that will contains the search
+            // result.
+            // As it modify the view I prefer do it on the Main thread to avoid problems.
+            withContext(Main) {
+                search_result.adapter = SearchPlaceAdapter(requireContext(), matchingPlaces)
+                search_result.setOnItemClickListener { adapterView, view, pos, id ->
+                    if (pos != -1) {
+                        val place = search_result.getItemAtPosition(pos) as Place
+                        selectedPlace = place
+                        state.value = State.PLACE
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * This function is in charge to handle
+     * when the user press the back button.
+     * The behavior depends on what's the current
+     * state.
+     * Given that state it will simply changes the
+     * current state or pop the fragment stack.
+     */
+    private fun setupBackButtonPressCallback() {
         val activity = requireActivity()
         activity.onBackPressedDispatcher.addCallback {
             when (state.value) {
                 State.SEARCHING, State.PLACE -> state.value = State.MAP
                 State.MAP -> activity.onBackPressed()
+                else -> activity.supportFragmentManager.popBackStack()
             }
         }
     }
 
-    private fun startDownloadJob() {
-        downloadJob?.cancel()
-        downloadJob = lifecycleScope.launchWhenResumed {
-            var callback: () -> Unit
-            try {
-                places = viewModel.getCrousPlaces()
-                callback = {
-                    setupCategoriesAndPlaces(places)
-                }
+    private fun moveToPaulSabatier() {
+        val paulSabatier = GeoPoint(43.5618994,1.4678633)
+        smoothMoveTo(paulSabatier, 15.0)
+    }
 
+    /**
+     * This function is in charge to download
+     * the Paul Sabatier places and the Crous places.
+     * In any cases it displays a Snackbar which
+     * indicates the result.
+     */
+    private fun startDownloadJob() {
+        // If a download job is pending, we do not
+        // launch an another job.
+        if (downloadJob?.isActive == true) {
+            return
+        }
+
+        var newPlaces = mutableMapOf<String, MutableList<Place>>()
+
+        // Assign the downloadJob to the new operation
+        downloadJob = lifecycleScope.launchWhenResumed {
+            // The error variable will store the last exception
+            // encountered and the errorCount the number
+            // of exceptions encountered.
+            // There are 4 cases after the two downloads :
+            // - errorCount = 0 : There are no error, we can
+            //                    display a success message
+            // - errorCount = 1 : The Paul Sabatier places aren't
+            //                    available, the internet connection
+            //                    seems to be good as the second download
+            //                    is a success, we check if it's a parsing
+            //                    error or a timeout error.
+            // - errorCount = 2 : Same logic as =1 but for the Crous places.
+            // - errorCount = 3 : The internet connection does not seem to work,
+            //                    we display an error message saying to check it.
+            var error: Exception? = null
+            var errorCount = 0
+
+
+            // First download for Paul Sabatier places
+            // (from our github)
+            try {
+                newPlaces = withContext(IO) {
+                    viewModel.getPaulSabatierPlaces()
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
-                val err = when (e) {
-                    is JSONException -> R.string.unknow_error
-                    is java.io.IOException -> R.string.unable_to_retrieve_data
-                    else -> R.string.unknown_error
+                error = e
+                errorCount += 1
+            }
+
+            // Second download for Crous places
+            // (from the government website)
+            try {
+                val temp = withContext(IO) {
+                    viewModel.getCrousPlaces()
                 }
 
-                callback = {
-                    Snackbar.make(requireView().maps_main, err, Snackbar.LENGTH_INDEFINITE)
-                        .setAction(getString(R.string.action_retry)) {
+                temp.forEach { entry ->
+                    newPlaces.getOrPut(entry.key) { mutableListOf() }.addAll(entry.value)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                error = e
+                errorCount += 2
+            }
+
+            // This callback will hold the callback action.
+            // We put it in a variable to avoid duplicate code
+            // as the code must be use in a post {} function
+            // of the main view (to avoid view nullability and things like that)
+            val callback : () -> Unit
+            when (errorCount) {
+                // Display success message
+                0 -> callback = {
+                    Snackbar.make(maps_main, R.string.update_succeeded, Snackbar.LENGTH_LONG).show()
+                    setupCategoriesAndPlaces(newPlaces)
+                }
+
+                // Display an error message depending on
+                // what type of error it is
+                1 -> callback = {
+                    val errRes = when (error) {
+                        is JSONException -> R.string.building_data_invalid
+                        else -> R.string.building_update_failed
+                    }
+
+                    Snackbar.make(maps_main, errRes, Snackbar.LENGTH_INDEFINITE)
+                        .setAction(R.string.action_retry) {
                             startDownloadJob()
                         }
                         .show()
+
+                    setupCategoriesAndPlaces(newPlaces)
+                }
+
+                // Display an error message depending on
+                // what type of error it is
+                2 -> callback = {
+                    val errRes = when (error) {
+                        is JSONException -> R.string.restaurant_data_invalid
+                        else -> R.string.restaurant_update_failed
+                    }
+
+                    Snackbar.make(maps_main, errRes, Snackbar.LENGTH_INDEFINITE)
+                        .setAction(R.string.action_retry) {
+                            startDownloadJob()
+                        }
+                        .show()
+
+                    setupCategoriesAndPlaces(newPlaces)
+                }
+
+                // Display an internet error message
+                else -> callback = {
+                    Snackbar.make(maps_main, R.string.update_failed, Snackbar.LENGTH_INDEFINITE).show()
                 }
             }
 
-            view?.post { callback() }
+            // Calling the callback.
+            println("DEBUG: Download result: $errorCount ${error?.javaClass?.simpleName}")
+            maps_main?.post(callback)
         }
     }
 
-    private fun setupCategoriesAndPlaces(places: MutableMap<String, MutableList<Place>>) {
+    private fun setupCategoriesAndPlaces(incomingPlaces: MutableMap<String, MutableList<Place>>) {
+        places = incomingPlaces
         filters_group.post {
             filters_group.run {
-                places.keys.forEach { category ->
+                incomingPlaces.keys.forEach { category ->
                     addView(
                         Chip(requireContext()).apply {
                             setChipDrawable(
@@ -318,36 +525,20 @@ class MapsFragment : Fragment() {
             place_info.descriptionText = it.short_desc ?: getString(R.string.no_description_available)
             place_info.picture = it.photo
 
-            //TODO edit this
-//            googleMap.clear()
-//            googleMap.addMarker(MarkerOptions().position(it.geolocalisation))
+            map.overlays.removeAll { it is Marker }
+            val marker = Marker(map).apply {
+                position = GeoPoint(it.geolocalisation)
+                title = it.title
+            }
+            map.overlays.add(marker)
+            marker.showInfoWindow()
+
+
             smoothMoveTo(it.geolocalisation)
         }
     }
 
-    private fun filterResults(text: String) {
-        searchJob?.cancel()
-        searchJob = lifecycleScope.launchWhenResumed {
-            val lowerCaseText = text.toLowerCase(Locale.getDefault())
-            val result = withContext(Default) {
-                places.filterKeys { selectedCategories.isEmpty() || selectedCategories.contains(it) }
-                    .flatMap { it.value }
-                    .filter { it.title.toLowerCase(Locale.getDefault()).contains(lowerCaseText) }
-                    .toTypedArray()
-            }
 
-            withContext(Main) {
-                search_result.adapter = SearchPlaceAdapter(requireContext(), result)
-                search_result.setOnItemClickListener { adapterView, view, pos, id ->
-                    if (pos != -1) {
-                        val place = search_result.getItemAtPosition(pos) as Place
-                        selectedPlace = place
-                        state.value = State.PLACE
-                    }
-                }
-            }
-        }
-    }
 
     private fun smoothMoveTo(position: GeoPoint, zoom: Double = 17.0, speed: Long = 1000L) {
         map.controller.animateTo(position, zoom, speed)
