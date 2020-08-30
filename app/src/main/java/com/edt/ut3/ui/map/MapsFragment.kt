@@ -3,6 +3,7 @@ package com.edt.ut3.ui.map
 import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
@@ -16,23 +17,15 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.observe
-import androidx.preference.PreferenceManager
 import com.edt.ut3.BuildConfig
 import com.edt.ut3.R
-import com.edt.ut3.backend.celcat.Event
-import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.ui.map.SearchPlaceAdapter.Place
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipDrawable
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_maps.*
 import kotlinx.android.synthetic.main.fragment_maps.view.*
 import kotlinx.coroutines.Dispatchers.Default
@@ -41,12 +34,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONException
-import org.osmdroid.api.IGeoPoint
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.CustomZoomButtonsController
+import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Overlay
 import java.util.*
 import kotlin.collections.HashSet
 
@@ -58,37 +52,6 @@ class MapsFragment : Fragment() {
 
     private val viewModel: MapsViewModel by viewModels { defaultViewModelProviderFactory }
 
-
-    private val callback = OnMapReadyCallback { ggmp ->
-        /**
-         * Manipulates the map once available.
-         * This callback is triggered when the map is ready to be used.
-         * This is where we can add markers or lines, add listeners or move the camera.
-         * In this case, we just add a marker near Sydney, Australia.
-         * If Google Play services is not installed on the device, the user will be prompted to
-         * install it inside the SupportMapFragment. This method will only be triggered once the
-         * user has installed Google Play services and returned to the app.
-         */
-        //TODO edit this
-//        googleMap = ggmp
-//
-//        val paulSabatier = LatLng(43.5618994,1.4678633)
-//        smoothMoveTo(paulSabatier, 15f)
-//
-//        googleMap.setOnMapClickListener {
-//            state.value = State.MAP
-//        }
-//
-//        googleMap.setOnCameraMoveListener {
-//            if (state.value == State.SEARCHING) {
-//                state.value = State.MAP
-//            }
-//        }
-//
-//        googleMap.setOnMarkerClickListener {
-//
-//        }
-    }
 
     private var downloadJob : Job? = null
 
@@ -107,35 +70,86 @@ class MapsFragment : Fragment() {
         map.onResume()
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_maps, container, false).also {
-            it.map.setTileSource(TileSourceFactory.MAPNIK)
-            it.map.isTilesScaledToDpi = true
-            it.map.setMultiTouchControls(true)
-        }
+        return inflater.inflate(R.layout.fragment_maps, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        configureMap()
+        setupListeners()
 
         val paulSabatier = GeoPoint(43.5618994,1.4678633)
         smoothMoveTo(paulSabatier, 15.0)
         map.controller.animateTo(paulSabatier, 15.0, 1L)
 
         startDownloadJob()
-        setupListeners()
     }
 
+    /**
+     * Configures the MapView
+     * for a better user experience.
+     *
+     */
+    private fun configureMap() {
+        Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID
+
+        map.apply {
+            // Which tile source will gives
+            // us the map resources, otherwise
+            // it cannot display the map.
+            setTileSource(TileSourceFactory.MAPNIK)
+
+            // This setting allows us to correctly see
+            // the text on the screen ( adapt to the screen's dpi )
+            isTilesScaledToDpi = true
+
+            // Allows the user to zoom with its fingers.
+            setMultiTouchControls(true)
+
+            // Disable the awful zoom buttons as the
+            // user can now zoom with its fingers
+            //TODO correct this as it doesn't works
+            zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
+
+
+            // As the MapView's setOnClickListener function did nothing
+            // I decided to add an overlay to detect click and scroll events.
+            val overlay = object: Overlay() {
+                override fun onSingleTapConfirmed(e: MotionEvent?, mapView: MapView?): Boolean {
+                    println("Click detected on map")
+                    state.value = State.MAP
+
+                    return super.onSingleTapConfirmed(e, mapView)
+                }
+
+                override fun onScroll(
+                    pEvent1: MotionEvent?,
+                    pEvent2: MotionEvent?,
+                    pDistanceX: Float,
+                    pDistanceY: Float,
+                    pMapView: MapView?
+                ): Boolean {
+                    if (state.value == State.SEARCHING) {
+                        state.value = State.MAP
+                    }
+
+                    return super.onScroll(pEvent1, pEvent2, pDistanceX, pDistanceY, pMapView)
+                }
+            }
+
+            overlays.add(overlay)
+        }
+    }
+
+    /**
+     * Setup all the listeners to handle user's actions.
+     */
     private fun setupListeners() {
         //text, start, before, count
         search_bar.doOnTextChanged { text, _, _, _ ->
@@ -143,6 +157,8 @@ class MapsFragment : Fragment() {
         }
 
         search_bar.setOnClickListener {
+            refreshPlaces()
+            filterResults(search_bar.text.toString())
             state.value = State.SEARCHING
         }
 
@@ -173,9 +189,9 @@ class MapsFragment : Fragment() {
 
             } catch (e: Exception) {
                 e.printStackTrace()
-                val err = when (e.javaClass) {
-                    JSONException::class -> R.string.unknow_error
-                    java.io.IOException::class -> R.string.unable_to_retrieve_data
+                val err = when (e) {
+                    is JSONException -> R.string.unknow_error
+                    is java.io.IOException -> R.string.unable_to_retrieve_data
                     else -> R.string.unknown_error
                 }
 
@@ -265,6 +281,10 @@ class MapsFragment : Fragment() {
         filters_container.visibility = GONE
         search_result.visibility = GONE
         from(place_info_container).state = STATE_HIDDEN
+        requireActivity().nav_view.visibility = VISIBLE
+
+        search_bar.clearFocus()
+        map.requestFocus()
 
         hideKeyboard()
     }
@@ -278,12 +298,15 @@ class MapsFragment : Fragment() {
         search_result.visibility = VISIBLE
         filters_container.visibility = VISIBLE
         from(place_info_container).state = STATE_HIDDEN
+
+        requireActivity().nav_view.visibility = GONE
     }
 
     private fun displayPlaceInfo() {
         selectedPlace?.let {
             search_result.visibility = GONE
             filters_container.visibility = GONE
+            requireActivity().nav_view.visibility = GONE
             hideKeyboard()
 
             lifecycleScope.launchWhenStarted {
