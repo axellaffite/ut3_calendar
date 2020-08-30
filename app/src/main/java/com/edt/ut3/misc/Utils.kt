@@ -4,6 +4,8 @@ import android.content.Context
 import android.text.Html
 import android.text.format.DateFormat
 import android.util.TypedValue
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
 import org.json.JSONArray
 import org.json.JSONException
 import java.text.SimpleDateFormat

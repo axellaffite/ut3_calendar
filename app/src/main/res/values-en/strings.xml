@@ -18,4 +18,5 @@
     <string name="action_retry">Retry</string>
     <string name="update_succeeded">Schedule successfully updated!</string>
     <string name="map_search_hint">A building, a restaurant, ...</string>
+    <string name="action_ok">ok</string>
 </resources>

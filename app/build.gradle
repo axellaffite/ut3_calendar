@@ -9,11 +9,11 @@ android {
     buildToolsVersion "30.0.0"
 
     defaultConfig {
-        applicationId "com.elzozor.ut3calendar"
+        applicationId "com.edt.ut3"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 1
-        versionName "1.0"
+        versionCode 13
+        versionName "2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -59,9 +59,14 @@ dependencies {
     def work_version = "2.4.0"
     implementation "androidx.work:work-runtime-ktx:$work_version"
 
+    //Preferences
+    implementation 'androidx.preference:preference:1.1.1'
 
 
-    // Room
+
+    // Name : Room
+    // Summary : A useful library that generate sql from classes
+    // Documentation : https://developer.android.com/topic/libraries/architecture/room
     def room_version = "2.2.5"
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version" // For Kotlin use kapt instead of annotationProcessor
@@ -69,16 +74,23 @@ dependencies {
     implementation "androidx.room:room-ktx:$room_version"
     // optional - RxJava support for Room
     implementation "androidx.room:room-rxjava2:$room_version"
-    //Retrofit
-    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.1.0'
 
-    implementation "com.squareup.retrofit2:converter-scalars:2.4.0"
 
-    //yoda
+    // Name : Yoda
+    // Summary : A useful library that allows us to display
+    //           schedules on a given view.
+    // Github : https://github.com/ElZozor/yoda
     implementation 'com.github.ElZozor:yoda:v0.12'
 
-    //Preferences
-    implementation 'androidx.preference:preference:1.1.1'
+    // Name: Picasso
+    // Summary : A library that allows us to download and
+    //           cache images.
+    // Documentation : https://square.github.io/picasso/#features
+    implementation 'com.squareup.picasso:picasso:2.71828'
+
+    // Name : OSMDroid
+    // Summary : An open source replacement for Google Map
+    // Documentation : https://osmdroid.github.io/osmdroid/javadocs/osmdroid-android/release/index.html
+    implementation 'org.osmdroid:osmdroid-android:6.1.8'
 
 }

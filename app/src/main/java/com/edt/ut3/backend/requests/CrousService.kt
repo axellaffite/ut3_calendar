@@ -5,7 +5,7 @@ import okhttp3.Response
 
 class CrousService {
 
-    private val CROUS_API_LINK = "https://data.enseignementsup-recherche.gouv.fr/api/records/1.0/search/?dataset=fr_crous_restauration_france_entiere&q=&facet=type&facet=zone&refine.zone=Toulouse"
+    private val CROUS_API_LINK = "https://data.enseignementsup-recherche.gouv.fr/api/records/1.0/search/?dataset=fr_crous_restauration_france_entiere&q=&rows=-1&facet=type&facet=zone&refine.zone=Toulouse"
 
     /**
      * This will retrieve the crous data which contains some information
