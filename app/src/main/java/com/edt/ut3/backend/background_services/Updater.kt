@@ -109,8 +109,6 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                 eventDao().update(*updatedEvent.toTypedArray())
                 //TODO Check if this is the first update or if the user disable the notification
 
-                /*  insert all new events */
-                eventDao().insert(*receivedEvent.toTypedArray())
 
             }
         } catch (e: Exception) {
