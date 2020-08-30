@@ -81,7 +81,9 @@
             android:elevation="0dp"
             app:elevation="0dp"
             android:src="@drawable/ic_refresh"
-            android:tint="@android:color/white"/>
+            android:backgroundTint="@color/colorPrimary"
+            android:tint="@android:color/white"
+            app:tint="@android:color/white"/>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

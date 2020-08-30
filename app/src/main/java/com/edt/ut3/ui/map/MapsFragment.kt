@@ -1,6 +1,7 @@
 package com.edt.ut3.ui.map
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
@@ -26,6 +27,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.observe
 import com.edt.ut3.R
 import com.edt.ut3.ui.map.SearchPlaceAdapter.Place
+import com.edt.ut3.ui.map.custom_makers.LocationMarker
+import com.edt.ut3.ui.map.custom_makers.PlaceMarker
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipDrawable
@@ -59,12 +62,11 @@ class MapsFragment : Fragment() {
     private val viewModel: MapsViewModel by viewModels { defaultViewModelProviderFactory }
 
 
+    private var searchJob : Job? = null
     private var downloadJob : Job? = null
 
     private val selectedCategories = HashSet<String>()
     private var places = mutableMapOf<String, MutableList<Place>>()
-
-    private var searchJob : Job? = null
 
     override fun onPause() {
         super.onPause()
@@ -104,7 +106,7 @@ class MapsFragment : Fragment() {
             // Which tile source will gives
             // us the map resources, otherwise
             // it cannot display the map.
-            setTileSource(TileSourceFactory.MAPNIK)
+            setTileSource(TileSourceFactory.DEFAULT_TILE_SOURCE)
 
             // This setting allows us to correctly see
             // the text on the screen ( adapt to the screen's dpi )
@@ -149,44 +151,45 @@ class MapsFragment : Fragment() {
         }
     }
 
+    /**
+     * This function will set the location listener
+     * that will track the user's location and
+     * display it on the map.
+     *
+     * The suppress lint is put there as
+     * the requestLocationPermissionIfNecessary is
+     * called and check it before executing it
+     */
+    @SuppressLint("MissingPermission")
     private fun setupLocationListener() {
         val listener = object: LocationListener {
             override fun onLocationChanged(p0: Location) {
                 view?.let {
-                    it.map.overlays.add(Marker(map).apply {
+                    it.map.overlays.add(LocationMarker(it.map).apply {
                         title = "position"
                         position = GeoPoint(p0)
                     })
                 }
             }
 
+            /**
+             * Unused but necessary to avoid crash
+             * due to function deprecation
+             */
             override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
             }
 
         }
 
         val manager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ),
-                0
+        executeIfLocationPermissionIsGranted {
+            manager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER,
+                0L,
+                0f,
+                listener
             )
-
-            return
         }
-
-        manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 0f, listener)
     }
 
     /**
@@ -207,6 +210,40 @@ class MapsFragment : Fragment() {
         state.observe(viewLifecycleOwner) { handleStateChange(it) }
 
         setupBackButtonPressCallback()
+
+        my_location.setOnClickListener {
+            val locationMarker = map.overlays.find { it is LocationMarker } as? LocationMarker
+            locationMarker?.let { me ->
+                smoothMoveTo(me.position)
+            }
+        }
+    }
+
+    private fun executeIfLocationPermissionIsGranted(callback: () -> Unit) {
+        // We check if the permissions are granted
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // If not we request it
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ),
+                0
+            )
+
+            return
+        }
+
+        // Otherwise we execute the callback
+        callback()
     }
 
     /**
@@ -364,7 +401,7 @@ class MapsFragment : Fragment() {
             when (errorCount) {
                 // Display success message
                 0 -> callback = {
-                    Snackbar.make(maps_main, R.string.update_succeeded, Snackbar.LENGTH_LONG).show()
+                    Snackbar.make(maps_main, R.string.maps_update_success, Snackbar.LENGTH_LONG).show()
                     setupCategoriesAndPlaces(newPlaces)
                 }
 
@@ -404,7 +441,7 @@ class MapsFragment : Fragment() {
 
                 // Display an internet error message
                 else -> callback = {
-                    Snackbar.make(maps_main, R.string.update_failed, Snackbar.LENGTH_INDEFINITE).show()
+                    Snackbar.make(maps_main, R.string.unable_to_retrieve_data, Snackbar.LENGTH_INDEFINITE).show()
                 }
             }
 
@@ -437,15 +474,18 @@ class MapsFragment : Fragment() {
                                 val cate = text.toString()
                                 if (b) {
                                     selectedCategories.add(cate)
-                                    refreshPlaces()
                                     println("Added: $cate")
                                 } else {
                                     selectedCategories.remove(cate)
                                     println("Removed: $cate")
                                 }
 
+
+                                refreshPlaces()
                                 filterResults(requireView().search_bar.text.toString())
                             }
+
+                            refreshPlaces()
                         }
                     )
                 }
@@ -454,20 +494,30 @@ class MapsFragment : Fragment() {
     }
 
     private fun refreshPlaces() {
-        map.overlays.removeAll { it is Marker }
-        selectedCategories.forEach {
+        map.overlays.removeAll { it is PlaceMarker }
+
+        val categories = if (selectedCategories.isEmpty()) {
+            places.keys
+        } else {
+            selectedCategories
+        }
+
+
+        categories.forEach {
             addPlacesOnMap(it)
         }
     }
 
     private fun addPlacesOnMap(category: String) {
         places[category]?.let { results ->
-            results.forEach {
+            results.forEach { curr ->
                 map.overlays.add(
-                    Marker(map).apply {
-                        position = it.geolocalisation
-                        title = it.title
-                        //TODO set the icon drawable
+                    PlaceMarker(map, curr.copy()).apply {
+                        onLongClickListener = {
+                            selectedPlace = place
+                            state.value = State.PLACE
+                            true
+                        }
                     }
                 )
             }
@@ -525,22 +575,27 @@ class MapsFragment : Fragment() {
             place_info.descriptionText = it.short_desc ?: getString(R.string.no_description_available)
             place_info.picture = it.photo
 
-            map.overlays.removeAll { it is Marker }
-            val marker = Marker(map).apply {
-                position = GeoPoint(it.geolocalisation)
-                title = it.title
-            }
-            map.overlays.add(marker)
-            marker.showInfoWindow()
+            map.overlays.removeAll { marker -> marker is PlaceMarker }
+            map.overlays.add(
+                PlaceMarker(map, it).also { marker ->
+                    marker.showInfoWindow()
+                }
+            )
 
 
             smoothMoveTo(it.geolocalisation)
         }
     }
 
-
-
-    private fun smoothMoveTo(position: GeoPoint, zoom: Double = 17.0, speed: Long = 1000L) {
-        map.controller.animateTo(position, zoom, speed)
+    /**
+     * Does a smooth move to the given
+     * position.
+     *
+     * @param position The wanted position
+     * @param zoom The zoom amount
+     * @param ms The time in ms
+     */
+    private fun smoothMoveTo(position: GeoPoint, zoom: Double = 17.0, ms: Long = 1000L) {
+        map.controller.animateTo(position, zoom, ms)
     }
 }

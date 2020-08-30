@@ -27,4 +27,5 @@
     <string name="restaurant_update_failed">La mise à jour des points de restauration a échoué, certains peuvent être manquants</string>
     <string name="building_data_invalid">Les données reçues pour les bâtiments sont invalides, certains peuvent être manquants</string>
     <string name="restaurant_data_invalid">Les données reçues pour les points de restaurations sont invalides, certains peuvent être manquants</string>
+    <string name="maps_update_success">Mise à jour des lieux effectuée avec succès !</string>
 </resources>
