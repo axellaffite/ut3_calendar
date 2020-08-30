@@ -26,6 +26,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.observe
 import com.edt.ut3.R
+import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.ui.map.SearchPlaceAdapter.Place
 import com.edt.ut3.ui.map.custom_makers.LocationMarker
 import com.edt.ut3.ui.map.custom_makers.PlaceMarker
@@ -45,11 +46,12 @@ import kotlinx.coroutines.withContext
 import org.json.JSONException
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.tileprovider.tilesource.XYTileSource
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Overlay
+import org.osmdroid.views.overlay.TilesOverlay
 import java.util.*
 import kotlin.collections.HashSet
 
@@ -80,7 +82,11 @@ class MapsFragment : Fragment() {
         map.onResume()
     }
 
-    override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.fragment_maps, container, false)
     }
 
@@ -106,7 +112,15 @@ class MapsFragment : Fragment() {
             // Which tile source will gives
             // us the map resources, otherwise
             // it cannot display the map.
-            setTileSource(TileSourceFactory.DEFAULT_TILE_SOURCE)
+            val tileSource = XYTileSource(
+                "HOT", 1, 20, 256, ".png", arrayOf(
+                    "http://a.tile.openstreetmap.fr/hot/",
+                    "http://b.tile.openstreetmap.fr/hot/",
+                    "http://c.tile.openstreetmap.fr/hot/"
+                ), "© OpenStreetMap contributors"
+            )
+
+            setTileSource(tileSource)
 
             // This setting allows us to correctly see
             // the text on the screen ( adapt to the screen's dpi )
@@ -148,6 +162,13 @@ class MapsFragment : Fragment() {
             overlays.add(overlay)
 
             setupLocationListener()
+
+            val light = 0
+            val dark = 1
+            when (PreferencesManager(requireContext()).getTheme()) {
+                light -> overlayManager.tilesOverlay.setColorFilter(null)
+                dark -> overlayManager.tilesOverlay.setColorFilter(TilesOverlay.INVERT_COLORS)
+            }
         }
     }
 
@@ -326,7 +347,7 @@ class MapsFragment : Fragment() {
     }
 
     private fun moveToPaulSabatier() {
-        val paulSabatier = GeoPoint(43.5618994,1.4678633)
+        val paulSabatier = GeoPoint(43.5618994, 1.4678633)
         smoothMoveTo(paulSabatier, 15.0)
     }
 
@@ -401,7 +422,8 @@ class MapsFragment : Fragment() {
             when (errorCount) {
                 // Display success message
                 0 -> callback = {
-                    Snackbar.make(maps_main, R.string.maps_update_success, Snackbar.LENGTH_LONG).show()
+                    Snackbar.make(maps_main, R.string.maps_update_success, Snackbar.LENGTH_LONG)
+                        .show()
                     setupCategoriesAndPlaces(newPlaces)
                 }
 
@@ -441,7 +463,11 @@ class MapsFragment : Fragment() {
 
                 // Display an internet error message
                 else -> callback = {
-                    Snackbar.make(maps_main, R.string.unable_to_retrieve_data, Snackbar.LENGTH_INDEFINITE).show()
+                    Snackbar.make(
+                        maps_main,
+                        R.string.unable_to_retrieve_data,
+                        Snackbar.LENGTH_INDEFINITE
+                    ).show()
                 }
             }
 
