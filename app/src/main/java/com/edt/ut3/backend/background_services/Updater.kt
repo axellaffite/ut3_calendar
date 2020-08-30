@@ -105,8 +105,8 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                 val updatedEvent = receivedEvent.filter { updatedEventsID.contains(it.id) }
 
                 eventDao().insert(*receivedEvent.toTypedArray())
-                eventDao().delete(*receivedEvent.toTypedArray())
-                eventDao().update(*receivedEvent.toTypedArray())
+                eventDao().delete(*removedEvent.toTypedArray())
+                eventDao().update(*updatedEvent.toTypedArray())
                 //TODO Check if this is the first update or if the user disable the notification
 
                 /*  insert all new events */
