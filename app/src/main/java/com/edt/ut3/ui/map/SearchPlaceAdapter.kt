@@ -26,12 +26,7 @@ class SearchPlaceAdapter(context: Context, private val values: Array<Place>) :
             inflater.inflate(R.layout.search_place, parent, false)
         }
 
-        val res = when (values[position].type) {
-            "caféteria", "restaurant" -> R.drawable.ic_restaurant
-             "batiment" -> R.drawable.ic_building
-            "amphithéatre" -> R.drawable.ic_amphitheater
-            else -> R.drawable.ic_restaurant
-        }
+        val res = values[position].getIcon()
 
         root.icon.setImageResource(res)
         root.name.text = values[position].title

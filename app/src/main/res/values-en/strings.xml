@@ -28,4 +28,7 @@
     <string name="building_data_invalid">Incomming building data are invalid, some may be missing</string>
     <string name="restaurant_data_invalid">Incomming restauration points data are invalid, some may be missing</string>
     <string name="maps_update_success">Locations update successfully completed!</string>
+    <string name="go_to">Getting there</string>
+    <string name="unable_to_launch_googlemaps">Unable to launch Google Maps</string>
+    <string name="note">Note</string>
 </resources>

@@ -11,18 +11,17 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
+import androidx.core.content.ContextCompat
+import androidx.core.view.marginLeft
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
-import androidx.work.WorkManager
 import com.edt.ut3.R
 import com.edt.ut3.backend.background_services.Updater
 import com.edt.ut3.backend.background_services.Updater.Companion.Progress
@@ -45,7 +44,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
-import java.util.concurrent.TimeUnit
 import kotlin.time.ExperimentalTime
 import kotlin.time.days
 
@@ -342,21 +340,27 @@ class CalendarFragment : Fragment() {
      */
     private fun buildEventView(context: Context, eventWrapper: EventWrapper, x: Int, y: Int, w:Int, h: Int)
             : Pair<Boolean, View> {
-        return Pair(false, EventView(context, eventWrapper as Event.Wrapper).apply {
+        return Pair(true, EventView(context, eventWrapper as Event.Wrapper).apply {
+            val spacing = context.resources.getDimension(R.dimen.event_spacing).toInt()
+            val positionAdder = {x:Int -> x+spacing}
+            val sizeChanger = {x:Int -> x-spacing}
+
+            layoutParams = ConstraintLayout.LayoutParams(sizeChanger(w), sizeChanger(h)).apply {
+                leftMargin = positionAdder(x)
+                topMargin = positionAdder(y)
+            }
+
             setOnClickListener {
-//                PopupMenu(context, this).apply {
-//                    inflate(R.menu.event_menu)
-//                    setOnMenuItemClickListener {
-//                        when (it.itemId) {
-//                            R.id.add_note -> {
-//                                BottomSheetBehavior.from<CardView>(requireView().bottomNav).setState(STATE_EXPANDED)/*.state = STATE_EXPANDED*/
-//                            }
-//                            else -> println("wtf")
-//                        }
-//
-//                        false
-//                    }
-//                }.show()
+                requireActivity().supportFragmentManager.beginTransaction()
+                    .setCustomAnimations(
+                        R.anim.slide_in,
+                        R.anim.fade_out,
+                        R.anim.fade_in,
+                        R.anim.slide_out
+                    )
+                    .replace(R.id.nav_host_fragment, FragmentEventDetails(eventWrapper.event))
+                    .addToBackStack(null)
+                    .commit()
             }
         })
     }

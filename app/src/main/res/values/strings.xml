@@ -28,4 +28,7 @@
     <string name="building_data_invalid">Les données reçues pour les bâtiments sont invalides, certains peuvent être manquants</string>
     <string name="restaurant_data_invalid">Les données reçues pour les points de restaurations sont invalides, certains peuvent être manquants</string>
     <string name="maps_update_success">Mise à jour des lieux effectuée avec succès !</string>
+    <string name="go_to">S\'y rendre</string>
+    <string name="unable_to_launch_googlemaps">Impossible de lancer Google Maps</string>
+    <string name="note">Note</string>
 </resources>

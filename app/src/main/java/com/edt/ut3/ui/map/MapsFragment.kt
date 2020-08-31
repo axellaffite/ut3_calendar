@@ -4,10 +4,12 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -27,6 +29,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.observe
 import com.edt.ut3.R
 import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.misc.Theme
 import com.edt.ut3.ui.map.SearchPlaceAdapter.Place
 import com.edt.ut3.ui.map.custom_makers.LocationMarker
 import com.edt.ut3.ui.map.custom_makers.PlaceMarker
@@ -37,6 +40,7 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_maps.*
 import kotlinx.android.synthetic.main.fragment_maps.view.*
+import kotlinx.android.synthetic.main.place_info.view.*
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -44,6 +48,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONException
+import org.osmdroid.bonuspack.routing.OSRMRoadManager
+import org.osmdroid.bonuspack.routing.RoadManager
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.tileprovider.tilesource.XYTileSource
@@ -163,11 +169,9 @@ class MapsFragment : Fragment() {
 
             setupLocationListener()
 
-            val light = 0
-            val dark = 1
             when (PreferencesManager(requireContext()).getTheme()) {
-                light -> overlayManager.tilesOverlay.setColorFilter(null)
-                dark -> overlayManager.tilesOverlay.setColorFilter(TilesOverlay.INVERT_COLORS)
+                Theme.LIGHT -> overlayManager.tilesOverlay.setColorFilter(null)
+                Theme.DARK -> overlayManager.tilesOverlay.setColorFilter(TilesOverlay.INVERT_COLORS)
             }
         }
     }
@@ -337,7 +341,7 @@ class MapsFragment : Fragment() {
      */
     private fun setupBackButtonPressCallback() {
         val activity = requireActivity()
-        activity.onBackPressedDispatcher.addCallback {
+        activity.onBackPressedDispatcher.addCallback(this) {
             when (state.value) {
                 State.SEARCHING, State.PLACE -> state.value = State.MAP
                 State.MAP -> activity.onBackPressed()
@@ -586,7 +590,7 @@ class MapsFragment : Fragment() {
     }
 
     private fun displayPlaceInfo() {
-        selectedPlace?.let {
+        selectedPlace?.let { selected ->
             search_result.visibility = GONE
             filters_container.visibility = GONE
             requireActivity().nav_view.visibility = GONE
@@ -597,19 +601,29 @@ class MapsFragment : Fragment() {
                 from(place_info_container).state = STATE_EXPANDED
             }
 
-            place_info.titleText = it.title
-            place_info.descriptionText = it.short_desc ?: getString(R.string.no_description_available)
-            place_info.picture = it.photo
+            place_info.titleText = selected.title
+            place_info.descriptionText = selected.short_desc ?: getString(R.string.no_description_available)
+            place_info.picture = selected.photo
+            place_info.go_to.setOnClickListener {
+                val locationMarker = map.overlays.find { it is LocationMarker } as? LocationMarker
+                locationMarker?.let { me ->
+                    lifecycleScope.launchWhenResumed {
+                        routeFromTo(me.position, GeoPoint(selected.geolocalisation), selected.title)
+                    }
+                } ?: {
+
+                }()
+            }
 
             map.overlays.removeAll { marker -> marker is PlaceMarker }
             map.overlays.add(
-                PlaceMarker(map, it).also { marker ->
+                PlaceMarker(map, selected).also { marker ->
                     marker.showInfoWindow()
                 }
             )
 
 
-            smoothMoveTo(it.geolocalisation)
+            smoothMoveTo(selected.geolocalisation)
         }
     }
 
@@ -623,5 +637,27 @@ class MapsFragment : Fragment() {
      */
     private fun smoothMoveTo(position: GeoPoint, zoom: Double = 17.0, ms: Long = 1000L) {
         map.controller.animateTo(position, zoom, ms)
+    }
+
+    private fun routeFromTo(from: GeoPoint, to: GeoPoint, toTitle: String) {
+        val requestLink = ("https://www.google.com/maps/dir/?api=1" +
+                "&origin=${from.latitude.toFloat()},${from.longitude.toFloat()}" +
+                "&destination=${to.latitude.toFloat()},${to.longitude.toFloat()}" +
+                "&destination_place_id=$toTitle" +
+                "&travelmode=walking")
+
+        // Create a Uri from an intent string. Use the result to create an Intent.
+        val gmmIntentUri = Uri.parse(requestLink)
+
+        // Create an Intent from gmmIntentUri. Set the action to ACTION_VIEW
+        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+
+        // Make the Intent explicit by setting the Google Maps package
+        mapIntent.setPackage("com.google.android.apps.maps")
+
+        // Attempt to start an activity that can handle the Intent
+        mapIntent.resolveActivity(requireContext().packageManager)?.let {
+            startActivity(mapIntent)
+        } ?: Snackbar.make(maps_main, R.string.unable_to_launch_googlemaps, Snackbar.LENGTH_LONG)
     }
 }

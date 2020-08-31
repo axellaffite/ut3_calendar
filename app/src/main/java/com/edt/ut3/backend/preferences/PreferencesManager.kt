@@ -2,6 +2,7 @@ package com.edt.ut3.backend.preferences
 
 import android.content.Context
 import androidx.preference.PreferenceManager
+import com.edt.ut3.misc.Theme
 import org.json.JSONArray
 import org.json.JSONException
 
@@ -23,8 +24,13 @@ class PreferencesManager(private val context: Context) {
         preferences.edit().putString(Groups, groups.toString()).apply()
     }
 
-    fun getTheme() : Int {
-        return preferences.getString("theme", null)?.toInt() ?: 0
+    fun getTheme() : Theme {
+        val selectedTheme = preferences.getString("theme", null)?.toInt()
+
+        return when (selectedTheme) {
+            Theme.DARK.code -> Theme.DARK
+            else -> Theme.LIGHT
+        }
     }
 
 }

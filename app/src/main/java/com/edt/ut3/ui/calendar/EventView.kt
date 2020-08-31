@@ -6,8 +6,12 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
+import androidx.core.view.marginStart
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
+import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.misc.Theme
 
 class EventView(context: Context, ev: Event.Wrapper): CardView(context) {
 //    private var startTime = 0L
@@ -17,8 +21,17 @@ class EventView(context: Context, ev: Event.Wrapper): CardView(context) {
         addView(
             TextView(context).apply {
                 text = generateCardContents(ev.event)
-                setBackgroundColor(ev.event.lightBackgroundColor(context))
-                setTextColor(Color.parseColor("#FF" + ev.event.textColor?.substring(1)))
+                when (PreferencesManager(context).getTheme()) {
+                    Theme.LIGHT -> {
+                        setBackgroundColor(ev.event.lightBackgroundColor(context))
+                        setTextColor(Color.parseColor("#FF" + ev.event.textColor?.substring(1)))
+                    }
+
+                    Theme.DARK -> {
+                        setBackgroundColor(ev.event.darkBackgroundColor(context))
+                        setTextColor(ContextCompat.getColor(context, android.R.color.white))
+                    }
+                }
 
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,

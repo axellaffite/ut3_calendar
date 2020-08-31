@@ -2,6 +2,7 @@
 <androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -28,21 +29,35 @@
                 android:adjustViewBounds="true"
                 android:scaleType="centerCrop" />
 
-            <TextView
-                android:id="@+id/title"
-                style="@style/TextAppearance.AppCompat.Title"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="8dp"
                 android:layout_weight="1"
-                android:gravity="start" />
+                android:layout_margin="8dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/title"
+                    style="@style/TextAppearance.AppCompat.Title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    android:gravity="start"
+                    android:text="title" />
+
+                <Button
+                    android:id="@+id/go_to"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/go_to"/>
+            </LinearLayout>
 
 
         </LinearLayout>
 
         <TextView
             android:id="@+id/description"
-            style="@style/TextAppearance.AppCompat.Body1"
+            style="@style/TextAppearance.AppCompat.Small"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
@@ -50,7 +65,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout"
+            tools:text="description" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -6,7 +6,14 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
 
-        <item name="background">@android:color/white</item>
+        <item name="customForegroundColor">#FFFFFF</item>
+        <item name="customBackgroundColor">#EDEDED</item>
+        <item name="customCalendarColor">@color/colorPrimaryDark</item>
+        <item name="customCalendarFloatingButtonIconColor">@android:color/white</item>
+        <item name="customCalendarFloatingButtonColor">@color/colorAccent</item>
+        <item name="customMapsFloatingButtonColor">#FFFFFF</item>
+        <item name="customMapsFloatingButtonIconColor">#FFFFFF</item>
+        <item name="android:textColor">@android:color/black</item>
     </style>
 
     <style name="DarkTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
@@ -16,7 +23,14 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:listDivider">@android:color/white</item>
 
-        <item name="background">@color/colorPrimary</item>
+        <item name="customForegroundColor">@color/colorPrimaryDark</item>
+        <item name="customBackgroundColor">@color/colorPrimary</item>
+        <item name="customCalendarColor">@color/colorPrimaryDark</item>
+        <item name="customCalendarFloatingButtonColor">@color/colorAccent</item>
+        <item name="customCalendarFloatingButtonIconColor">#FFFFFF</item>
+        <item name="customMapsFloatingButtonColor">#FFFFFF</item>
+        <item name="customMapsFloatingButtonIconColor">#FFFFFF</item>
+        <item name="android:textColor">@android:color/white</item>
     </style>
 
 </resources>

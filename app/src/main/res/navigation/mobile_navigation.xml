@@ -9,7 +9,11 @@
         android:id="@+id/navigation_calendar"
         android:name="com.edt.ut3.ui.calendar.CalendarFragment"
         android:label="@string/title_calendar"
-        tools:layout="@layout/fragment_calendar" />
+        tools:layout="@layout/fragment_calendar" >
+        <action
+            android:id="@+id/action_navigation_calendar_to_eventDetails"
+            app:destination="@id/eventDetails" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_notes"
@@ -22,4 +26,8 @@
         android:name="com.edt.ut3.ui.map.MapsFragment"
         android:label="@string/title_map"
         tools:layout="@layout/fragment_maps" />
+    <fragment
+        android:id="@+id/eventDetails"
+        android:name="com.edt.ut3.ui.calendar.FragmentEventDetails"
+        android:label="EventDetails" />
 </navigation>

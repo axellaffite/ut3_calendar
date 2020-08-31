@@ -8,7 +8,7 @@ import com.edt.ut3.backend.note.Note
 interface NoteDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(vararg notes: Note)
+    suspend fun insert(vararg notes: Note): List<Long>
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun update(vararg notes: Note)
@@ -26,7 +26,7 @@ interface NoteDao {
     suspend fun selectByIDs(vararg ids: Long): List<Note>
 
     @Query("SELECT * FROM note WHERE event_id in (:eventIDs)")
-    suspend fun selectByNotesIDs(eventIDs: String): List<Note>
+    suspend fun selectByEventIDs(eventIDs: String): List<Note>
 
     @Query("SELECT * FROM note WHERE date BETWEEN :begin AND :end")
     suspend fun getFromTo(begin: Long, end: Long): List<Note>
