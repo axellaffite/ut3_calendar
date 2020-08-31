@@ -6,8 +6,10 @@ import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.work.*
+import androidx.work.impl.utils.PreferenceUtils
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.AppDatabase
+import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.CelcatService
 import com.edt.ut3.misc.fromHTML
@@ -24,6 +26,7 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlin.time.ExperimentalTime
 
+
 class Updater(appContext: Context, workerParams: WorkerParameters):
     CoroutineWorker(appContext, workerParams) {
 
@@ -33,11 +36,19 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
         fun scheduleUpdate(context: Context) {
             val worker = PeriodicWorkRequestBuilder<Updater>(1, TimeUnit.HOURS).build()
             WorkManager.getInstance(context).let {
-                it.enqueueUniquePeriodicWork("event_update", ExistingPeriodicWorkPolicy.KEEP, worker)
+                it.enqueueUniquePeriodicWork(
+                    "event_update",
+                    ExistingPeriodicWorkPolicy.KEEP,
+                    worker
+                )
             }
         }
 
-        fun forceUpdate(context: Context, viewLifecycleOwner: LifecycleOwner? = null, observer: Observer<WorkInfo>? = null) {
+        fun forceUpdate(
+            context: Context,
+            viewLifecycleOwner: LifecycleOwner? = null,
+            observer: Observer<WorkInfo>? = null
+        ) {
             val worker = OneTimeWorkRequestBuilder<Updater>().build()
             WorkManager.getInstance(context).let {
                 it.enqueueUniqueWork("event_update_force", ExistingWorkPolicy.KEEP, worker)
@@ -67,7 +78,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
 
             val eventsJSONArray = withContext(IO) {
                 JSONArray(
-                CelcatService()
+                    CelcatService()
                         .getEvents(groups)
                         .body()
                         ?.string()
@@ -96,27 +107,49 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
 
                 /*  Compute all events ID changes since last update */
                 val newEventsID = receivedEventID.toList().toHashSet().apply{ removeAll(oldEventID) }
-                val removedEventsID = oldEventID.toList().toHashSet().apply{ removeAll(receivedEventID)}
-                val updatedEventsID = receivedEventID.toList().toHashSet().apply { retainAll(oldEventID) }
+                val removedEventsID = oldEventID.toList().toHashSet().apply{ removeAll(
+                    receivedEventID
+                )}
+                val updatedEventsID = receivedEventID.toList().toHashSet().apply { retainAll(
+                    oldEventID
+                ) }
 
-                /* retrieve corresponding events */
+                /* retrieve corresponding events from their id */
                 val newEvents = receivedEvent.filter { newEventsID.contains(it.id) }
                 val removedEvent = oldEvent.filter {removedEventsID.contains(it.id)}
-                val updatedEvent = receivedEvent.filter { updatedEventsID.contains(it.id) }
+                val updatedEvent = receivedEvent.filter { updatedEventsID.contains(it.id) }.toHashSet().apply{
+                    removeAll(oldEvent)
+                }.toList()
 
-                eventDao().insert(*receivedEvent.toTypedArray())
+                /* write changes to database */
+                eventDao().insert(*newEvents.toTypedArray())
                 eventDao().delete(*removedEvent.toTypedArray())
                 eventDao().update(*updatedEvent.toTypedArray())
-                //TODO Check if this is the first update or if the user disable the notification
 
+                //TODO Also check if this is the first update
+                if (PreferencesManager(applicationContext).isNotificationEnabled()) {
+                    if(removedEvent.isNotEmpty()) {
+                        NotificationManager.createDeletedEventsNotification(removedEvent)
+                    }
+                    if(newEvents.isNotEmpty()) {
+                        NotificationManager.createNewEventsNotification(newEvents)
+                    }
+                    if(updatedEvent.isNotEmpty()) {
+                        NotificationManager.createUpdatedEventsNotification(updatedEvent)
+                    }
+                }
+
+                //TODO Mark the first update as made
 
             }
         } catch (e: Exception) {
             e.printStackTrace()
 //            TODO("Catch exceptions properly")
             when (e) {
-                is IOException -> {}
-                is JSONException -> {}
+                is IOException -> {
+                }
+                is JSONException -> {
+                }
                 else -> {}
             }
 
