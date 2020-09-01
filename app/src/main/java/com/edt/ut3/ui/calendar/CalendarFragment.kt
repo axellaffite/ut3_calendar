@@ -238,11 +238,6 @@ class CalendarFragment : Fragment() {
         })
     }
 
-    private fun getOverlayBehavior(view: View): OverlayBehavior<View> {
-        val params = view.layoutParams as CoordinatorLayout.LayoutParams
-        return params.behavior as OverlayBehavior
-    }
-
     /**
      * This function check whether the scroll must
      * be blocked or not.
@@ -301,7 +296,6 @@ class CalendarFragment : Fragment() {
      * @param verticalOffset The vertical offset of the action bar
      */
     private fun moveRefreshButton(appBarLayout: AppBarLayout, verticalOffset: Int) {
-        println("Status=$status")
         if (!refreshInitialized || status == Status.UPDATING) {
             return
         }
@@ -366,10 +360,14 @@ class CalendarFragment : Fragment() {
                     }.map { ev -> Event.Wrapper(ev) }
                 }
 
-                root.day_view.setEvents(events, day_scroll.height)
-
-                withContext(Main) {
-                    root.day_view.requestLayout()
+                root.day_view.post {
+                    lifecycleScope.launchWhenStarted {
+                        root.day_view.setEvents(events, day_scroll.height)
+                        
+                        withContext(Main) {
+                            root.day_view.requestLayout()
+                        }
+                    }
                 }
             }
         }

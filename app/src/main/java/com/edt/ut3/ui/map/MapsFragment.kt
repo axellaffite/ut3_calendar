@@ -144,7 +144,6 @@ class MapsFragment : Fragment() {
             // I decided to add an overlay to detect click and scroll events.
             val overlay = object: Overlay() {
                 override fun onSingleTapConfirmed(e: MotionEvent?, mapView: MapView?): Boolean {
-                    println("Click detected on map")
                     state.value = State.MAP
 
                     return super.onSingleTapConfirmed(e, mapView)

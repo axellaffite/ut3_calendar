@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:paddingBottom="16dp"
-    android:background="?customForegroundColor">
+    android:background="?customCalendarColor">
 
     <!--    <TextView-->
     <!--        android:id="@+id/all_day_text"-->
