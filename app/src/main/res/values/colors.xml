@@ -6,4 +6,5 @@
     <color name="fontColor">#EEEEEE</color>
 
     <color name="positionColor">#3949ab</color>
+    <color name="textSecondary">#BDBDBD</color>
 </resources>

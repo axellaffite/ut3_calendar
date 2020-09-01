@@ -344,7 +344,6 @@ class MapsFragment : Fragment() {
         activity.onBackPressedDispatcher.addCallback(this) {
             when (state.value) {
                 State.SEARCHING, State.PLACE -> state.value = State.MAP
-                State.MAP -> activity.onBackPressed()
                 else -> activity.supportFragmentManager.popBackStack()
             }
         }

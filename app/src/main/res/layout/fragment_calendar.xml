@@ -5,31 +5,38 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.calendar.CalendarFragment"
-    android:id="@+id/mainLayout">
+    android:id="@+id/mainLayout"
+    android:background="?customForegroundColor">
 
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/settings"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="?customBackgroundColor"
-        android:layout_marginStart="40dp" />
+        android:background="@drawable/card_background"
+        android:backgroundTint="?customBackgroundColor"
+        android:layout_marginStart="48dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"/>
 
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/news"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="?customBackgroundColor"
-        android:layout_marginEnd="40dp"/>
+        android:background="@drawable/card_background"
+        android:backgroundTint="?customBackgroundColor"
+        android:layout_marginEnd="48dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"/>
 
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="com.edt.ut3.ui.custom_views.overlay_layout.OverlayBehavior"
-        android:elevation="8dp"
-        android:id="@+id/front_layout">
+        android:id="@+id/front_layout"
+        android:background="?customBackgroundColor">
 
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/app_bar"
@@ -65,12 +72,16 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            android:background="?customForegroundColor">
+            android:background="?customBackgroundColor">
 
             <com.elzozor.yoda.Day
                 android:id="@+id/day_view"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                app:fit="BOUNDS_ADAPTIVE"
+                app:displayMode="FIT_TO_CONTAINER"
+                app:start="7"
+                app:end="20"/>
 
         </androidx.core.widget.NestedScrollView>
 

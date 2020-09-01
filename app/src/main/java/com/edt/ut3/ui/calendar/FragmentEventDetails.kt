@@ -5,6 +5,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
 import androidx.core.widget.doOnTextChanged
@@ -26,6 +29,12 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
         return inflater.inflate(R.layout.fragment_event_details, container, false)
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         lifecycleScope.launch {
@@ -44,7 +53,6 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
         }
 
         setupListeners()
-        println(event)
     }
 
     private fun setupContent() {
@@ -57,6 +65,7 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
 
                 event.lightBackgroundColor(requireContext()).let {
                     title_container.setBackgroundColor(it)
+                    requireActivity().window.statusBarColor = it
                 }
             }
 
@@ -67,6 +76,7 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
 
                 event.darkBackgroundColor(requireContext()).let {
                     title_container.setBackgroundColor(it)
+                    requireActivity().window.statusBarColor = it
                 }
             }
         }

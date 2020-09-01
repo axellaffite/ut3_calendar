@@ -11,10 +11,15 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.FrameLayout
+import android.widget.ListView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.animation.doOnStart
 import androidx.core.content.ContextCompat
+import androidx.core.view.children
 import androidx.core.view.marginLeft
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
@@ -30,6 +35,7 @@ import com.edt.ut3.misc.plus
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.timeCleaned
 import com.edt.ut3.misc.toDp
+import com.edt.ut3.ui.custom_views.NoScrollListView
 import com.edt.ut3.ui.custom_views.overlay_layout.OverlayBehavior
 import com.elzozor.yoda.events.EventWrapper
 import com.google.android.material.appbar.AppBarLayout
@@ -140,19 +146,57 @@ class CalendarFragment : Fragment() {
             forceUpdate()
         }
 
-        getOverlayBehavior(front_layout).onSwipingLeft = {
-            settings.visibility = VISIBLE
-            news.visibility = GONE
-        }
+        // This part handles the behavior of the front layout
+        // on different triggers such as move and swipe actions.
+        // Basically the behavior is to hide and show specific
+        // views depending on the layout position and its behavior
+        // status and elevating it while moving to let the user
+        // see the difference between it and the background views.
+        OverlayBehavior.from(front_layout).apply {
 
-        getOverlayBehavior(front_layout).onSwipingRight = {
-            news.visibility = VISIBLE
-            settings.visibility = GONE
+            // Action triggered when the view is actually swiping
+            // on the left.
+            // Swiping on the left means that the view is currently
+            // moving to the left letting appear the right side view.
+            onSwipingLeftListeners.add {
+                settings?.visibility = VISIBLE
+                news?.visibility = GONE
+            }
+
+            // Action triggered when the view is actually swiping
+            // on the right.
+            // Swiping on the left means that the view is currently
+            // moving to the right letting appear the left side view.
+            onSwipingRightListeners.add {
+                news?.visibility = VISIBLE
+                settings?.visibility = GONE
+            }
+
+            // Action triggered when the view is moving no matter
+            // on which direction it is moving.
+            // Note that this is triggered when the view is moving
+            // and not only when the view is moving left or right
+            // when it's on the IDLE status.
+            // The goal here is to elevate the view to let the user
+            // see the difference between this one and the views
+            // on background as they have the same color.
+            onMoveListeners.add {
+                front_layout?.elevation = 8.toDp(requireContext())
+            }
+
+            // Action triggered when the view's status change.
+            // It is trigger no matter if the old one is different
+            // from the new one.
+            // The goal here is to reset the view's elevation to prevent
+            // unwanted shadows.
+            onStatusChangeListeners.add {
+                front_layout?.elevation = 0f
+            }
         }
     }
 
     private fun forceUpdate() {
-        Updater.forceUpdate(requireContext(), viewLifecycleOwner, Observer {
+        Updater.forceUpdate(requireContext(), viewLifecycleOwner, {
             it?.let {
                 val progress = it.progress
                 val value = progress.getInt(Progress, 0)
@@ -185,6 +229,8 @@ class CalendarFragment : Fragment() {
                             })
                             .show()
                     }
+
+                    else -> {}
                 }
 
                 Log.i("PROGRESS", value.toString())
@@ -210,7 +256,7 @@ class CalendarFragment : Fragment() {
         shouldBlockScroll = canBlockScroll && canSwipe
         canBlockScroll = (verticalOffset + appBarLayout.totalScrollRange > 0)
 
-        val behavior = getOverlayBehavior(front_layout)
+        val behavior = OverlayBehavior.from(front_layout)
         behavior.canSwipe = canSwipe
     }
 
@@ -231,7 +277,7 @@ class CalendarFragment : Fragment() {
                 day_scroll.scrollTo(0,0)
                 shouldBlockScroll = false
 
-                val behavior = getOverlayBehavior(front_layout)
+                val behavior = OverlayBehavior.from(front_layout)
                 behavior.canSwipe = true
             }
         }
@@ -291,7 +337,10 @@ class CalendarFragment : Fragment() {
     private fun handleEventsChange(root: View, eventList: List<Event>?) {
         if (eventList == null) return
 
-        root.day_view.setViewBuilder(this::buildEventView)
+        root.day_view.dayBuilder = this::buildEventView
+        root.day_view.allDayBuilder = this::buildAllDayView
+        root.day_view.emptyDayBuilder = this::buildEmptyDayView
+
         filterEvents(root, eventList)
     }
 
@@ -307,7 +356,7 @@ class CalendarFragment : Fragment() {
         val selectedDate = calendarViewModel.selectedDate
 
         job?.cancel()
-        job = lifecycleScope.launch {
+        job = lifecycleScope.launchWhenResumed {
             println(selectedDate.toString())
             withContext(IO) {
                 val events = withContext(Default) {
@@ -317,8 +366,7 @@ class CalendarFragment : Fragment() {
                     }.map { ev -> Event.Wrapper(ev) }
                 }
 
-                root.day_view.autoFitHours = true
-                root.day_view.setEvents(events)
+                root.day_view.setEvents(events, day_scroll.height)
 
                 withContext(Main) {
                     root.day_view.requestLayout()
@@ -363,5 +411,28 @@ class CalendarFragment : Fragment() {
                     .commit()
             }
         })
+    }
+
+    private fun buildAllDayView(events: List<EventWrapper>): View {
+        val builder = { event: EventWrapper ->
+            buildEventView(requireContext(), event, 0, 0, 0, 0).run {
+                (second as EventView).apply {
+                    padding = 16.toDp(context).toInt()
+
+                    layoutParams = ViewGroup.LayoutParams(
+                        MATCH_PARENT, WRAP_CONTENT
+                    )
+                }
+            }
+        }
+
+        return LayoutAllDay(requireContext()).apply {
+            setEvents(events, builder)
+        }
+    }
+
+    private fun buildEmptyDayView(): View {
+        println("empty")
+        return View(requireContext())
     }
 }

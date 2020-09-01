@@ -31,4 +31,5 @@
     <string name="go_to">S\'y rendre</string>
     <string name="unable_to_launch_googlemaps">Impossible de lancer Google Maps</string>
     <string name="note">Note</string>
+    <string name="all_day">Toute la journée</string>
 </resources>

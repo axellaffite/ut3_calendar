@@ -105,6 +105,8 @@ data class Event(
         override fun begin() = event.start
 
         override fun end() = event.end ?: event.start
+
+        override fun isAllDay() = event.allday
     }
 
 
