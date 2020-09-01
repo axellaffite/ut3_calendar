@@ -9,6 +9,8 @@ import com.edt.ut3.misc.timeCleaned
 import java.util.*
 
 class CalendarViewModel : ViewModel() {
+    var selectedEvent: Event? = null
+
     private lateinit var events: LiveData<List<Event>>
     var selectedDate = Date().timeCleaned()
 

@@ -103,12 +103,16 @@ class CalendarFragment : Fragment() {
                 .add(R.id.news, CalendarNews())
                 .commit()
         }
+
+        calendarViewModel.selectedEvent?.let {
+            openEventDetailsView(it)
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
     @ExperimentalTime
     private fun setupListeners() {
-        calendarViewModel.getEvents(requireContext()).observe(viewLifecycleOwner, Observer { evLi ->
+        calendarViewModel.getEvents(requireContext()).observe(viewLifecycleOwner, { evLi ->
             handleEventsChange(requireView(), evLi)
         })
 
@@ -312,6 +316,12 @@ class CalendarFragment : Fragment() {
         refresh_button.apply {
             background.alpha = opacity
             y = translationAmount
+
+            if (opacity == 0) {
+                refresh_button.visibility = GONE
+            } else {
+                refresh_button.visibility = VISIBLE
+            }
         }
     }
 
@@ -396,19 +406,23 @@ class CalendarFragment : Fragment() {
                 topMargin = positionAdder(y)
             }
 
-            setOnClickListener {
-                requireActivity().supportFragmentManager.beginTransaction()
-                    .setCustomAnimations(
-                        R.anim.slide_in,
-                        R.anim.fade_out,
-                        R.anim.fade_in,
-                        R.anim.slide_out
-                    )
-                    .replace(R.id.nav_host_fragment, FragmentEventDetails(eventWrapper.event))
-                    .addToBackStack(null)
-                    .commit()
-            }
+            setOnClickListener { openEventDetailsView(event) }
         })
+    }
+
+    private fun openEventDetailsView(event: Event) {
+        calendarViewModel.selectedEvent = event
+
+        requireActivity().supportFragmentManager.beginTransaction()
+            .setCustomAnimations(
+                R.anim.slide_in,
+                R.anim.fade_out,
+                R.anim.fade_in,
+                R.anim.slide_out
+            )
+            .replace(R.id.nav_host_fragment, FragmentEventDetails(event))
+            .addToBackStack(null)
+            .commit()
     }
 
     private fun buildAllDayView(events: List<EventWrapper>): View {

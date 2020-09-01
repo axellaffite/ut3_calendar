@@ -200,9 +200,19 @@ class MapsFragment : Fragment() {
              * Unused but necessary to avoid crash
              * due to function deprecation
              */
-            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
-            }
+            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
 
+            /**
+             * Unused but necessary to avoid crash
+             * due to function deprecation
+             */
+            override fun onProviderEnabled(provider: String) {}
+
+            /**
+             * Unused but necessary to avoid crash
+             * due to function deprecation
+             */
+            override fun onProviderDisabled(provider: String) {}
         }
 
         val manager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -343,7 +353,10 @@ class MapsFragment : Fragment() {
         activity.onBackPressedDispatcher.addCallback(this) {
             when (state.value) {
                 State.SEARCHING, State.PLACE -> state.value = State.MAP
-                else -> activity.supportFragmentManager.popBackStack()
+                else -> {
+                    isEnabled = false
+                    activity.onBackPressed()
+                }
             }
         }
     }

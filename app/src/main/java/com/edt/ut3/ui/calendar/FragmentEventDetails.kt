@@ -4,14 +4,14 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
-import android.view.Window
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
@@ -19,11 +19,26 @@ import com.edt.ut3.backend.database.AppDatabase
 import com.edt.ut3.backend.note.Note
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.misc.Theme
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_event_details.*
 import kotlinx.coroutines.launch
 
 class FragmentEventDetails(private val event: Event) : Fragment() {
+    private val viewModel: CalendarViewModel by viewModels { defaultViewModelProviderFactory }
     private var note: Note? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        requireActivity().nav_view.visibility = GONE
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        requireActivity().nav_view.visibility = VISIBLE
+        viewModel.selectedEvent = null
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_event_details, container, false)
