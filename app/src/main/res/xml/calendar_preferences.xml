@@ -12,7 +12,7 @@
             android:entries="@array/themes"
             android:icon="@drawable/ic_theme" />
 
-        <CheckBoxPreference
+        <SwitchPreference
             android:key="notification"
             android:title="@string/enable_update_notifications"
             android:summary="@string/summary_notifications"

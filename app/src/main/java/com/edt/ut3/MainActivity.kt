@@ -6,6 +6,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.misc.Theme
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlin.time.ExperimentalTime
 
@@ -33,9 +34,8 @@ class MainActivity : AppCompatActivity() {
     private fun setupTheme() {
         val theme = PreferencesManager(this).getTheme()
         when (theme) {
-            1 -> setTheme(R.style.DarkTheme)
-
-            else -> setTheme(R.style.AppTheme)
+            Theme.LIGHT -> setTheme(R.style.AppTheme)
+            Theme.DARK -> setTheme(R.style.DarkTheme)
         }
     }
 }

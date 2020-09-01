@@ -13,6 +13,7 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import org.osmdroid.util.GeoPoint
+import java.util.*
 
 class SearchPlaceAdapter(context: Context, private val values: Array<Place>) :
     ArrayAdapter<SearchPlaceAdapter.Place>(context, -1, values) {
@@ -25,12 +26,7 @@ class SearchPlaceAdapter(context: Context, private val values: Array<Place>) :
             inflater.inflate(R.layout.search_place, parent, false)
         }
 
-        val res = when (values[position].type) {
-            "caféteria", "restaurant" -> R.drawable.ic_restaurant
-             "batiment" -> R.drawable.ic_building
-            "amphithéatre" -> R.drawable.ic_amphitheater
-            else -> R.drawable.ic_restaurant
-        }
+        val res = values[position].getIcon()
 
         root.icon.setImageResource(res)
         root.name.text = values[position].title
@@ -62,6 +58,14 @@ class SearchPlaceAdapter(context: Context, private val values: Array<Place>) :
                     contact = fields.optString("contact")
                 )
             }
+        }
+
+        fun getIcon() = when (type.toLowerCase(Locale.getDefault())) {
+            "batiment" -> R.drawable.ic_building
+            "épicerie" -> R.drawable.ic_grocery
+            "foodtruck" -> R.drawable.ic_foodtruck
+            "triporteur" -> R.drawable.ic_foodtruck
+            else -> R.drawable.ic_restaurant
         }
     }
 }

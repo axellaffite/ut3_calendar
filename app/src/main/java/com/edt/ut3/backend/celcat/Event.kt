@@ -51,7 +51,7 @@ data class Event(
                 sites = optJSONArray("sites")?.toList<String?>()?.filterNotNull()?.map { it.fromHTML().trim() } ?: listOf(),
                 start = start,
                 end = end,
-                allday = getBoolean("allDay"),
+                allday = getBoolean("allDay") || isNull("end"),
                 backgroundColor = getString("backgroundColor").fromHTML(),
                 textColor = optString("textColor").fromHTML() ?: "#000000",
                 noteID = null
@@ -105,6 +105,8 @@ data class Event(
         override fun begin() = event.start
 
         override fun end() = event.end ?: event.start
+
+        override fun isAllDay() = event.allday
     }
 
 
@@ -125,14 +127,14 @@ data class Event(
 
         init {
             val precisionBuilder = StringBuilder()
-            var precisionEmpty = true
 
             description?.lines()?.map { it.trim() }?.forEach {
+                println("Line: $it")
                 when {
                     it.matches(Regex("\\d\\*")) -> { teacherID = it.toInt() }
                     classesNames.contains(it) -> classes.add(it)
                     coursesNames.contains(it) -> course = it
-                    else -> if (precisionEmpty) {
+                    else -> if (precisionBuilder.isBlank()) {
                         precisionBuilder.append(it)
                     } else {
                         precisionBuilder.append("\n").append(it)

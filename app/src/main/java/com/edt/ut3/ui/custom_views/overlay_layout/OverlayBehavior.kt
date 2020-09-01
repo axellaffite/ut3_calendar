@@ -3,12 +3,12 @@ package com.edt.ut3.ui.custom_views.overlay_layout
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.util.AttributeSet
-import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.animation.doOnEnd
 import com.edt.ut3.misc.toDp
+import java.io.InvalidClassException
 import kotlin.math.abs
 
 
@@ -29,21 +29,81 @@ import kotlin.math.abs
 class OverlayBehavior<V : View>(context: Context, attrs: AttributeSet) :
     CoordinatorLayout.Behavior<V>(context, attrs) {
 
-    enum class Position {IDLE, LEFT, RIGHT}
+    companion object {
+        @Throws(InvalidClassException::class)
+        fun from(v: View) : OverlayBehavior<View> {
+            val params = v.layoutParams as CoordinatorLayout.LayoutParams
+            if (params.behavior !is OverlayBehavior) {
+                throw InvalidClassException("The provided layout does not contain an OverlayBehavior")
+            }
 
-    var startX = 0f
-    var offsetX = 0f
-    var startY = 0f
-    var offsetY = 0f
-    var viewX = 0f
+            return params.behavior as OverlayBehavior<View>
+        }
+    }
 
-    var status = Position.IDLE
+    enum class Position { IDLE, LEFT, RIGHT }
+
+    private var startX = 0f
+    private var offsetX = 0f
+    private var startY = 0f
+    private var offsetY = 0f
+    private var viewX = 0f
+
+    private var status = Position.IDLE
+        set(value) {
+            onStatusChangeListeners.forEach { it() }
+            field = value
+        }
+
     var canAnimate = true
 
     var canSwipe = false
 
-    var onSwipingLeft : (() -> Unit)? = null
-    var onSwipingRight : (() -> Unit)? = null
+    /**
+     * The onSwipingLeftListeners will be called
+     * every time the view's status is equal to IDLE
+     * and when the view is moving to the left.
+     * They will no be called when the status is equal
+     * to RIGHT or LEFT.
+     * Triggered are called sequentially in random order.
+     * Don't forget to test the nullability
+     * because it can be triggered when the view is destroyed.
+     */
+    val onSwipingLeftListeners = HashSet<() -> Unit>()
+
+    /**
+     * The onSwipingRightListeners will be called
+     * every time the view's status is equal to IDLE
+     * and when the view is moving to the right.
+     * They will no be called when the status is equal
+     * to RIGHT or LEFT.
+     * Triggered are called sequentially in random order.
+     * Don't forget to test the nullability
+     * because it can be triggered when the view is destroyed.
+     */
+    val onSwipingRightListeners = HashSet<() -> Unit>()
+
+    /**
+     * The onMoveListeners will be called
+     * every time the view is moving no matter what
+     * is its status.
+     * Triggered are called sequentially in random order.
+     * Don't forget to test the nullability
+     * because it can be triggered when the view is destroyed.
+     */
+    val onMoveListeners = HashSet<() -> Unit>()
+
+    /**
+     * The onStatusChangeListeners will be called
+     * every time the view's status is updated no
+     * matter is the status is different from
+     * the old one or not.
+     * Triggered are called sequentially in random order.
+     * Don't forget to test the nullability
+     * because it can be triggered when the view is destroyed.
+     */
+    val onStatusChangeListeners = HashSet<() -> Unit>()
+
 
     /**
      * Determines whether or not the event must
@@ -74,7 +134,7 @@ class OverlayBehavior<V : View>(context: Context, attrs: AttributeSet) :
                 offsetY = ev.rawY - startY
 
                 println("intercept: $offsetX $offsetY")
-                return when (status) {
+                val handled = when (status) {
                     Position.LEFT -> {
                         offsetX > 50f
                     }
@@ -91,6 +151,11 @@ class OverlayBehavior<V : View>(context: Context, attrs: AttributeSet) :
                     }
                 }
 
+                if (handled) {
+                    onMoveListeners.forEach { it() }
+                }
+
+                handled
             }
 
             else -> false
@@ -110,9 +175,9 @@ class OverlayBehavior<V : View>(context: Context, attrs: AttributeSet) :
                         child.translationX = (viewX + offsetX).coerceIn(-max, max)
                         if (abs(offsetX) > abs(offsetY)) {
                             if (child.x < 0f) {
-                                onSwipingLeft?.let { it() }
+                                onSwipingLeftListeners.forEach { it() }
                             } else if (child.x > 0f) {
-                                onSwipingRight?.let { it() }
+                                onSwipingRightListeners.forEach { it() }
                             }
                         }
 
@@ -167,16 +232,13 @@ class OverlayBehavior<V : View>(context: Context, attrs: AttributeSet) :
 
         when {
             shouldGoLeft(view) -> {
-                status = Position.LEFT
-                callback = { v -> moveViewLeft(v) }
+                callback = { v -> moveViewLeft(v) { status = Position.LEFT } }
             }
             shouldGoRight(view) -> {
-                status = Position.RIGHT
-                callback = { v -> moveViewRight(v) }
+                callback = { v -> moveViewRight(v) { status = Position.RIGHT } }
             }
             else -> {
-                status = Position.IDLE
-                callback = { v -> moveViewIdle(v) }
+                callback = { v -> moveViewIdle(v) { status = Position.IDLE } }
             }
         }
 
@@ -193,7 +255,7 @@ class OverlayBehavior<V : View>(context: Context, attrs: AttributeSet) :
         callback(v)
     }
 
-    private fun moveViewIdle(v: View) {
+    private fun moveViewIdle(v: View, onEnd: (() -> Unit)? = null) {
         val pos = 0f
         val animationDuration = interpolate(maxForView(v), 500f, abs(v.width - abs(-maxForView(v)))).toLong()
 
@@ -201,13 +263,14 @@ class OverlayBehavior<V : View>(context: Context, attrs: AttributeSet) :
             duration = animationDuration
             doOnEnd {
                 canAnimate = true
+                onEnd?.invoke()
             }
 
             start()
         }
     }
 
-    private fun moveViewLeft(v: View) {
+    private fun moveViewLeft(v: View, onEnd: (() -> Unit)? = null) {
         val pos = maxForView(v)
         val animationDuration = interpolate(pos, 500f, abs(offsetX)).toLong()
 
@@ -215,13 +278,14 @@ class OverlayBehavior<V : View>(context: Context, attrs: AttributeSet) :
             duration = animationDuration
             doOnEnd {
                 canAnimate = true
+                onEnd?.invoke()
             }
 
             start()
         }
     }
 
-    private fun moveViewRight(v: View) {
+    private fun moveViewRight(v: View, onEnd: (() -> Unit)? = null) {
         val pos = maxForView(v)
         val animationDuration = interpolate(pos, 500f, abs(offsetX)).toLong()
 
@@ -229,11 +293,13 @@ class OverlayBehavior<V : View>(context: Context, attrs: AttributeSet) :
             duration = animationDuration
             doOnEnd {
                 canAnimate = true
+                onEnd?.invoke()
             }
 
             start()
         }
     }
+
 
     private fun interpolate(max: Float, interMax: Float, value: Float): Float {
         return (interMax * (value / max))

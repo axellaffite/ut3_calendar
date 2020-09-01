@@ -14,9 +14,21 @@
     <string name="not_valid_link">Not a valid link</string>
     <string name="summary_notifications">This option allows to activate or not the notifications for each schedule update. They will indicate how many courses have been added, deleted and edited. In any case you can find them in the \"News\" tab.</string>
     <string name="summary_link">This is the link to you Celcat calendar configured for your group(s). Remember to add at least one group before copying the link.</string>
-    <string name="update_failed">Update has failed</string>
+    <string name="update_failed">Update has failed, please check your internet connection</string>
     <string name="action_retry">Retry</string>
     <string name="update_succeeded">Schedule successfully updated!</string>
     <string name="map_search_hint">A building, a restaurant, ...</string>
     <string name="action_ok">ok</string>
+    <string name="unknown_error">An error has occured during data update, some places may be missing</string>
+    <string name="unable_to_retrieve_data">Unable to download places, please check your internet connection</string>
+    <string name="unknow_error">Unable to parse incoming data</string>
+    <string name="no_description_available">No description available for this place.</string>
+    <string name="building_update_failed">Building update has failed, some may be missing</string>
+    <string name="restaurant_update_failed">Restauration points update has failed, some may be missing</string>
+    <string name="building_data_invalid">Incomming building data are invalid, some may be missing</string>
+    <string name="restaurant_data_invalid">Incomming restauration points data are invalid, some may be missing</string>
+    <string name="maps_update_success">Locations update successfully completed!</string>
+    <string name="go_to">Getting there</string>
+    <string name="unable_to_launch_googlemaps">Unable to launch Google Maps</string>
+    <string name="note">Note</string>
 </resources>

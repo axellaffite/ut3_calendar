@@ -80,7 +80,7 @@ dependencies {
     // Summary : A useful library that allows us to display
     //           schedules on a given view.
     // Github : https://github.com/ElZozor/yoda
-    implementation 'com.github.ElZozor:yoda:v0.12'
+    implementation 'com.github.ElZozor:yoda:v1.0'
 
     // Name: Picasso
     // Summary : A library that allows us to download and
@@ -92,5 +92,7 @@ dependencies {
     // Summary : An open source replacement for Google Map
     // Documentation : https://osmdroid.github.io/osmdroid/javadocs/osmdroid-android/release/index.html
     implementation 'org.osmdroid:osmdroid-android:6.1.8'
+
+    implementation 'com.github.MKergall:osmbonuspack:6.6.0'
 
 }

@@ -13,12 +13,13 @@ import java.util.*
             onDelete = ForeignKey.CASCADE
         )
     ], indices = [Index("event_id")])
-class Note(
+data class Note(
     @PrimaryKey(autoGenerate = true) val id: Long,
     @ColumnInfo(name = "event_id") var eventID: String?,
     var title: String?,
     var contents: String,
     @TypeConverters(Converter::class) var date: Date,
     var color: String?,
+    var textColor: String?,
     var reminder: Boolean = false
 )
