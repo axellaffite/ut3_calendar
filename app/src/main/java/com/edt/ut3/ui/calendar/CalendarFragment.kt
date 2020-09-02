@@ -13,18 +13,11 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-import android.widget.FrameLayout
-import android.widget.ListView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.animation.doOnStart
-import androidx.core.content.ContextCompat
-import androidx.core.view.children
-import androidx.core.view.marginLeft
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.work.WorkInfo
 import com.edt.ut3.R
@@ -35,8 +28,8 @@ import com.edt.ut3.misc.plus
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.timeCleaned
 import com.edt.ut3.misc.toDp
-import com.edt.ut3.ui.custom_views.NoScrollListView
 import com.edt.ut3.ui.custom_views.overlay_layout.OverlayBehavior
+import com.edt.ut3.ui.preferences.CalendarSettingsFragment
 import com.elzozor.yoda.events.EventWrapper
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.BaseTransientBottomBar
@@ -47,7 +40,6 @@ import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
 import kotlin.time.ExperimentalTime

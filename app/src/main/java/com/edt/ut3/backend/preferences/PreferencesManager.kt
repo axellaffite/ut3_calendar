@@ -2,7 +2,8 @@ package com.edt.ut3.backend.preferences
 
 import android.content.Context
 import androidx.preference.PreferenceManager
-import com.edt.ut3.misc.Theme
+import com.edt.ut3.ui.preferences.Theme
+import com.edt.ut3.ui.preferences.ThemePreference
 import com.elzozor.yoda.utils.DateExtensions.get
 import org.json.JSONArray
 import org.json.JSONException
@@ -11,7 +12,6 @@ import java.util.*
 class PreferencesManager(private val context: Context) {
 
     companion object {
-        const val Preferences_File = "preferences"
         const val Groups = "groups"
     }
 
@@ -27,16 +27,16 @@ class PreferencesManager(private val context: Context) {
     }
 
     fun getTheme() : Theme {
-        val themes = Theme.values()
-        val selectedTheme = preferences.getString("theme", "0")!!.toInt().coerceIn(0, themes.size - 1)
-        val theme = Theme.values()[selectedTheme]
+        val themePreference = ThemePreference.values()
+        val selectedTheme = preferences.getString("theme", "0")!!.toInt().coerceIn(0, themePreference.size - 1)
+        val theme = ThemePreference.values()[selectedTheme]
 
-        if (theme == Theme.TIME) {
+        if (theme == ThemePreference.TIME) {
             return getThemeDependingOnTime()
         }
 
 
-        return theme
+        return Theme.values()[selectedTheme]
     }
 
     private fun getThemeDependingOnTime(): Theme = PreferencesManager(context).run {

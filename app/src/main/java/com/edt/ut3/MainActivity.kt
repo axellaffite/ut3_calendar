@@ -6,11 +6,9 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.misc.Theme
-import com.elzozor.yoda.utils.DateExtensions.get
+import com.edt.ut3.ui.preferences.Theme
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.lang.RuntimeException
-import java.util.*
 import kotlin.time.ExperimentalTime
 
 class MainActivity : AppCompatActivity() {
@@ -39,7 +37,6 @@ class MainActivity : AppCompatActivity() {
         when (theme) {
             Theme.LIGHT -> setLightTheme()
             Theme.DARK -> setDarkTheme()
-            Theme.TIME -> throw RuntimeException()
         }
     }
 

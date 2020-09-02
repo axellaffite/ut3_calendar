@@ -18,7 +18,7 @@ import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.AppDatabase
 import com.edt.ut3.backend.note.Note
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.misc.Theme
+import com.edt.ut3.ui.preferences.Theme
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_event_details.*
 import kotlinx.coroutines.launch

@@ -1,4 +1,4 @@
-package com.edt.ut3.ui.calendar
+package com.edt.ut3.ui.preferences
 
 import android.content.Context
 import android.os.Bundle
@@ -14,6 +14,7 @@ import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
 import androidx.preference.PreferenceFragmentCompat
 import com.edt.ut3.R
+import com.edt.ut3.backend.preferences.PreferencesManager
 import org.json.JSONArray
 
 class CalendarSettingsFragment: PreferenceFragmentCompat() {
@@ -22,8 +23,14 @@ class CalendarSettingsFragment: PreferenceFragmentCompat() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        setupListeners()
+
+        return super.onCreateView(inflater, container, savedInstanceState)
+    }
+
+    private fun setupListeners() {
         findPreference<ListPreference>("theme")?.let { theme ->
-            theme.setOnPreferenceChangeListener { _, newValue -> themeSelector(theme, newValue) }
+            theme.setOnPreferenceChangeListener { _,_ -> reloadTheme() }
         }
 
         findPreference<EditTextPreference>("section")?.let { editText ->
@@ -46,17 +53,13 @@ class CalendarSettingsFragment: PreferenceFragmentCompat() {
                 it.addTextChangedListener(TimeEditTextListener(it))
             }
         }
-
-        return super.onCreateView(inflater, container, savedInstanceState)
     }
 
-    private fun themeSelector(preference: ListPreference, value: Any) : Boolean {
-        val index = (value as String).toInt()
-
+    private fun reloadTheme() : Boolean {
         requireActivity().run {
-            when (index) {
-                0 -> theme.applyStyle(R.style.AppTheme, true)
-                1 -> theme.applyStyle(R.style.DarkTheme, true)
+            when (PreferencesManager(requireContext()).getTheme()) {
+                Theme.LIGHT -> theme.applyStyle(R.style.AppTheme, true)
+                Theme.DARK -> theme.applyStyle(R.style.DarkTheme, true)
             }
 
             recreate()
@@ -70,7 +73,6 @@ class CalendarSettingsFragment: PreferenceFragmentCompat() {
         val sections = finder.findAll(link).map { it.value.split('=').last() }
 
         preferenceManager.sharedPreferences.edit().putString("groups", JSONArray(sections.toList().toTypedArray()).toString()).apply()
-
 
         return true
     }
@@ -96,14 +98,11 @@ class CalendarSettingsFragment: PreferenceFragmentCompat() {
         override fun beforeTextChanged(previous: CharSequence, start: Int, added: Int, removed: Int) {
             if (!shouldHandle) return
             previousText = previous.toString()
-            println("prev: $previousText")
         }
 
         override fun onTextChanged(current: CharSequence, start: Int, removed: Int, added: Int) {
-            println("call $shouldHandle")
             if (!shouldHandle) return
 
-            println("start=$start removed=$removed added=$added")
 
             when {
                 removed > 0 -> {
@@ -165,7 +164,6 @@ class CalendarSettingsFragment: PreferenceFragmentCompat() {
             println(time)
             val splitted = time.split(":")
             if (splitted.size != 2) {
-                println("wrong size")
                 return false
             }
 

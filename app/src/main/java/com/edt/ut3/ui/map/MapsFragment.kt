@@ -29,7 +29,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.observe
 import com.edt.ut3.R
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.misc.Theme
+import com.edt.ut3.ui.preferences.Theme
 import com.edt.ut3.ui.map.SearchPlaceAdapter.Place
 import com.edt.ut3.ui.map.custom_makers.LocationMarker
 import com.edt.ut3.ui.map.custom_makers.PlaceMarker
@@ -48,10 +48,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONException
-import org.osmdroid.bonuspack.routing.OSRMRoadManager
-import org.osmdroid.bonuspack.routing.RoadManager
 import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.tileprovider.tilesource.XYTileSource
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.CustomZoomButtonsController
