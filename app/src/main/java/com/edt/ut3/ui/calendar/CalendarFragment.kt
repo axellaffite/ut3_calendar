@@ -317,11 +317,7 @@ class CalendarFragment : Fragment() {
             background.alpha = opacity
             y = translationAmount
 
-            if (opacity == 0) {
-                refresh_button.visibility = GONE
-            } else {
-                refresh_button.visibility = VISIBLE
-            }
+            refresh_button.visibility = if (opacity == 0) GONE else VISIBLE
         }
     }
 

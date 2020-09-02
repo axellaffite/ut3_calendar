@@ -36,6 +36,8 @@
         <item name="customTextColor">@android:color/white</item>
         <item name="iconTint">@android:color/white</item>
         <item name="android:textColorSecondary">@color/textSecondary</item>
+        <item name="android:textColorSecondaryInverse">@color/textSecondaryDisable</item>
     </style>
 
+    <color name="textSecondaryDisable">#999999</color>
 </resources>

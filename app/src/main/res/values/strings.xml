@@ -32,4 +32,10 @@
     <string name="unable_to_launch_googlemaps">Impossible de lancer Google Maps</string>
     <string name="note">Note</string>
     <string name="all_day">Toute la journée</string>
+    <string name="from">De :</string>
+    <string name="to">A :</string>
+    <string name="no_value_selected">Pas de valeur selectionnée</string>
+    <string name="starting_hour">Heure de début</string>
+    <string name="ending_hour">Heure de fin</string>
+    <string name="dark_theme_bounds_title">Horraires pour le thème sombre</string>
 </resources>

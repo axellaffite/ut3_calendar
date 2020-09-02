@@ -25,12 +25,10 @@ class PreferencesManager(private val context: Context) {
     }
 
     fun getTheme() : Theme {
-        val selectedTheme = preferences.getString("theme", null)?.toInt()
+        val themes = Theme.values()
+        val selectedTheme = preferences.getString("theme", "0")!!.toInt().coerceIn(0, themes.size - 1)
 
-        return when (selectedTheme) {
-            Theme.DARK.code -> Theme.DARK
-            else -> Theme.LIGHT
-        }
+        return Theme.values()[selectedTheme]
     }
 
 }
