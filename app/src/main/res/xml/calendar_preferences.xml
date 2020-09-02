@@ -13,7 +13,8 @@
             android:icon="@drawable/ic_theme"/>
 
         <PreferenceCategory
-            app:title="@string/dark_theme_bounds_title">
+            app:title="@string/dark_theme_bounds_title"
+            android:icon="@drawable/ic_time">
 
             <EditTextPreference
                 android:key="dark_theme_start"
@@ -21,7 +22,7 @@
                 android:defaultValue="00:00"/>
 
             <EditTextPreference
-                android:key="dark_theme_start"
+                android:key="dark_theme_end"
                 app:title="@string/ending_hour"
                 android:defaultValue="00:00"/>
 

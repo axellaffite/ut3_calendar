@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="PlaceInfo"/>
-    <declare-styleable name="TimePreference"/>
 
     <attr name="customCalendarColor" format="color" type="color"/>
     <attr name="customForegroundColor" format="color" type="color"/>

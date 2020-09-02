@@ -31,9 +31,16 @@ class CalendarSettingsFragment: PreferenceFragmentCompat() {
             editText.setOnPreferenceChangeListener { _, link -> setSections(link as String) }
         }
 
+        findPreference<EditTextPreference>("dark_theme_end")?.let { editTextPreference ->
+            editTextPreference.setOnBindEditTextListener {
+                it.inputType = InputType.TYPE_CLASS_DATETIME or InputType.TYPE_DATETIME_VARIATION_TIME
+
+                it.addTextChangedListener(TimeEditTextListener(it))
+            }
+        }
+
         findPreference<EditTextPreference>("dark_theme_start")?.let { editTextPreference ->
             editTextPreference.setOnBindEditTextListener {
-                it.setText("00:00")
                 it.inputType = InputType.TYPE_CLASS_DATETIME or InputType.TYPE_DATETIME_VARIATION_TIME
 
                 it.addTextChangedListener(TimeEditTextListener(it))

@@ -7,10 +7,12 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
+import com.edt.ut3.MainActivity
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.misc.Theme
+import java.lang.RuntimeException
 
 class EventView(context: Context, private var ev: Event.Wrapper): CardView(context) {
 
@@ -44,6 +46,8 @@ class EventView(context: Context, private var ev: Event.Wrapper): CardView(conte
                         setBackgroundColor(ev.event.darkBackgroundColor(context))
                         setTextColor(ContextCompat.getColor(context, android.R.color.white))
                     }
+
+                    else -> throw RuntimeException()
                 }
 
                 layoutParams = LinearLayout.LayoutParams(
