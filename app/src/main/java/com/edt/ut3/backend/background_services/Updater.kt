@@ -87,9 +87,9 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
 
             setProgress(workDataOf(Progress to 80))
 
-            AppDatabase.getInstance(applicationContext).eventDao().insert(
-                *eventsArray.toTypedArray()
-            )
+            AppDatabase.getInstance(applicationContext).eventDao().run {
+                insert(*eventsArray.toTypedArray())
+            }
         } catch (e: Exception) {
             e.printStackTrace()
 //            TODO("Catch exceptions properly")

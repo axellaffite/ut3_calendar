@@ -39,4 +39,5 @@
     <string name="ending_hour">Heure de fin</string>
     <string name="dark_theme_bounds_title">Horraires pour le thème sombre</string>
     <string name="depending_time">Choisir selon l\'heure</string>
+    <string name="add_a_picture">+ Ajouter une photo</string>
 </resources>

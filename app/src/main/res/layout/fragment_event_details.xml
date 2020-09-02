@@ -2,6 +2,7 @@
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?customForegroundColor">
@@ -25,8 +26,8 @@
                 android:layout_width="match_parent"
                 android:layout_weight="1"
                 android:id="@+id/title"
-                android:text="title"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"/>
+                tools:text="A simple title"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"/>
 
             <ImageButton
                 android:id="@+id/close_button"
@@ -37,39 +38,90 @@
         </LinearLayout>
 
         <TextView
+            android:id="@+id/details_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/title_container"
+            tools:text="Détails"
+            android:layout_margin="8dp"
+            style="@style/TextAppearance.MaterialComponents.Headline6"/>
+
+        <TextView
             android:id="@+id/description"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/details_label"
+            tools:text="A brief description that\ncan contains multiple\nlines." />
+
+        <TextView
+            android:id="@+id/notes_label"
+            style="@style/TextAppearance.MaterialComponents.Headline6"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
-            android:text="description"
+            android:text="Notes"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/title_container" />
+            app:layout_constraintTop_toBottomOf="@+id/description"
+            android:textColor="?customTextColor"/>
 
-        <com.google.android.material.textfield.TextInputLayout
+
+        <com.edt.ut3.ui.custom_views.image_preview.ImagePreviewLayout
+            android:id="@+id/pictures"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/description"
+            app:layout_constraintTop_toBottomOf="@+id/notes_label" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayout"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:hint="@string/note">
+            app:boxStrokeColor="?customTextColor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:hint="@string/note"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/pictures">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/event_note"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:gravity="start|top"
                 android:inputType="textMultiLine"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"/>
+                android:textColor="?customTextColor"/>
+
         </com.google.android.material.textfield.TextInputLayout>
+
+
+        <TextView
+            android:id="@+id/add_picture"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:gravity="end"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayout"
+            android:text="@string/add_a_picture"/>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
