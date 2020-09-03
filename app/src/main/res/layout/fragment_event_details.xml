@@ -11,91 +11,80 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <LinearLayout
-            android:id="@+id/title_container"
+        <TextView
+            android:id="@+id/title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:orientation="horizontal"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_weight="1"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
+            app:layout_constraintEnd_toStartOf="@+id/close_button"
+            app:layout_constraintStart_toEndOf="@+id/title_container"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="A simple title" />
+
+        <ImageButton
+            android:id="@+id/close_button"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_baseline_close_24"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/title_container"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            app:layout_constraintBottom_toBottomOf="@+id/title"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" >
-
-            <TextView
-                android:layout_height="wrap_content"
-                android:layout_width="match_parent"
-                android:layout_weight="1"
-                android:id="@+id/title"
-                tools:text="A simple title"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"/>
-
-            <ImageButton
-                android:id="@+id/close_button"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/ic_baseline_close_24"
-                android:background="@android:color/transparent"/>
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/details_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@+id/title_container"
-            tools:text="Détails"
-            android:layout_margin="8dp"
-            style="@style/TextAppearance.MaterialComponents.Headline6"/>
+            app:layout_constraintTop_toTopOf="@+id/title" />
 
         <TextView
             android:id="@+id/description"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/details_label"
+            app:layout_constraintStart_toStartOf="@+id/title"
+            app:layout_constraintTop_toBottomOf="@+id/title"
             tools:text="A brief description that\ncan contains multiple\nlines." />
 
-        <TextView
-            android:id="@+id/notes_label"
-            style="@style/TextAppearance.MaterialComponents.Headline6"
+        <ImageView
+            android:id="@+id/notes_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_note"
+            app:layout_constraintBottom_toBottomOf="@+id/note"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/note"
+            app:tint="?customTextColor" />
+
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/note"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
-            android:text="Notes"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/description"
-            android:textColor="?customTextColor"/>
-
-
-        <com.edt.ut3.ui.custom_views.image_preview.ImagePreviewLayout
-            android:id="@+id/pictures"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/notes_label" />
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/textInputLayout"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="?customTextColor"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
             android:hint="@string/note"
+            app:boxStrokeColor="?customTextColor"
+            app:hintTextColor="?customTextColor"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/pictures">
+            app:layout_constraintStart_toEndOf="@+id/notes_icon"
+            app:layout_constraintTop_toBottomOf="@+id/description">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/event_note"
@@ -105,24 +94,41 @@
                 android:ems="10"
                 android:gravity="start|top"
                 android:inputType="textMultiLine"
-                android:textColor="?customTextColor"/>
+                android:textColor="?customTextColor" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
+        <ImageView
+            android:id="@+id/pictures_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_camera"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/linearLayout3"
+            app:tint="?customTextColor" />
 
-        <TextView
-            android:id="@+id/add_picture"
+        <LinearLayout
+            android:id="@+id/linearLayout3"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+
             android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:gravity="end"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textInputLayout"
-            android:text="@string/add_a_picture"/>
+            app:layout_constraintStart_toEndOf="@+id/pictures_icon"
+            app:layout_constraintTop_toBottomOf="@+id/note">
+
+            <com.edt.ut3.ui.custom_views.image_preview.ImagePreviewLayout
+                android:id="@+id/pictures"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 
 </ScrollView>

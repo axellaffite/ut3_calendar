@@ -28,6 +28,7 @@ import com.edt.ut3.misc.plus
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.timeCleaned
 import com.edt.ut3.misc.toDp
+import com.edt.ut3.ui.calendar.event_details.FragmentEventDetails
 import com.edt.ut3.ui.custom_views.overlay_layout.OverlayBehavior
 import com.edt.ut3.ui.preferences.CalendarSettingsFragment
 import com.elzozor.yoda.events.EventWrapper

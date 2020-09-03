@@ -26,7 +26,7 @@ data class Note(
     var color: String?,
     var textColor: String?,
     var reminder: Boolean = false,
-    var pictures: List<String> = listOf())
+    @TypeConverters(Converter::class) var pictures: List<Picture> = listOf())
 {
 
     private constructor(id: Long, note: Note): this(

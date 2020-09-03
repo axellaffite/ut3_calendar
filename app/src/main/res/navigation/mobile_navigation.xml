@@ -28,6 +28,6 @@
         tools:layout="@layout/fragment_maps" />
     <fragment
         android:id="@+id/eventDetails"
-        android:name="com.edt.ut3.ui.calendar.FragmentEventDetails"
+        android:name="com.edt.ut3.ui.calendar.event_details.FragmentEventDetails"
         android:label="EventDetails" />
 </navigation>
