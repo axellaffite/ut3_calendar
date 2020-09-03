@@ -38,7 +38,7 @@ class Converter {
     @TypeConverter
     fun deserializePicture(str: String) = JSONArray(str).map {
         (it as JSONObject).run {
-            Picture(getString("picture"), getString("thumbnail"))
+            Picture(picture = getString("picture"), thumbnail = getString("thumbnail"))
         }
     }
 }

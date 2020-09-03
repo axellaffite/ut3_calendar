@@ -2,8 +2,10 @@ package com.edt.ut3.backend.note
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Rect
 import android.media.ThumbnailUtils
 import android.os.Environment
 import android.os.Parcelable
@@ -39,11 +41,12 @@ data class Picture(
          * @param format The format (.jpg by default)
          */
         fun prepareImageFile(context: Context, filename: String, format: String = ".jpg"): File =
-            File.createTempFile(
-                filename,
-                format,
-                getStorageDir(context)
-            )
+            File(getStorageDir(context), "$filename.jpg")
+//            File.createTempFile(
+//                filename,
+//                format,
+//                getStorageDir(context)
+//            )
 
         /**
          * This function will generate and store a thumbnail
@@ -85,7 +88,7 @@ data class Picture(
                     thumbnail.compress(Bitmap.CompressFormat.JPEG, 100, thumbnailFile.outputStream())
 
                     // And we return the Picture
-                    Picture(pictureLocation, thumbnailFile.absolutePath)
+                    Picture(picture = pictureLocation, thumbnail =  thumbnailFile.absolutePath)
                 }
             }
         }
@@ -113,6 +116,7 @@ data class Picture(
      */
     @Throws(IllegalStateException::class)
     suspend fun loadThumbnail(): Bitmap = withContext(IO) {
+        println("Loading thumbnail $thumbnail")
         val file = File(thumbnail)
         if (!file.exists()) {
             throw IllegalStateException("The thumbnail doesn't exist")
@@ -122,8 +126,51 @@ data class Picture(
     }
 
     suspend fun loadPicture(): Bitmap = withContext(IO) {
-        File(picture).let {
-            BitmapFactory.decodeFileDescriptor(it.inputStream().fd)
+        println("Loading picture: $picture")
+        val file = File(picture)
+        if (!file.exists()) {
+            throw IllegalStateException("The picture doesn't exist")
         }
+
+        BitmapFactory.decodeFile(file.absolutePath)
+    }
+
+    suspend fun loadPictureForBounds(reqWidth: Int, reqHeight: Int): Bitmap {
+        // First decode with inJustDecodeBounds=true to check dimensions
+        return withContext(IO) {
+            BitmapFactory.Options().run {
+                val file = File(picture)
+                inJustDecodeBounds = true
+                BitmapFactory.decodeFile(file.absolutePath, this)
+
+                // Calculate inSampleSize
+                inSampleSize = calculateInSampleSize(this, reqWidth, reqHeight)
+
+                // Decode bitmap with inSampleSize set
+                inJustDecodeBounds = false
+
+                BitmapFactory.decodeFile(file.absolutePath, this)
+            }
+        }
+    }
+
+    private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+        // Raw height and width of image
+        val (height: Int, width: Int) = options.run { outHeight to outWidth }
+        var inSampleSize = 1
+
+        if (height > reqHeight || width > reqWidth) {
+
+            val halfHeight: Int = height / 2
+            val halfWidth: Int = width / 2
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                inSampleSize *= 2
+            }
+        }
+
+        return inSampleSize
     }
 }

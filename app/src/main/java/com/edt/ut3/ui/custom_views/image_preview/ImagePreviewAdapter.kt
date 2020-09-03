@@ -54,11 +54,13 @@ class ImagePreviewAdapter(val dataset: List<Picture>) : RecyclerView.Adapter<Ima
             GlobalScope.launch {
                 println(dataset[position])
                 val thumbnail = withContext(IO) { dataset[position].loadThumbnail() }
-                withContext(Main) { imgView.setImageBitmap(thumbnail) }
-
-                imgView.setOnClickListener { onItemClickListener?.invoke(imgView, dataset[position]) }
-                imgView.invalidate()
-                imgView.requestLayout()
+                withContext(Main) {
+                    imgView.setImageBitmap(thumbnail)
+                    imgView.scaleType = ImageView.ScaleType.CENTER_CROP
+                    imgView.setOnClickListener { onItemClickListener?.invoke(imgView, dataset[position]) }
+                    imgView.invalidate()
+                    imgView.requestLayout()
+                }
             }
         }
 
