@@ -33,6 +33,7 @@ import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.ui.calendar.CalendarViewModel
 import com.edt.ut3.ui.custom_views.image_preview.ImagePreviewAdapter
 import com.edt.ut3.ui.preferences.Theme
+import com.elzozor.yoda.utils.DateExtensions.get
 import com.squareup.picasso.Picasso
 import com.stfalcon.imageviewer.StfalconImageViewer
 import kotlinx.android.synthetic.main.activity_main.*
@@ -42,6 +43,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 class FragmentEventDetails(private val event: Event) : Fragment() {
 
@@ -114,6 +117,7 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
 
         description.text = event.description
         event_note.setText(note.contents)
+        from_to.text = generateDateText()
 
         pictures.adapter = ImagePreviewAdapter(viewModel.selectedEventPictures).apply {
             onItemClickListener = { v: View, p: Picture ->
@@ -133,6 +137,18 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
             viewModel.selectedEventPictures.addAll(note.pictures)
 
             pictures.notifyDataSetChanged()
+        }
+    }
+
+    private fun generateDateText(): String {
+        if (event.allday) {
+            return getString(R.string.all_day)
+        } else {
+            val date = SimpleDateFormat("dd/MM/yyyy").format(event.start)
+            val start = "${event.start.get(Calendar.HOUR_OF_DAY)}h${event.start.get(Calendar.MINUTE)}"
+            val end = "${event.end.get(Calendar.HOUR_OF_DAY)}h${event.end.get(Calendar.MINUTE)}"
+
+            return "$date $start-$end"
         }
     }
 

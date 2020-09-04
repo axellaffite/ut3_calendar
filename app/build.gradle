@@ -93,6 +93,10 @@ dependencies {
     // Documentation : https://osmdroid.github.io/osmdroid/javadocs/osmdroid-android/release/index.html
     implementation 'org.osmdroid:osmdroid-android:6.1.8'
 
+
+    // Name stfalcon-imageviewer
+    // Summary : Display images simply with few lines of code.
+    // Documentation : https://github.com/stfalcon-studio/StfalconImageViewer
     implementation 'com.github.stfalcon:stfalcon-imageviewer:1.0.1'
 
 }
