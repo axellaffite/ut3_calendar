@@ -32,7 +32,8 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:background="@android:color/transparent"
-            android:src="@drawable/ic_baseline_close_24"
+            android:src="@drawable/ic_back"
+            android:tint="?customTextColor"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 

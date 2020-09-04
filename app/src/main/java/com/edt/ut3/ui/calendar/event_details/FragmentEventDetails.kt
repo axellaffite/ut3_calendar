@@ -1,27 +1,21 @@
 package com.edt.ut3.ui.calendar.event_details
 
 import android.Manifest
-import android.app.Activity.RESULT_OK
-import android.content.Intent
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
-import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.core.app.ActivityCompat
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.core.graphics.toColorInt
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.edt.ut3.R
@@ -42,29 +36,59 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
 class FragmentEventDetails(private val event: Event) : Fragment() {
 
-    enum class RequestCode { IMAGE_CAPTURE, CAMERA_PERMISSION }
-
     private val viewModel: CalendarViewModel by viewModels { defaultViewModelProviderFactory }
     private var note: Note = Note.generateEmptyNote(event.id)
-    private var pictureFile : File? = null
-    private var pictureName : String? = null
+
+    private var pictureFile: File? = null
+    private var pictureName: String? = null
+
+    /**
+     * Used to launch an Intent that will take
+     * a picture a write the result into the
+     * provided file (pictureFile).
+     */
+    private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) {
+            addPictureToNote(pictureName!!, pictureFile!!)
+        } else {
+            pictureFile?.delete()
+        }
+    }
+
+    /**
+     * Used to request a permission (in this case a CAMERA permission).
+     * If the permission is granted, takePicture is called
+     * otherwise, the previously created picture file is deleted.
+     */
+    private val grantCameraPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            pictureFile?.let {
+                takePicture.launch(uriFromFile(it))
+            }
+        } else {
+            pictureFile?.delete()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Hide the app bar
         requireActivity().nav_view.visibility = GONE
     }
 
     override fun onDestroy() {
         super.onDestroy()
 
+        // Show the app bar
         requireActivity().nav_view.visibility = VISIBLE
+        // Clear the selected event to prevent
+        // the Calendar Fragment to recreate this one.
         viewModel.selectedEvent = null
     }
 
@@ -75,27 +99,28 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Load asynchronously the attached note.
+        // Once it's done, the contents
         lifecycleScope.launch {
             AppDatabase.getInstance(requireContext()).noteDao().run {
                 val result = selectByEventIDs(event.id)
-                result.forEach {
-                    println(it)
-                }
 
                 if (result.size == 1) {
-                    println("Assigning note")
                     note = result[0]
                 }
 
                 setupContent()
+                setupListeners()
             }
         }
-
-        setupListeners()
     }
 
+    /**
+     * Setup the view contents.
+     * Called once the event's note is loaded
+     *
+     */
     private fun setupContent() {
-        println(note)
         title.text = event.courseName ?: event.category
         when (PreferencesManager(requireContext()).getTheme()) {
             Theme.LIGHT -> {
@@ -119,6 +144,9 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
         event_note.setText(note.contents)
         from_to.text = generateDateText()
 
+        // Setup the adapter contents and the item "onclick" callbacks.
+        // Use the StfalconImageViewer library to display a fullscreen
+        // image.
         pictures.adapter = ImagePreviewAdapter(viewModel.selectedEventPictures).apply {
             onItemClickListener = { v: View, p: Picture ->
                 val imageBuilder = { view: ImageView, image: Picture -> Picasso.get().load(File(image.picture)).into(view) }
@@ -128,137 +156,18 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
                     .show()
             }
 
+
+            // The "take picture" button callback
             onAddPictureClickListener = {
-                requestPicture()
+                takePicture()
             }
         }
 
-        lifecycleScope.launchWhenResumed {
-            viewModel.selectedEventPictures.addAll(note.pictures)
-
-            pictures.notifyDataSetChanged()
-        }
-    }
-
-    private fun generateDateText(): String {
-        if (event.allday) {
-            return getString(R.string.all_day)
-        } else {
-            val date = SimpleDateFormat("dd/MM/yyyy").format(event.start)
-            val start = "${event.start.get(Calendar.HOUR_OF_DAY)}h${event.start.get(Calendar.MINUTE)}"
-            val end = "${event.end.get(Calendar.HOUR_OF_DAY)}h${event.end.get(Calendar.MINUTE)}"
-
-            return "$date $start-$end"
-        }
-    }
-
-    private fun requestPicture() {
-        when (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)) {
-            PackageManager.PERMISSION_GRANTED -> {
-                Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
-                    takePictureIntent.resolveActivity(requireContext().packageManager)?.also {
-                        generateOutputFile {
-                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(requireContext(), "com.edt.ut3.fileprovider", pictureFile!!))
-                            startActivityForResult(takePictureIntent, RequestCode.IMAGE_CAPTURE.ordinal)
-                        }
-                    }
-
-                }
-            }
-
-            else -> {
-                ActivityCompat.requestPermissions(
-                    requireActivity(),
-                    arrayOf(Manifest.permission.CAMERA),
-                    RequestCode.CAMERA_PERMISSION.ordinal
-                )
-            }
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode > RequestCode.values().size) {
-            return
-        }
-
-        val request = RequestCode.values()[requestCode]
-        println("ohoh: $request")
-        when (request) {
-            RequestCode.IMAGE_CAPTURE -> {
-                println("$resultCode $RESULT_OK")
-
-                if (resultCode != RESULT_OK) {
-                    return
-                }
-
-                println(pictureFile?.absolutePath)
-
-                val bitmap = BitmapFactory.decodeStream(pictureFile!!.inputStream())
-                println("${bitmap.width} ${bitmap.height}")
-                bitmap?.let {
-                    addPictureToNote(it)
-                }
-            }
-
-             else -> {}
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int,
-                                            permissions: Array<out String>,
-                                            grantResults: IntArray)
-    {
-        if (requestCode > RequestCode.values().size) {
-            return
-        }
-
-        val request = RequestCode.values()[requestCode]
-        when (request) {
-            RequestCode.CAMERA_PERMISSION -> {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    requestPicture()
-                }
-            }
-
-            else -> {}
-        }
-    }
-
-    private fun generateOutputFile(callback: (() -> Unit)) {
-        lifecycleScope.launch {
-            saveNote(note) {
-                pictureName = Picture.generateFilename(it.id.toString())
-                pictureFile = Picture.prepareImageFile(
-                    requireContext(),
-                    pictureName!!
-                )
-
-                callback()
-            }
-        }
-    }
-
-
-    private fun addPictureToNote(picture: Bitmap) {
-        try {
-            lifecycleScope.launch {
-                saveNote(note) {
-                    lifecycleScope.launch {
-                        val generated = Picture.generateFromPictureUri(requireContext(), pictureName!!, pictureFile!!.absolutePath)
-                        note.pictures = note.pictures + generated
-
-                        saveNote(note) {
-                            println(it)
-                        }
-
-                        viewModel.selectedEventPictures.add(generated)
-                        pictures.notifyDataSetChanged()
-                    }
-                }
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
+        // Add all the note event picture to the view model variable
+        // It is used into several cases to add and delete pictures
+        // to the current note.
+        viewModel.selectedEventPictures.addAll(note.pictures)
+        pictures.notifyDataSetChanged()
     }
 
     private fun setupListeners() {
@@ -266,7 +175,8 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
             requireActivity().onBackPressed()
         }
 
-        event_note.doOnTextChanged { text, start, before, count ->
+        // Save the current note at each modification.
+        event_note.doOnTextChanged { text, _, _, _ ->
             note.contents = text.toString()
             lifecycleScope.launch {
                 saveNote(note)
@@ -274,6 +184,118 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
         }
     }
 
+    /**
+     * Generate the date text depending on
+     * the event status (all day or classic)
+     * and its start and end dates.
+     */
+    @SuppressLint("SimpleDateFormat")
+    private fun generateDateText(): String {
+        return if (event.allday) {
+            getString(R.string.all_day)
+        } else {
+            val date = SimpleDateFormat("dd/MM/yyyy").format(event.start)
+            val start = "${event.start.get(Calendar.HOUR_OF_DAY)}h${event.start.get(Calendar.MINUTE)}"
+            val end = "${event.end.get(Calendar.HOUR_OF_DAY)}h${event.end.get(Calendar.MINUTE)}"
+
+            "$date $start-$end"
+        }
+    }
+
+    /**
+     * Generates the output file, assign
+     * the picture name and file variables
+     * to the result, check the camera permission
+     * and depending on the camera permission
+     * call the takePicture variable or the
+     * grandCameraPermission one.
+     */
+    private fun takePicture() {
+        generateOutputFile { name, file ->
+            pictureName = name
+            pictureFile = file
+
+            val cameraPermission = Manifest.permission.CAMERA
+            val grantStatus = ContextCompat.checkSelfPermission(requireContext(), cameraPermission)
+            if (grantStatus != PackageManager.PERMISSION_GRANTED) {
+                grantCameraPermission.launch(cameraPermission)
+            } else {
+                takePicture.launch(uriFromFile(file))
+            }
+        }
+    }
+
+    /**
+     * Simply generate an URI from a given file.
+     *
+     * @param file The concerned file
+     */
+    private fun uriFromFile(file: File) =
+        FileProvider.getUriForFile(requireContext(), "com.edt.ut3.fileprovider", file)
+
+    /**
+     * Save the current note and create the
+     * file that will store the picture.
+     * This function is executed in a separate thread.
+     *
+     * Once it's done, call the provided callback
+     * with these information.
+     *
+     * @param callback The action to execute once done.
+     */
+    private fun generateOutputFile(callback: ((name: String, file: File) -> Unit)) {
+        lifecycleScope.launch {
+            saveNote(note) {
+                val name = Picture.generateFilename(it.id.toString())
+                val file = Picture.prepareImageFile(
+                    requireContext(),
+                    name
+                )
+
+                callback(name, file)
+            }
+        }
+    }
+
+
+    /**
+     * Generate the thumbnail and add it to the
+     * current note.
+     * The results are stored into a Picture class.
+     *
+     * The thumbnail name is generated with the
+     * provided name. It just add "_thumbnail" to it.
+     *
+     * @param name The picture name
+     * @param file The picture file
+     */
+    private fun addPictureToNote(name: String, file: File) {
+        lifecycleScope.launch {
+            saveNote(note) {
+                lifecycleScope.launch {
+                    val generated = Picture.generateFromPictureUri(requireContext(), name, file.absolutePath)
+                    note.pictures = note.pictures + generated
+
+                    saveNote(note) {
+                        println(it)
+                    }
+
+                    viewModel.selectedEventPictures.add(generated)
+                    pictures.notifyDataSetChanged()
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Save the provided note into the database
+     * and assign the old one to the result.
+     * Call the callback once done if it's defined.
+     *
+     * @param newNote The note to save
+     * @param callback The action to execute once done
+     */
     private suspend fun saveNote(newNote: Note, callback: ((Note) -> Unit)? = null) {
         withContext(IO) {
             note = Note.saveNote(newNote, requireContext())
