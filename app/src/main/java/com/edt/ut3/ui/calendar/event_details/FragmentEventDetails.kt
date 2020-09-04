@@ -28,6 +28,7 @@ import com.edt.ut3.ui.calendar.CalendarViewModel
 import com.edt.ut3.ui.custom_views.image_preview.ImagePreviewAdapter
 import com.edt.ut3.ui.preferences.Theme
 import com.elzozor.yoda.utils.DateExtensions.get
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.squareup.picasso.Picasso
 import com.stfalcon.imageviewer.StfalconImageViewer
 import kotlinx.android.synthetic.main.activity_main.*
@@ -147,13 +148,64 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
         // Setup the adapter contents and the item "onclick" callbacks.
         // Use the StfalconImageViewer library to display a fullscreen
         // image.
-        pictures.adapter = ImagePreviewAdapter(viewModel.selectedEventPictures).apply {
-            onItemClickListener = { v: View, p: Picture ->
-                val imageBuilder = { view: ImageView, image: Picture -> Picasso.get().load(File(image.picture)).into(view) }
-                StfalconImageViewer.Builder(context, viewModel.selectedEventPictures, imageBuilder)
-                    .withStartPosition(viewModel.selectedEventPictures.indexOf(p))
+        pictures.adapter = ImagePreviewAdapter(note.pictures).apply {
+            onItemClickListener = { v: View, p: Picture, dataSet: List<Picture> ->
+                val overlayLayout = ImageOverlayLayout(requireContext())
+
+                // This image builder is in charge to load images from
+                // the memory into the ImageView of the image viewer.
+                val imageBuilder = { view: ImageView, picture: Picture ->
+                    Picasso.get().load(File(picture.picture)).fit().into(view)
+
+                    // On click we show or hide the overlay layout
+                    // to allow the user to perform actions like
+                    // deleting pictures.
+                    view.setOnClickListener {
+                        overlayLayout.showHideOverlay()
+                    }
+                }
+
+                // This is the view that will display the images
+                val imageViewer = StfalconImageViewer.Builder(context, dataSet, imageBuilder)
+                    .withStartPosition(dataSet.indexOf(p))
                     .withTransitionFrom(v as ImageView)
-                    .show()
+                    .withOverlayView(overlayLayout)
+                    .build()
+
+                // We set the onDeleteRequest after creating the imageViewer
+                // to hold a reference on it and make possible
+                // to get the current position of the viewer in
+                // order to delete the proper file.
+                overlayLayout.apply {
+                    onDeleteRequest = {
+                        MaterialAlertDialogBuilder(requireContext())
+                            .setTitle(R.string.delete_image)
+                            .setNegativeButton(android.R.string.cancel) { _, _ ->
+                                // Do nothing on dismiss
+                            }
+                            .setPositiveButton(R.string.remove) { _, _ ->
+                                // Here we remove the picture from the note
+                                // at the position where the image viewer is.
+                                // As the Picture.removeNoteAt() is safe in the
+                                // sense where it does not crash if the index isn't
+                                // in the bounds, we can call it with the provided index.
+                                //
+                                // We then save the note to update its representation
+                                // in the database.
+                                lifecycleScope.launch {
+                                    note.removePictureAt(imageViewer.currentPosition())
+                                    saveNote(note) {
+                                        imageViewer.updateImages(it.pictures)
+                                        pictures.notifyDataSetChanged()
+                                    }
+                                }
+                            }
+                            .show()
+                    }
+                }
+
+                // Finally we display the imager viewer.
+                imageViewer.show()
             }
 
 
@@ -163,10 +215,11 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
             }
         }
 
+
         // Add all the note event picture to the view model variable
         // It is used into several cases to add and delete pictures
         // to the current note.
-        viewModel.selectedEventPictures.addAll(note.pictures)
+        viewModel.selectedEventNote = note
         pictures.notifyDataSetChanged()
     }
 
@@ -274,14 +327,11 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
             saveNote(note) {
                 lifecycleScope.launch {
                     val generated = Picture.generateFromPictureUri(requireContext(), name, file.absolutePath)
-                    note.pictures = note.pictures + generated
+                    note.pictures.add(generated)
 
                     saveNote(note) {
-                        println(it)
+                        pictures.notifyDataSetChanged()
                     }
-
-                    viewModel.selectedEventPictures.add(generated)
-                    pictures.notifyDataSetChanged()
                 }
             }
         }
@@ -298,7 +348,7 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
      */
     private suspend fun saveNote(newNote: Note, callback: ((Note) -> Unit)? = null) {
         withContext(IO) {
-            note = Note.saveNote(newNote, requireContext())
+            Note.saveNote(newNote, requireContext())
         }
 
         callback?.invoke(note)

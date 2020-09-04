@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.viewmodels.EventViewModel
+import com.edt.ut3.backend.note.Note
 import com.edt.ut3.backend.note.Picture
 import com.edt.ut3.misc.timeCleaned
 import java.util.*
@@ -13,13 +14,13 @@ class CalendarViewModel : ViewModel() {
     var selectedEvent: Event? = null
         set(value) {
             if (value == null) {
-                selectedEventPictures.clear()
+                selectedEventNote = null
             }
 
             field = value
         }
 
-    var selectedEventPictures = mutableListOf<Picture>()
+    var selectedEventNote: Note? = null
 
     private lateinit var events: LiveData<List<Event>>
     var selectedDate = Date().timeCleaned()

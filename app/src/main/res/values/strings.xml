@@ -40,4 +40,6 @@
     <string name="dark_theme_bounds_title">Horraires pour le thème sombre</string>
     <string name="depending_time">Choisir selon l\'heure</string>
     <string name="add_a_picture">+ Ajouter une photo</string>
+    <string name="delete_image">Supprimer l\'image ?</string>
+    <string name="remove">Supprimer</string>
 </resources>

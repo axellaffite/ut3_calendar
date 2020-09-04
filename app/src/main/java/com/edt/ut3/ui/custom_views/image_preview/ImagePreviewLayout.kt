@@ -21,7 +21,10 @@ class ImagePreviewLayout(context: Context, attributeSet: AttributeSet): Recycler
     fun notifyDataSetChanged() = adapter?.notifyDataSetChanged()
 
     fun updateDataSet(dataSet: List<Picture>) {
-        adapter = ImagePreviewAdapter(dataSet)
+        (adapter as? ImagePreviewAdapter)?.let {
+            it.dataset = dataSet
+            it.notifyDataSetChanged()
+        }
     }
 
     class MarginItemDecoration(private val spaceHeight: Int) : RecyclerView.ItemDecoration() {

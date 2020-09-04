@@ -13,8 +13,8 @@ class AllDayAdapter(context: Context, private val values: Array<Event.Wrapper>, 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val event = values[position]
 
-        return if (convertView != null) {
-            (convertView as EventView).apply {
+        return if (convertView is EventView) {
+            convertView.apply {
                 setEvent(event)
             }
         } else {

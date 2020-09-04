@@ -20,7 +20,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ImagePreviewAdapter(val dataset: List<Picture>) : RecyclerView.Adapter<ImagePreviewAdapter.ImageViewHolder>() {
+class ImagePreviewAdapter(var dataset: List<Picture>) : RecyclerView.Adapter<ImagePreviewAdapter.ImageViewHolder>() {
 
     companion object {
         fun from(layout: RecyclerView): ImagePreviewAdapter {
@@ -28,7 +28,7 @@ class ImagePreviewAdapter(val dataset: List<Picture>) : RecyclerView.Adapter<Ima
         }
     }
 
-    var onItemClickListener: ((v: View, picture: Picture) -> Unit)? = null
+    var onItemClickListener: ((v: View, picture: Picture, pictures: List<Picture>) -> Unit)? = null
     var onAddPictureClickListener: ((v: View) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ImageViewHolder(
@@ -45,6 +45,7 @@ class ImagePreviewAdapter(val dataset: List<Picture>) : RecyclerView.Adapter<Ima
         val size = 64.toDp(holder.imgView.context).toInt()
 
         holder.imgView.cardElevation = 0f
+        holder.setIsRecyclable(false)
 
         if (position == dataset.size) {
             bindAddPicture(holder)
@@ -57,9 +58,7 @@ class ImagePreviewAdapter(val dataset: List<Picture>) : RecyclerView.Adapter<Ima
                 withContext(Main) {
                     imgView.setImageBitmap(thumbnail)
                     imgView.scaleType = ImageView.ScaleType.CENTER_CROP
-                    imgView.setOnClickListener { onItemClickListener?.invoke(imgView, dataset[position]) }
-                    imgView.invalidate()
-                    imgView.requestLayout()
+                    imgView.setOnClickListener { onItemClickListener?.invoke(imgView, dataset[position], dataset) }
                 }
             }
         }
@@ -68,7 +67,6 @@ class ImagePreviewAdapter(val dataset: List<Picture>) : RecyclerView.Adapter<Ima
     }
 
     private fun bindAddPicture(holder: ImageViewHolder) {
-        holder.setIsRecyclable(false)
         (holder.imgView.getChildAt(0) as ImageView).apply {
             setImageResource(R.drawable.ic_add)
 
