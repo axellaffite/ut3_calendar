@@ -1,6 +1,7 @@
-# Calendrier UT3 (Anciennement EDT UT3) ![Logo]()
+# Calendrier UT3 (Anciennement EDT UT3) ![Logo](https://github.com/ElZozor/ut3_calendar/blob/master/logo/ic_launcher/res/mipmap-mdpi/ic_launcher.png?raw=true)
 
-Cette application permet de consulter le calendrier Celcat de l'université Paul Sabatier directement sur votre téléphone.
+Cette application permet de consulter le calendrier Celcat de l'université Paul Sabatier directement sur votre téléphone.  
+Disponible pour Android --> [ici](https://play.google.com/store/apps/details?id=com.edt.ut3&hl=ln) <-- !
 
 ## Modifications par rapport à la version 1.x
 
@@ -10,7 +11,7 @@ Parmis elles on pourra noter :
  - L'enregistrement des notes se fait en temps réel pendant l'édition de ces dernières.
  - Il est maintenant possible d'ajouter des photos aux notes.
  - L'emploi du temps est maintenant affiché d'une manière différente, deux événements à la même heure seront positionnés côte-à-côte (voir screens plus bas).
- - Deux layouts ont étés ajoutés et sont cachées derrière l'emploi du temps. Sur la gauche, une pour afficher les modifications de la dernière sauvegarde. Sur la droite, des options que l'utilisateur pourra régler lui-même.
+ - Deux layouts ont été ajoutées et sont cachées derrière l'emploi du temps. Sur la gauche, une pour afficher les modifications de la dernière sauvegarde. Sur la droite, des options que l'utilisateur pourra régler lui-même.
  - Un fragment affichant une carte interactive à la manière de Google Maps (pour l'instant avec osmdroid) montre les différents bâtiments de l'université ainsi que ceux du Crous. La recherche de chemin se fait par contre via l'application Google Maps pour des questions de coût, les APIs de ce genre étant pour la plupart payantes.
 
 ## Description des fragments  
