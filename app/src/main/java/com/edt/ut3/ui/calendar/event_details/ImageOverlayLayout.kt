@@ -10,7 +10,7 @@ class ImageOverlayLayout(context: Context, attrs: AttributeSet?): MotionLayout(c
 
     constructor(context: Context) : this(context, null)
 
-    var visible = false
+    private var visible = false
 
     var onDeleteRequest: (() -> Unit)? = null
 
@@ -21,13 +21,15 @@ class ImageOverlayLayout(context: Context, attrs: AttributeSet?): MotionLayout(c
                 onDeleteRequest?.invoke()
             }
         }
+
+        setTransition(R.id.show_hide)
     }
 
     fun showHideOverlay() {
-        if (visible) {
-            transitionToStart()
-        } else {
+        if (!visible) {
             transitionToEnd()
+        } else {
+            transitionToStart()
         }
 
         visible = !visible

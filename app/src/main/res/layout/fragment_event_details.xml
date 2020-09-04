@@ -5,7 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?customBackgroundColor">
+    android:background="?customBackgroundColor"
+    android:fillViewport="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -20,6 +21,7 @@
             android:layout_marginEnd="16dp"
             android:layout_weight="1"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
+            android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/title_container"
             app:layout_constraintTop_toBottomOf="@+id/close_button"
@@ -29,8 +31,8 @@
             android:id="@+id/close_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_back"
             android:tint="?customTextColor"
@@ -41,7 +43,7 @@
             android:id="@+id/title_container"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="16dp"
             android:orientation="horizontal"
             android:padding="8dp"
             app:cardCornerRadius="8dp"
@@ -66,7 +68,7 @@
             android:id="@+id/notes_icon"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="16dp"
             android:src="@drawable/ic_note"
             app:layout_constraintBottom_toBottomOf="@+id/note"
             app:layout_constraintStart_toStartOf="parent"
@@ -78,7 +80,7 @@
             android:id="@+id/pictures_icon"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="16dp"
             android:src="@drawable/ic_camera"
             app:layout_constraintBottom_toBottomOf="@+id/linearLayout3"
             app:layout_constraintStart_toStartOf="parent"
@@ -109,22 +111,28 @@
             android:id="@+id/note"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
             android:hint="@string/note"
             app:boxStrokeColor="?customTextColor"
             app:hintTextColor="?customTextColor"
+            app:helperTextTextColor="?customTextColor"
+            android:textColorHint="?android:textColorSecondary"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHeight_default="wrap"
             app:layout_constraintStart_toEndOf="@+id/notes_icon"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout3">
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout3"
+            app:layout_constraintVertical_bias="0.0">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/event_note"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:ems="10"
                 android:gravity="start|top"
                 android:inputType="textMultiLine"
@@ -138,11 +146,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
-            tools:text="04/09/2020 · 10h00 - 12h00"
+            android:textSize="16sp"
+            android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/title_container"
-            app:layout_constraintTop_toBottomOf="@+id/title" />
+            app:layout_constraintTop_toBottomOf="@+id/title"
+            tools:text="04/09/2020 · 10h00 - 12h00" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

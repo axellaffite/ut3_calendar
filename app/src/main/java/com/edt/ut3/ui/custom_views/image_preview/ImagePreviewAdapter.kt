@@ -8,6 +8,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.edt.ut3.R
 import com.edt.ut3.backend.note.Picture
@@ -32,7 +33,7 @@ class ImagePreviewAdapter(var dataset: List<Picture>) : RecyclerView.Adapter<Ima
     var onAddPictureClickListener: ((v: View) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ImageViewHolder(
-        CardView(parent.context).apply {
+        CardView(parent.context, null).apply {
             addView(ImageView(parent.context).apply {
                 layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
             })
@@ -73,12 +74,12 @@ class ImagePreviewAdapter(var dataset: List<Picture>) : RecyclerView.Adapter<Ima
             when (PreferencesManager(context).getTheme()) {
                 Theme.DARK ->  {
                     setColorFilter(Color.WHITE)
-                    holder.imgView.setCardBackgroundColor(Color.GRAY)
+                    holder.imgView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.colorPrimaryDark))
                 }
 
                 Theme.LIGHT -> {
                     setColorFilter(Color.BLACK)
-                    holder.imgView.setCardBackgroundColor(Color.GRAY)
+                    holder.imgView.setCardBackgroundColor(Color.parseColor("#DCDCDC"))
                 }
             }
 

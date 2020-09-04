@@ -10,4 +10,7 @@
     <attr name="customMapsFloatingButtonColor" format="color" type="color"/>
     <attr name="customMapsFloatingButtonIconColor" format="color" type="color"/>
     <attr name="customTextColor" format="color" type="color"/>
+
+    <attr name="picturePreviewAddButtonColor" format="color" type="color"/>
+
 </resources>
