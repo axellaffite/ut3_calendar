@@ -24,19 +24,42 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlin.time.ExperimentalTime
 
+
+/**
+ * Used to update the Calendar data in background.
+ *
+ * @param appContext The application context
+ * @param workerParams The worker's parameters
+ */
 class Updater(appContext: Context, workerParams: WorkerParameters):
     CoroutineWorker(appContext, workerParams) {
 
     companion object {
+        // Used to provide a progress value outside
+        // of the Worker.
         const val Progress = "progress"
 
+        /**
+         * Schedule a periodic update.
+         * If the periodic update is already launched
+         * it is not replaced.
+         *
+         * @param context A valid context
+         */
         fun scheduleUpdate(context: Context) {
             val worker = PeriodicWorkRequestBuilder<Updater>(1, TimeUnit.HOURS).build()
-            WorkManager.getInstance(context).let {
-                it.enqueueUniquePeriodicWork("event_update", ExistingPeriodicWorkPolicy.KEEP, worker)
-            }
+            WorkManager.getInstance(context)
+                .enqueueUniquePeriodicWork("event_update", ExistingPeriodicWorkPolicy.KEEP, worker)
         }
 
+        /**
+         * Force an update that will execute
+         * almost directly after the function call.
+         *
+         * @param context A valid context
+         * @param viewLifecycleOwner The fragment's viewLifeCycleOwner which will observe the Worker *optional*
+         * @param observer An observer *optional*
+         */
         fun forceUpdate(context: Context, viewLifecycleOwner: LifecycleOwner? = null, observer: Observer<WorkInfo>? = null) {
             val worker = OneTimeWorkRequestBuilder<Updater>().build()
             WorkManager.getInstance(context).let {
@@ -108,17 +131,22 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
         result
     }
 
+    /**
+     * Returns the classes parsed properly.
+     */
     @Throws(IOException::class)
     private suspend fun getClasses() = withContext(IO) {
         val data = CelcatService().getClasses().body()?.string() ?: throw IOException()
 
         JSONObject(data).getJSONArray("results").map {
             (it as JSONObject).run { getString("id").fromHTML().trim() }
-        }.also {
-            println("Classes count : ${it.size}")
         }
     }
 
+
+    /**
+     * Returns the courses parsed properly.
+     */
     private suspend fun getCourses() = withContext(IO) {
         val data = CelcatService().getCoursesNames().body()?.string() ?: throw IOException()
 
@@ -128,8 +156,6 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                 val id = getString("id").fromHTML().trim()
                 "$text [$id]"
             }
-        }.also {
-            println("Courses count: ${it.size}")
         }
     }
 }
