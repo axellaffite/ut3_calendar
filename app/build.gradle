@@ -93,6 +93,6 @@ dependencies {
     // Documentation : https://osmdroid.github.io/osmdroid/javadocs/osmdroid-android/release/index.html
     implementation 'org.osmdroid:osmdroid-android:6.1.8'
 
-    implementation 'com.github.MKergall:osmbonuspack:6.6.0'
+    implementation 'com.github.stfalcon:stfalcon-imageviewer:1.0.1'
 
 }

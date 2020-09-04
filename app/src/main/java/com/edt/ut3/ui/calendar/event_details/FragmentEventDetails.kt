@@ -14,6 +14,7 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -32,6 +33,8 @@ import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.ui.calendar.CalendarViewModel
 import com.edt.ut3.ui.custom_views.image_preview.ImagePreviewAdapter
 import com.edt.ut3.ui.preferences.Theme
+import com.squareup.picasso.Picasso
+import com.stfalcon.imageviewer.StfalconImageViewer
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_event_details.*
 import kotlinx.coroutines.Dispatchers.IO
@@ -114,11 +117,11 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
 
         pictures.adapter = ImagePreviewAdapter(viewModel.selectedEventPictures).apply {
             onItemClickListener = { v: View, p: Picture ->
-                requireActivity().supportFragmentManager
-                    .beginTransaction()
-                    .add(R.id.nav_host_fragment, ImageViewFragment(viewModel.selectedEventPictures, p))
-                    .addToBackStack(null)
-                    .commit()
+                val imageBuilder = { view: ImageView, image: Picture -> Picasso.get().load(File(image.picture)).into(view) }
+                StfalconImageViewer.Builder(context, viewModel.selectedEventPictures, imageBuilder)
+                    .withStartPosition(viewModel.selectedEventPictures.indexOf(p))
+                    .withTransitionFrom(v as ImageView)
+                    .show()
             }
 
             onAddPictureClickListener = {

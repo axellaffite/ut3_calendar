@@ -1,7 +1,5 @@
 package com.edt.ut3.ui.calendar
 
-import android.animation.ObjectAnimator
-import android.animation.PropertyValuesHolder
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
@@ -14,7 +12,6 @@ import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.animation.doOnStart
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -56,9 +53,6 @@ class CalendarFragment : Fragment() {
 
     private var shouldBlockScroll = false
     private var canBlockScroll = false
-    private var refreshInitialized = false
-    private var refreshButtonY = 0f
-
     private var status = Status.IDLE
 
     override fun onCreateView(
@@ -72,11 +66,6 @@ class CalendarFragment : Fragment() {
     @ExperimentalTime
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        refresh_button.post {
-            refreshButtonY = refresh_button.y
-            refreshInitialized = true
-        }
 
         Updater.scheduleUpdate(requireContext())
 
@@ -120,8 +109,8 @@ class CalendarFragment : Fragment() {
             checkScrollAvailability(appBarLayout, verticalOffset)
         })
 
-        app_bar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->
-            moveRefreshButton(appBarLayout, verticalOffset)
+        app_bar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
+            hideRefreshWhenNecessary(verticalOffset)
         })
 
         day_scroll.setOnScrollChangeListener { _: NestedScrollView?, _, scrollY, _, oldScrollY ->
@@ -129,16 +118,8 @@ class CalendarFragment : Fragment() {
         }
 
         refresh_button.setOnClickListener {
-            val transY = PropertyValuesHolder.ofFloat("translationY", refreshButtonY + refreshButtonTotalHeight())
-            val rotation = PropertyValuesHolder.ofFloat("rotationX", 180f, 0f)
-            ObjectAnimator.ofPropertyValuesHolder(refresh_button, transY, rotation).apply {
-                duration = 800L
-                doOnStart {
-                    status = Status.UPDATING
-                }
-
-                start()
-            }
+            refresh_button.hide()
+            status = Status.UPDATING
 
             forceUpdate()
         }
@@ -213,15 +194,8 @@ class CalendarFragment : Fragment() {
                                 override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
                                     super.onDismissed(transientBottomBar, event)
 
-                                    val transY = PropertyValuesHolder.ofFloat("translationY", refreshButtonY)
-                                    val rotation = PropertyValuesHolder.ofFloat("rotation", 180f, 0f)
-                                    ObjectAnimator.ofPropertyValuesHolder(refresh_button, transY, rotation).apply {
-                                        duration = 300L
-                                        doOnStart {
-                                            status = Status.IDLE
-                                        }
-                                        start()
-                                    }
+                                    refresh_button.show()
+                                    status = Status.IDLE
                                 }
                             })
                             .show()
@@ -276,45 +250,22 @@ class CalendarFragment : Fragment() {
     }
 
     /**
-     * This function moves and change the
-     * opacity of the refresh button in order
-     * to avoid visibility problems when
-     * the events are displayed on the screen.
+     * This function hides the refresh button
+     * depending on the app bar vertical offset.
      *
-     * When the calendar is unfolded, the button
-     * is fully visible and at its highest position
-     * while when the calendar is folded the button
-     * isn't visible and at its lowest position.
-     *
-     * All of this is interpolated in this function
-     * to display a smooth animation.
-     *
-     * @param appBarLayout The action bar
      * @param verticalOffset The vertical offset of the action bar
      */
-    private fun moveRefreshButton(appBarLayout: AppBarLayout, verticalOffset: Int) {
-        if (!refreshInitialized || status == Status.UPDATING) {
+    private fun hideRefreshWhenNecessary(verticalOffset: Int) {
+        if (status == Status.UPDATING) {
             return
         }
 
-        val total = appBarLayout.totalScrollRange.toFloat()
-        val offset = (total + verticalOffset)
-        val amount = (offset / total).coerceIn(0f, 1f)
-        val totalHeight = refreshButtonTotalHeight()
-
-        val opacity = (amount * 255f).toInt()
-        val translationAmount = refreshButtonY + totalHeight * (1f - amount)
-
-
-        refresh_button.apply {
-            background.alpha = opacity
-            y = translationAmount
-
-            refresh_button.visibility = if (opacity == 0) GONE else VISIBLE
+        if (verticalOffset == 0) {
+            refresh_button.show()
+        } else {
+            refresh_button.hide()
         }
     }
-
-    private fun refreshButtonTotalHeight() = refresh_button.height + 16.toDp(requireContext())
 
     /**
      * This function handle when a new bunch of
@@ -433,7 +384,6 @@ class CalendarFragment : Fragment() {
     }
 
     private fun buildEmptyDayView(): View {
-        println("empty")
         return View(requireContext())
     }
 }
