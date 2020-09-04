@@ -25,9 +25,9 @@ class ImageOverlayLayout(context: Context, attrs: AttributeSet?): MotionLayout(c
 
     fun showHideOverlay() {
         if (visible) {
-            transitionToEnd()
-        } else {
             transitionToStart()
+        } else {
+            transitionToEnd()
         }
 
         visible = !visible
