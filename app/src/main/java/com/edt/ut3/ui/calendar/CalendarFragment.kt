@@ -86,10 +86,6 @@ class CalendarFragment : Fragment() {
                 .add(R.id.news, CalendarNews())
                 .commit()
         }
-
-        calendarViewModel.selectedEvent?.let {
-            openEventDetailsView(it)
-        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -371,8 +367,6 @@ class CalendarFragment : Fragment() {
     }
 
     private fun openEventDetailsView(event: Event) {
-        calendarViewModel.selectedEvent = event
-
         requireActivity().supportFragmentManager.beginTransaction()
             .setCustomAnimations(
                 R.anim.slide_in,

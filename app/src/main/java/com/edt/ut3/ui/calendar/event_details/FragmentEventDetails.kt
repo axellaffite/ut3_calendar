@@ -18,6 +18,7 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.whenCreated
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.AppDatabase
@@ -43,10 +44,32 @@ import java.util.*
 class FragmentEventDetails(private val event: Event) : Fragment() {
 
     private val viewModel: CalendarViewModel by activityViewModels()
-    private var note: Note = Note.generateEmptyNote(event.id)
+
+    private lateinit var note: Note
 
     private var pictureFile: File? = null
     private var pictureName: String? = null
+
+    init {
+        // Load asynchronously the attached note.
+        // Once it's done, the contents
+        lifecycleScope.launch {
+            whenCreated {
+                note = Note.generateEmptyNote(event.id)
+
+                AppDatabase.getInstance(requireContext()).noteDao().run {
+                    val result = selectByEventIDs(event.id)
+
+                    if (result.size == 1) {
+                        note = result[0]
+                    }
+
+                    setupContent()
+                    setupListeners()
+                }
+            }
+        }
+    }
 
     /**
      * Used to launch an Intent that will take
@@ -76,43 +99,17 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        // Hide the app bar
-        requireActivity().nav_view.visibility = GONE
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onDestroyView() {
+        super.onDestroyView()
 
         // Show the app bar
         requireActivity().nav_view.visibility = VISIBLE
-        // Clear the selected event to prevent
-        // the Calendar Fragment to recreate this one.
-        viewModel.selectedEvent = null
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_event_details, container, false)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // Load asynchronously the attached note.
-        // Once it's done, the contents
-        lifecycleScope.launch {
-            AppDatabase.getInstance(requireContext()).noteDao().run {
-                val result = selectByEventIDs(event.id)
-
-                if (result.size == 1) {
-                    note = result[0]
-                }
-
-                setupContent()
-                setupListeners()
-            }
+        return inflater.inflate(R.layout.fragment_event_details, container, false).also {
+            // Hide the app bar
+            requireActivity().nav_view.visibility = GONE
         }
     }
 

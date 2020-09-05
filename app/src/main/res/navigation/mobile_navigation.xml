@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_navigation_calendar_to_eventDetails"
             app:destination="@id/eventDetails" />
+        <action
+            android:id="@+id/action_navigation_calendar_to_preferencesFragment"
+            app:destination="@id/preferencesFragment" />
     </fragment>
 
     <fragment
@@ -30,4 +33,8 @@
         android:id="@+id/eventDetails"
         android:name="com.edt.ut3.ui.calendar.event_details.FragmentEventDetails"
         android:label="EventDetails" />
+    <fragment
+        android:id="@+id/preferencesFragment"
+        android:name="com.edt.ut3.ui.preferences.PreferencesFragment"
+        android:label="PreferencesFragment" />
 </navigation>

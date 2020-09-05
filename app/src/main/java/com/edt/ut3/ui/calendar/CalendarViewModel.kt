@@ -12,14 +12,6 @@ import com.edt.ut3.misc.timeCleaned
 import java.util.*
 
 class CalendarViewModel : ViewModel() {
-    var selectedEvent: Event? = null
-        set(value) {
-            if (value == null) {
-                selectedEventNote = null
-            }
-
-            field = value
-        }
 
     var selectedEventNote: Note? = null
     var selectedDate = Date().timeCleaned()
