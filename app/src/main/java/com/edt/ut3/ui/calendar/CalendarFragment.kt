@@ -14,7 +14,7 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.work.WorkInfo
 import com.edt.ut3.R
@@ -26,8 +26,9 @@ import com.edt.ut3.misc.set
 import com.edt.ut3.misc.timeCleaned
 import com.edt.ut3.misc.toDp
 import com.edt.ut3.ui.calendar.event_details.FragmentEventDetails
+import com.edt.ut3.ui.calendar.options.CalendarOptionsFragment
 import com.edt.ut3.ui.custom_views.overlay_layout.OverlayBehavior
-import com.edt.ut3.ui.preferences.CalendarSettingsFragment
+import com.edt.ut3.ui.preferences.PreferencesFragment
 import com.elzozor.yoda.events.EventWrapper
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.BaseTransientBottomBar
@@ -47,7 +48,7 @@ class CalendarFragment : Fragment() {
 
     enum class Status { IDLE, UPDATING }
 
-    private val calendarViewModel by viewModels<CalendarViewModel> { defaultViewModelProviderFactory }
+    private val calendarViewModel: CalendarViewModel by activityViewModels()
 
     private var job : Job? = null
 
@@ -78,7 +79,7 @@ class CalendarFragment : Fragment() {
 
         requireActivity().supportFragmentManager.run {
             beginTransaction()
-                .replace(R.id.settings, CalendarSettingsFragment())
+                .replace(R.id.settings, CalendarOptionsFragment())
                 .commit()
 
             beginTransaction()
@@ -122,6 +123,18 @@ class CalendarFragment : Fragment() {
             status = Status.UPDATING
 
             forceUpdate()
+        }
+
+        settings_button.setOnClickListener {
+            requireActivity().supportFragmentManager.beginTransaction()
+                .replace(R.id.nav_host_fragment, PreferencesFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+
+        calendarViewModel.getCoursesVisibility(requireContext()).observe(viewLifecycleOwner) {
+            println("changed calendar")
+            handleEventsChange(requireView(), calendarViewModel.getEvents(requireContext()).value)
         }
 
         // This part handles the behavior of the front layout
@@ -262,7 +275,9 @@ class CalendarFragment : Fragment() {
 
         if (verticalOffset == 0) {
             refresh_button.show()
+            settings_button.show()
         } else {
+            settings_button.hide()
             refresh_button.hide()
         }
     }
@@ -298,15 +313,20 @@ class CalendarFragment : Fragment() {
     @ExperimentalTime
     private fun filterEvents(root: View, eventList: List<Event>) {
         val selectedDate = calendarViewModel.selectedDate
+        val hiddenCourses = calendarViewModel.getCoursesVisibility(requireContext()).value
+            ?.filter { !it.visible }
+            ?.map { it.title }?.toHashSet() ?: hashSetOf()
+
 
         job?.cancel()
         job = lifecycleScope.launchWhenResumed {
             println(selectedDate.toString())
             withContext(IO) {
                 val events = withContext(Default) {
-                    eventList.filter {
-                            ev -> ev.start >= selectedDate
-                            && ev.start <= selectedDate + 1.days
+                    eventList.filter { ev ->
+                        ev.start >= selectedDate
+                        && ev.start <= selectedDate + 1.days
+                        && ev.courseName !in hiddenCourses
                     }.map { ev -> Event.Wrapper(ev) }
                 }
 

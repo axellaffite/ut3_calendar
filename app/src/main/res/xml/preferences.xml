@@ -10,7 +10,8 @@
             app:title="@string/theme"
             android:entryValues="@array/themesAlias"
             android:entries="@array/themes"
-            android:icon="@drawable/ic_theme"/>
+            android:icon="@drawable/ic_theme"
+            android:summary="@string/you_must_restart"/>
 
         <PreferenceCategory
             app:title="@string/dark_theme_bounds_title"

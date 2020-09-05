@@ -16,7 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
@@ -42,7 +42,7 @@ import java.util.*
 
 class FragmentEventDetails(private val event: Event) : Fragment() {
 
-    private val viewModel: CalendarViewModel by viewModels { defaultViewModelProviderFactory }
+    private val viewModel: CalendarViewModel by activityViewModels()
     private var note: Note = Note.generateEmptyNote(event.id)
 
     private var pictureFile: File? = null
@@ -155,7 +155,7 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
                 // This image builder is in charge to load images from
                 // the memory into the ImageView of the image viewer.
                 val imageBuilder = { view: ImageView, picture: Picture ->
-                    Picasso.get().load(File(picture.picture)).fit().into(view)
+                    Picasso.get().load(File(picture.picture)).fit().centerInside().into(view)
 
                     // On click we show or hide the overlay layout
                     // to allow the user to perform actions like

@@ -111,7 +111,7 @@
             android:id="@+id/note"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
             android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
@@ -123,7 +123,7 @@
             android:textColorHint="?android:textColorSecondary"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHeight_default="wrap"
+            app:layout_constrainedHeight="true"
             app:layout_constraintStart_toEndOf="@+id/notes_icon"
             app:layout_constraintTop_toBottomOf="@+id/linearLayout3"
             app:layout_constraintVertical_bias="0.0">

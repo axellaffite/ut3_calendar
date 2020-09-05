@@ -42,4 +42,6 @@
     <string name="add_a_picture">+ Ajouter une photo</string>
     <string name="delete_image">Supprimer l\'image ?</string>
     <string name="remove">Supprimer</string>
+    <string name="course_visibility">Visibilité des cours</string>
+    <string name="you_must_restart">Vous devez redémarrer l\'application pour que cette modification prenne effet</string>
 </resources>

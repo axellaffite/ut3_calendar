@@ -38,4 +38,7 @@ interface EventDao {
 
     @Query("SELECT * FROM event WHERE start BETWEEN :start AND :end")
     fun getFromToLD(start: Long, end: Long): LiveData<List<Event>>
+
+    @Query("SELECT DISTINCT courseName FROM event")
+    suspend fun getCourses() : List<String?>
 }

@@ -1,6 +1,7 @@
 package com.edt.ut3.ui.preferences
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
@@ -9,30 +10,36 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import androidx.core.content.ContextCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.preference.EditTextPreference
-import androidx.preference.ListPreference
 import androidx.preference.PreferenceFragmentCompat
 import com.edt.ut3.R
 import com.edt.ut3.backend.preferences.PreferencesManager
 import org.json.JSONArray
 
-class CalendarSettingsFragment: PreferenceFragmentCompat() {
+class PreferencesFragment: PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-        setPreferencesFromResource(R.xml.calendar_preferences, rootKey)
+        setPreferencesFromResource(R.xml.preferences, rootKey)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         setupListeners()
 
-        return super.onCreateView(inflater, container, savedInstanceState)
+        return super.onCreateView(inflater, container, savedInstanceState)?.apply {
+            when (PreferencesManager(requireContext()).getTheme()) {
+                Theme.LIGHT -> {
+                    setBackgroundColor(Color.WHITE)
+                }
+
+                Theme.DARK -> {
+                    setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
+                }
+            }
+        }
     }
 
     private fun setupListeners() {
-        findPreference<ListPreference>("theme")?.let { theme ->
-            theme.setOnPreferenceChangeListener { _,_ -> reloadTheme() }
-        }
-
         findPreference<EditTextPreference>("section")?.let { editText ->
             editText.setOnBindEditTextListener(EditTextListener(requireContext()))
             editText.setOnPreferenceChangeListener { _, link -> setSections(link as String) }
@@ -53,19 +60,6 @@ class CalendarSettingsFragment: PreferenceFragmentCompat() {
                 it.addTextChangedListener(TimeEditTextListener(it))
             }
         }
-    }
-
-    private fun reloadTheme() : Boolean {
-        requireActivity().run {
-            when (PreferencesManager(requireContext()).getTheme()) {
-                Theme.LIGHT -> theme.applyStyle(R.style.AppTheme, true)
-                Theme.DARK -> theme.applyStyle(R.style.DarkTheme, true)
-            }
-
-            recreate()
-        }
-
-        return true
     }
 
     private fun setSections(link: String) : Boolean {

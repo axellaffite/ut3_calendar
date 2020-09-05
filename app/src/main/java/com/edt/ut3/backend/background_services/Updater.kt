@@ -6,8 +6,10 @@ import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.work.*
+import com.edt.ut3.backend.celcat.Course
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.AppDatabase
+import com.edt.ut3.backend.database.viewmodels.CoursesViewModel
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.CelcatService
 import com.edt.ut3.misc.fromHTML
@@ -113,6 +115,8 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
             AppDatabase.getInstance(applicationContext).eventDao().run {
                 insert(*eventsArray.toTypedArray())
             }
+
+            insertCoursesVisibility(eventsArray)
         } catch (e: Exception) {
             e.printStackTrace()
 //            TODO("Catch exceptions properly")
@@ -156,6 +160,40 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                 val id = getString("id").fromHTML().trim()
                 "$text [$id]"
             }
+        }
+    }
+
+    /**
+     * Update the course table which
+     * defines which courses are visible
+     * on the calendar.
+     *
+     * @param events The new event list
+     */
+    private suspend fun insertCoursesVisibility(events: List<Event>) {
+        CoursesViewModel(applicationContext).run {
+            val old = getCoursesVisibility().toMutableSet()
+            val new = events.map { it.courseName }
+                .toHashSet()
+                .filterNotNull()
+                .map { Course(it) }
+
+            println(new)
+
+            val titleToRemove = mutableListOf<String>()
+            old.forEach { course ->
+                new.find { it.title == course.title }?.let {
+                    it.visible = course.visible
+                } ?: run {
+                    titleToRemove.add(course.title)
+                }
+            }
+
+            println("Remove: $titleToRemove")
+            println("Insert: $new")
+
+            remove(*titleToRemove.toTypedArray())
+            insert(*new.toTypedArray())
         }
     }
 }
