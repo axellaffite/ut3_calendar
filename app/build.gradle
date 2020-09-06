@@ -48,6 +48,7 @@ dependencies {
     implementation 'androidx.work:work-runtime:2.4.0'
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
     implementation 'androidx.fragment:fragment-ktx:1.3.0-alpha08'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     testImplementation 'junit:junit:4.13'
     implementation "androidx.activity:activity-ktx:1.2.0-alpha08"
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
@@ -82,13 +83,17 @@ dependencies {
     // Summary : A useful library that allows us to display
     //           schedules on a given view.
     // Github : https://github.com/ElZozor/yoda
-    implementation 'com.github.ElZozor:yoda:v1.0'
+    implementation 'com.github.ElZozor:yoda:v1.1'
 
     // Name: Picasso
     // Summary : A library that allows us to download and
     //           cache images.
     // Documentation : https://square.github.io/picasso/#features
     implementation 'com.squareup.picasso:picasso:2.71828'
+    implementation "androidx.exifinterface:exifinterface:1.2.0"
+
+
+
 
     // Name : OSMDroid
     // Summary : An open source replacement for Google Map
@@ -100,4 +105,17 @@ dependencies {
     // Summary : Display images simply with few lines of code.
     // Documentation : https://github.com/stfalcon-studio/StfalconImageViewer
     implementation 'com.github.stfalcon:stfalcon-imageviewer:1.0.1'
+
+    // Name : Retrofit
+    implementation 'com.squareup.retrofit2:retrofit:2.7.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.7.0'
+
+    // Name : Gson
+    implementation 'com.google.code.gson:gson:2.8.6'
+
+    // Name : Android-SpinKit
+    // Summary : Display loading animations
+    // Documentation : https://github.com/ybq/Android-SpinKit
+    implementation 'com.github.ybq:Android-SpinKit:1.4.0'
+
 }

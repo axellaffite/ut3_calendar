@@ -125,7 +125,7 @@ class CalendarFragment : Fragment() {
             requireActivity().supportFragmentManager.beginTransaction()
                 .replace(R.id.nav_host_fragment, PreferencesFragment())
                 .addToBackStack(null)
-                .commit()
+                .commitAllowingStateLoss()
         }
 
         calendarViewModel.getCoursesVisibility(requireContext()).observe(viewLifecycleOwner) {
@@ -376,7 +376,7 @@ class CalendarFragment : Fragment() {
             )
             .replace(R.id.nav_host_fragment, FragmentEventDetails(event))
             .addToBackStack(null)
-            .commit()
+            .commitAllowingStateLoss()
     }
 
     private fun buildAllDayView(events: List<EventWrapper>): View {

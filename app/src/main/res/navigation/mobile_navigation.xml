@@ -37,4 +37,9 @@
         android:id="@+id/preferencesFragment"
         android:name="com.edt.ut3.ui.preferences.PreferencesFragment"
         android:label="PreferencesFragment" />
+    <fragment
+        android:id="@+id/roomFinder"
+        android:name="com.edt.ut3.ui.room_finder.RoomFinderFragment"
+        android:label="room_finder_fragment"
+        tools:layout="@layout/room_finder_fragment" />
 </navigation>

@@ -31,4 +31,21 @@
     <string name="go_to">Getting there</string>
     <string name="unable_to_launch_googlemaps">Unable to launch Google Maps</string>
     <string name="note">Note</string>
+    <string name="all_day">All day</string>
+    <string name="from">From :</string>
+    <string name="to">To :</string>
+    <string name="no_value_selected">No value selected</string>
+    <string name="starting_hour">Start hour</string>
+    <string name="ending_hour">End hour</string>
+    <string name="dark_theme_bounds_title">Times for the dark theme</string>
+    <string name="depending_time">Choose according to time</string>
+    <string name="add_a_picture">+ Add a picture</string>
+    <string name="delete_image">Remove the image ?</string>
+    <string name="remove">Delete</string>
+    <string name="course_visibility">Visibility of courses</string>
+    <string name="you_must_restart">You must restart the application for this change to take effect</string>
+    <string name="title_room_finder">Free room</string>
+    <string name="searching_room">Looking for an empty room for you ❤️</string>
+    <string name="find_a_free_room">Find a free room thanks to\nhttps://rooms-finder.goulin.fr</string>
+    <string name="from_to_format">From %s to %s</string>
 </resources>

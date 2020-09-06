@@ -1,7 +1,6 @@
 package com.edt.ut3.ui.map
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.util.AttributeSet
 import androidx.core.widget.NestedScrollView
 import com.edt.ut3.R
@@ -27,8 +26,7 @@ class PlaceInfo(context: Context, attrs: AttributeSet?): NestedScrollView(contex
 
     var picture: String? = null
         set(value) {
-            Picasso.get().load(value)
-                .into(image)
+            Picasso.get().load(value).into(image)
             field = value
         }
 

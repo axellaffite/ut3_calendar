@@ -2,19 +2,18 @@ package com.edt.ut3.backend.note
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.res.Resources
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Rect
 import android.media.ThumbnailUtils
 import android.os.Environment
 import android.os.Parcelable
 import com.edt.ut3.misc.toDp
+import com.squareup.picasso.Picasso
 import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -64,12 +63,16 @@ data class Picture(
          * @return The Picture containing all the information
          * to retrieve the picture and the thumbnail.
          */
-        suspend fun generateFromPictureUri(context: Context, filename: String, pictureLocation: String): Picture = withContext(IO)
+        suspend fun generateFromPictureUri(
+            context: Context,
+            filename: String,
+            pictureLocation: String
+        ): Picture = withContext(IO)
         {
             // We prepare the picture into a File
             File(pictureLocation).let {
                 // The file is loaded and decoded by the BitmapFactory
-                val bitmap = BitmapFactory.decodeFileDescriptor(it.inputStream().fd)
+                val bitmap = Picasso.get().load(it).get()
 
                 // The thumbnail location is generated with
                 // the provided filename
@@ -85,10 +88,14 @@ data class Picture(
                 // Finally the thumbnail is saved in memory
                 withContext(Default) {
                     val thumbnailFile = prepareImageFile(context, thumbnailLocation)
-                    thumbnail.compress(Bitmap.CompressFormat.JPEG, 100, thumbnailFile.outputStream())
+                    thumbnail.compress(
+                        Bitmap.CompressFormat.JPEG,
+                        100,
+                        thumbnailFile.outputStream()
+                    )
 
                     // And we return the Picture
-                    Picture(picture = pictureLocation, thumbnail =  thumbnailFile.absolutePath)
+                    Picture(picture = pictureLocation, thumbnail = thumbnailFile.absolutePath)
                 }
             }
         }
@@ -97,7 +104,7 @@ data class Picture(
          * Returns the default app directory pictures
          * @param context A valid context
          */
-        fun getStorageDir(context: Context) =
+        private fun getStorageDir(context: Context) =
             context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
 
         /**
@@ -114,63 +121,20 @@ data class Picture(
     /**
      * @return Retrieve the current thumbnail
      */
-    @Throws(IllegalStateException::class)
+    @Throws(IOException::class)
     suspend fun loadThumbnail(): Bitmap = withContext(IO) {
         println("Loading thumbnail $thumbnail")
         val file = File(thumbnail)
-        if (!file.exists()) {
-            throw IllegalStateException("The thumbnail doesn't exist")
-        }
 
-        BitmapFactory.decodeFileDescriptor(file.inputStream().fd)
+        Picasso.get().load(file).get()
     }
 
+    @Throws(IOException::class)
     suspend fun loadPicture(): Bitmap = withContext(IO) {
         println("Loading picture: $picture")
         val file = File(picture)
-        if (!file.exists()) {
-            throw IllegalStateException("The picture doesn't exist")
-        }
 
-        BitmapFactory.decodeFile(file.absolutePath)
-    }
 
-    suspend fun loadPictureForBounds(reqWidth: Int, reqHeight: Int): Bitmap {
-        // First decode with inJustDecodeBounds=true to check dimensions
-        return withContext(IO) {
-            BitmapFactory.Options().run {
-                val file = File(picture)
-                inJustDecodeBounds = true
-                BitmapFactory.decodeFile(file.absolutePath, this)
-
-                // Calculate inSampleSize
-                inSampleSize = calculateInSampleSize(this, reqWidth, reqHeight)
-
-                // Decode bitmap with inSampleSize set
-                inJustDecodeBounds = false
-
-                BitmapFactory.decodeFile(file.absolutePath, this)
-            }
-        }
-    }
-
-    private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
-        // Raw height and width of image
-        val (height: Int, width: Int) = options.run { outHeight to outWidth }
-        var inSampleSize = 1
-
-        if (height > reqHeight || width > reqWidth) {
-
-            val halfHeight: Int = height / 2
-            val halfWidth: Int = width / 2
-
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
-                inSampleSize *= 2
-            }
-        }
-
-        return inSampleSize
+        Picasso.get().load(file).get()
     }
 }

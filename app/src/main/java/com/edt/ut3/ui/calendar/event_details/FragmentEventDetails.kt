@@ -31,6 +31,7 @@ import com.edt.ut3.ui.preferences.Theme
 import com.elzozor.yoda.utils.DateExtensions.get
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.squareup.picasso.Picasso
+//import com.squareup.picasso.Picasso
 import com.stfalcon.imageviewer.StfalconImageViewer
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_event_details.*

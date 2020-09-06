@@ -2,6 +2,7 @@ package com.edt.ut3.ui.calendar
 
 import android.content.Context
 import android.graphics.Color
+import android.text.TextUtils
 import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -56,6 +57,8 @@ class EventView(context: Context, private var ev: Event.Wrapper): CardView(conte
                 }
 
                 gravity = Gravity.CENTER
+
+                ellipsize = TextUtils.TruncateAt.END
             }
         )
     }
@@ -64,21 +67,19 @@ class EventView(context: Context, private var ev: Event.Wrapper): CardView(conte
     private fun generateCardContents(event: Event) : String {
         val description = StringBuilder()
         if (event.locations.size == 1) {
-            description.append(event.locations.first())
+            description.append(event.locations.first()).append("\n")
         }
 
-        if (event.courseName != null) {
-            if (description.isNotEmpty()) {
-                description.append("\n")
-            }
-
-            description.append(event.courseName)
+        event.courseName?.let {
+            description.append(it).append("\n")
+        } ?: event.category ?.let {
+            description.append(it).append("\n")
         }
 
         if (description.isEmpty()) {
             description.append(event.description)
         }
 
-        return description.toString()
+        return description.toString().removeSuffix("\n")
     }
 }

@@ -2,7 +2,6 @@ package com.edt.ut3.ui.map
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -17,7 +16,6 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import android.widget.CompoundButton
 import androidx.activity.addCallback
 import androidx.core.app.ActivityCompat
@@ -29,10 +27,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.observe
 import com.edt.ut3.R
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.ui.preferences.Theme
+import com.edt.ut3.misc.hideKeyboard
 import com.edt.ut3.ui.map.SearchPlaceAdapter.Place
 import com.edt.ut3.ui.map.custom_makers.LocationMarker
 import com.edt.ut3.ui.map.custom_makers.PlaceMarker
+import com.edt.ut3.ui.preferences.Theme
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipDrawable
@@ -582,11 +581,6 @@ class MapsFragment : Fragment() {
         map.requestFocus()
 
         hideKeyboard()
-    }
-
-    private fun hideKeyboard() {
-        val imm = requireActivity().getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(requireView().windowToken, 0)
     }
 
     private fun unfoldSearchTools() {

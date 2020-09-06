@@ -10,6 +10,12 @@
         android:id="@+id/navigation_calendar"
         android:icon="@drawable/ic_calendar"
         android:title="@string/title_calendar" />
+
+    <item
+        android:id="@+id/roomFinder"
+        android:icon="@drawable/ic_search"
+        android:title="@string/title_room_finder" />
+
     <item
         android:id="@+id/navigation_map"
         android:icon="@drawable/ic_map"

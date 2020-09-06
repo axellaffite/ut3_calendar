@@ -37,11 +37,18 @@
     <string name="no_value_selected">Pas de valeur selectionnée</string>
     <string name="starting_hour">Heure de début</string>
     <string name="ending_hour">Heure de fin</string>
-    <string name="dark_theme_bounds_title">Horraires pour le thème sombre</string>
+    <string name="dark_theme_bounds_title">Horaires pour le thème sombre</string>
     <string name="depending_time">Choisir selon l\'heure</string>
     <string name="add_a_picture">+ Ajouter une photo</string>
     <string name="delete_image">Supprimer l\'image ?</string>
     <string name="remove">Supprimer</string>
     <string name="course_visibility">Visibilité des cours</string>
     <string name="you_must_restart">Vous devez redémarrer l\'application pour que cette modification prenne effet</string>
+    <string name="title_room_finder">Salle libre</string>
+    <string name="building_search">Un batiment</string>
+    <string name="searching_room">À la recherche d\'une salle vide pour toi ❤️</string>
+    <string name="find_a_free_room">Trouves une salle de libre grâce à\nhttps://rooms-finder.goulin.fr</string>
+    <string name="hour_format" translatable="false">HH:mm</string>
+    <string name="from_to_format">De %s à %s</string>
+    <string name="data_update_failed">Impossible de récupérer les données, veuillez vérifier votre connexion internet</string>
 </resources>

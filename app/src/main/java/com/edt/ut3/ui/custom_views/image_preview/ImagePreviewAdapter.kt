@@ -15,7 +15,6 @@ import com.edt.ut3.backend.note.Picture
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.misc.toDp
 import com.edt.ut3.ui.preferences.Theme
-import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -54,8 +53,7 @@ class ImagePreviewAdapter(var dataset: List<Picture>) : RecyclerView.Adapter<Ima
         } else {
             val imgView = holder.imgView.getChildAt(0) as ImageView
             GlobalScope.launch {
-                println(dataset[position])
-                val thumbnail = withContext(IO) { dataset[position].loadThumbnail() }
+                val thumbnail = dataset[position].loadThumbnail()
                 withContext(Main) {
                     imgView.setImageBitmap(thumbnail)
                     imgView.scaleType = ImageView.ScaleType.CENTER_CROP
