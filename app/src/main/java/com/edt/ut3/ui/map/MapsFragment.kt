@@ -54,6 +54,7 @@ import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Overlay
 import org.osmdroid.views.overlay.TilesOverlay
+import java.io.File
 import java.util.*
 import kotlin.collections.HashSet
 
@@ -108,7 +109,18 @@ class MapsFragment : Fragment() {
      *
      */
     private fun configureMap() {
-        Configuration.getInstance().userAgentValue = requireActivity().packageName
+        val path: File = requireContext().filesDir
+        val osmdroidBasePathNew = File(path, "osmdroid")
+        osmdroidBasePathNew.mkdirs()
+        val osmdroidTileCacheNew = File(osmdroidBasePathNew, "tiles")
+        osmdroidTileCacheNew.mkdirs()
+
+        val configuration = Configuration.getInstance()
+        configuration.apply {
+            userAgentValue = requireActivity().packageName
+//            osmdroidBasePath = osmdroidBasePathNew
+//            osmdroidTileCache = osmdroidTileCacheNew
+        }
 
         map.apply {
             // Which tile source will gives
