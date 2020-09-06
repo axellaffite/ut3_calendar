@@ -64,8 +64,11 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
                         note = result[0]
                     }
 
-                    setupContent()
-                    setupListeners()
+                    view?.post {
+                        setupContent()
+                        setupListeners()
+                    }
+
                 }
             }
         }
@@ -119,7 +122,6 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
      *
      */
     private fun setupContent() {
-        title.text = event.courseName ?: event.category
         when (PreferencesManager(requireContext()).getTheme()) {
             Theme.LIGHT -> {
                 event.lightBackgroundColor(requireContext()).let {
@@ -138,9 +140,24 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
             }
         }
 
-        description.text = event.description
-        event_note.setText(note.contents)
+        title.text = event.courseName ?: event.category
         from_to.text = generateDateText()
+        event_note.setText(note.contents)
+
+        val descriptionBuilder = StringBuilder()
+        event.category?.let { descriptionBuilder.append(it).append("\n") }
+
+        val locations = event.locations.joinToString(", ")
+        if (locations.isNotBlank()) {
+            descriptionBuilder.append(locations)
+        } else {
+            descriptionBuilder.append(event.sites.joinToString(", "))
+        }
+        descriptionBuilder.append("\n")
+
+        event.description?.let { descriptionBuilder.append(it) }
+        description.text = descriptionBuilder.toString()
+
 
         // Setup the adapter contents and the item "onclick" callbacks.
         // Use the StfalconImageViewer library to display a fullscreen

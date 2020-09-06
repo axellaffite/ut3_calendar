@@ -36,9 +36,9 @@ data class Event(
     companion object {
         @Throws(JSONException::class)
         fun fromJSON(obj: JSONObject, classes: Set<String>, courses: Set<String>) = obj.run {
-            val parsedDescription = ParsedDescription(optString("description").fromHTML(), classes, courses)
-
             val category = optString("eventCategory").fromHTML()
+            val parsedDescription = ParsedDescription(category, optString("description").fromHTML(), classes, courses)
+
             val start = Date().apply { fromCelcatString(getString("start")) }
             val end = if (isNull("end")) start else Date().apply { fromCelcatString(getString("end")) }
 
@@ -119,7 +119,7 @@ data class Event(
      * @param classesNames All the classes names that exists (otherwise classes will always be empty)
      * @param coursesNames All the courses names that exists (otherwise course will always be null)
      */
-    class ParsedDescription(description: String?, classesNames: Set<String>, coursesNames: Set<String>) {
+    class ParsedDescription(category: String?, description: String?, classesNames: Set<String>, coursesNames: Set<String>) {
         var course: String? = null
         val classes = mutableListOf<String>()
         var teacherID: Int? = null
@@ -132,8 +132,13 @@ data class Event(
                 println("Line: $it")
                 when {
                     it.matches(Regex("\\d\\*")) -> { teacherID = it.toInt() }
+
                     classesNames.contains(it) -> classes.add(it)
+
                     coursesNames.contains(it) -> course = it
+
+                    it == category -> { /* ignore it */ }
+
                     else -> if (precisionBuilder.isBlank()) {
                         precisionBuilder.append(it)
                     } else {

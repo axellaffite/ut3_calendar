@@ -12,23 +12,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
-import com.edt.ut3.MainActivity
 import com.edt.ut3.R
 import com.edt.ut3.backend.preferences.PreferencesManager
 import org.json.JSONArray
 
 class PreferencesFragment: PreferenceFragmentCompat() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        MainActivity.createFunction = {
-            requireActivity().supportFragmentManager.beginTransaction()
-                .replace(R.id.nav_host_fragment, PreferencesFragment())
-                .addToBackStack(null)
-                .commit()
-        }
-    }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
