@@ -16,18 +16,17 @@ class NotificationManager private constructor(context : Context) {
             }
             return INSTANCE!!
         }
-
-        fun createNewEventsNotification(events : List<Event>)
-        {
-            //TODO Make notif apear
-        }
-        fun createDeletedEventsNotification(events : List<Event>)
-        {
-            //TODO Make notif apear
-        }
-        fun createUpdatedEventsNotification(events : List<Event>)
-        {
-            //TODO Make notif apear
-        }
+    }
+    fun createNewEventsNotification(events : List<Event>)
+    {
+        //TODO Make notif apear
+    }
+    fun createDeletedEventsNotification(events : List<Event>)
+    {
+        //TODO Make notif apear
+    }
+    fun createUpdatedEventsNotification(events : List<Event>)
+    {
+        //TODO Make notif apear
     }
 }

@@ -129,13 +129,13 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                 //TODO Also check if this is the first update
                 if (PreferencesManager(applicationContext).isNotificationEnabled()) {
                     if(removedEvent.isNotEmpty()) {
-                        NotificationManager.createDeletedEventsNotification(removedEvent)
+                        NotificationManager.getInstance(applicationContext).createDeletedEventsNotification(removedEvent)
                     }
                     if(newEvents.isNotEmpty()) {
-                        NotificationManager.createNewEventsNotification(newEvents)
+                        NotificationManager.getInstance(applicationContext).createNewEventsNotification(newEvents)
                     }
                     if(updatedEvent.isNotEmpty()) {
-                        NotificationManager.createUpdatedEventsNotification(updatedEvent)
+                        NotificationManager.getInstance(applicationContext).createUpdatedEventsNotification(updatedEvent)
                     }
                 }
 
