@@ -38,7 +38,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
-class FragmentEventDetails() : Fragment() {
+class FragmentEventDetails : Fragment() {
 
     private lateinit var event: Event
 
