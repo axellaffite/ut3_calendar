@@ -1,7 +1,5 @@
 package com.edt.ut3.ui.calendar
 
-import android.animation.ObjectAnimator
-import android.animation.PropertyValuesHolder
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
@@ -11,18 +9,14 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
-import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.core.animation.doOnEnd
-import androidx.core.animation.doOnStart
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
-import androidx.work.WorkManager
 import com.edt.ut3.R
 import com.edt.ut3.backend.background_services.Updater
 import com.edt.ut3.backend.background_services.Updater.Companion.Progress
@@ -31,7 +25,10 @@ import com.edt.ut3.misc.plus
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.timeCleaned
 import com.edt.ut3.misc.toDp
+import com.edt.ut3.ui.calendar.event_details.FragmentEventDetails
+import com.edt.ut3.ui.calendar.options.CalendarOptionsFragment
 import com.edt.ut3.ui.custom_views.overlay_layout.OverlayBehavior
+import com.edt.ut3.ui.preferences.PreferencesFragment
 import com.elzozor.yoda.events.EventWrapper
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.BaseTransientBottomBar
@@ -42,10 +39,8 @@ import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
-import java.util.concurrent.TimeUnit
 import kotlin.time.ExperimentalTime
 import kotlin.time.days
 
@@ -53,15 +48,12 @@ class CalendarFragment : Fragment() {
 
     enum class Status { IDLE, UPDATING }
 
-    private val calendarViewModel by viewModels<CalendarViewModel> { defaultViewModelProviderFactory }
+    private val calendarViewModel: CalendarViewModel by activityViewModels()
 
     private var job : Job? = null
 
     private var shouldBlockScroll = false
     private var canBlockScroll = false
-    private var refreshInitialized = false
-    private var refreshButtonY = 0f
-
     private var status = Status.IDLE
 
     override fun onCreateView(
@@ -76,11 +68,6 @@ class CalendarFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        refresh_button.post {
-            refreshButtonY = refresh_button.y
-            refreshInitialized = true
-        }
-
         Updater.scheduleUpdate(requireContext())
 
         setupListeners()
@@ -92,7 +79,7 @@ class CalendarFragment : Fragment() {
 
         requireActivity().supportFragmentManager.run {
             beginTransaction()
-                .replace(R.id.settings, CalendarSettingsFragment())
+                .replace(R.id.settings, CalendarOptionsFragment())
                 .commit()
 
             beginTransaction()
@@ -104,7 +91,7 @@ class CalendarFragment : Fragment() {
     @SuppressLint("ClickableViewAccessibility")
     @ExperimentalTime
     private fun setupListeners() {
-        calendarViewModel.getEvents(requireContext()).observe(viewLifecycleOwner, Observer { evLi ->
+        calendarViewModel.getEvents(requireContext()).observe(viewLifecycleOwner, { evLi ->
             handleEventsChange(requireView(), evLi)
         })
 
@@ -119,8 +106,8 @@ class CalendarFragment : Fragment() {
             checkScrollAvailability(appBarLayout, verticalOffset)
         })
 
-        app_bar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->
-            moveRefreshButton(appBarLayout, verticalOffset)
+        app_bar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
+            hideRefreshWhenNecessary(verticalOffset)
         })
 
         day_scroll.setOnScrollChangeListener { _: NestedScrollView?, _, scrollY, _, oldScrollY ->
@@ -128,33 +115,75 @@ class CalendarFragment : Fragment() {
         }
 
         refresh_button.setOnClickListener {
-            val transY = PropertyValuesHolder.ofFloat("translationY", refreshButtonY + refreshButtonTotalHeight())
-            val rotation = PropertyValuesHolder.ofFloat("rotationX", 180f, 0f)
-            ObjectAnimator.ofPropertyValuesHolder(refresh_button, transY, rotation).apply {
-                duration = 800L
-                doOnStart {
-                    status = Status.UPDATING
-                }
-
-                start()
-            }
+            refresh_button.hide()
+            status = Status.UPDATING
 
             forceUpdate()
         }
 
-        getOverlayBehavior(front_layout).onSwipingLeft = {
-            settings.visibility = VISIBLE
-            news.visibility = GONE
+        settings_button.setOnClickListener {
+            requireActivity().supportFragmentManager.beginTransaction()
+                .replace(R.id.nav_host_fragment, PreferencesFragment())
+                .addToBackStack(null)
+                .commitAllowingStateLoss()
         }
 
-        getOverlayBehavior(front_layout).onSwipingRight = {
-            news.visibility = VISIBLE
-            settings.visibility = GONE
+        calendarViewModel.getCoursesVisibility(requireContext()).observe(viewLifecycleOwner) {
+            println("changed calendar")
+            handleEventsChange(requireView(), calendarViewModel.getEvents(requireContext()).value)
+        }
+
+        // This part handles the behavior of the front layout
+        // on different triggers such as move and swipe actions.
+        // Basically the behavior is to hide and show specific
+        // views depending on the layout position and its behavior
+        // status and elevating it while moving to let the user
+        // see the difference between it and the background views.
+        OverlayBehavior.from(front_layout).apply {
+
+            // Action triggered when the view is actually swiping
+            // on the left.
+            // Swiping on the left means that the view is currently
+            // moving to the left letting appear the right side view.
+            onSwipingLeftListeners.add {
+                settings?.visibility = VISIBLE
+                news?.visibility = GONE
+            }
+
+            // Action triggered when the view is actually swiping
+            // on the right.
+            // Swiping on the left means that the view is currently
+            // moving to the right letting appear the left side view.
+            onSwipingRightListeners.add {
+                news?.visibility = VISIBLE
+                settings?.visibility = GONE
+            }
+
+            // Action triggered when the view is moving no matter
+            // on which direction it is moving.
+            // Note that this is triggered when the view is moving
+            // and not only when the view is moving left or right
+            // when it's on the IDLE status.
+            // The goal here is to elevate the view to let the user
+            // see the difference between this one and the views
+            // on background as they have the same color.
+            onMoveListeners.add {
+                front_layout?.elevation = 8.toDp(requireContext())
+            }
+
+            // Action triggered when the view's status change.
+            // It is trigger no matter if the old one is different
+            // from the new one.
+            // The goal here is to reset the view's elevation to prevent
+            // unwanted shadows.
+            onStatusChangeListeners.add {
+                front_layout?.elevation = 0f
+            }
         }
     }
 
     private fun forceUpdate() {
-        Updater.forceUpdate(requireContext(), viewLifecycleOwner, Observer {
+        Updater.forceUpdate(requireContext(), viewLifecycleOwner, {
             it?.let {
                 val progress = it.progress
                 val value = progress.getInt(Progress, 0)
@@ -174,29 +203,19 @@ class CalendarFragment : Fragment() {
                                 override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
                                     super.onDismissed(transientBottomBar, event)
 
-                                    val transY = PropertyValuesHolder.ofFloat("translationY", refreshButtonY)
-                                    val rotation = PropertyValuesHolder.ofFloat("rotation", 180f, 0f)
-                                    ObjectAnimator.ofPropertyValuesHolder(refresh_button, transY, rotation).apply {
-                                        duration = 300L
-                                        doOnStart {
-                                            status = Status.IDLE
-                                        }
-                                        start()
-                                    }
+                                    refresh_button.show()
+                                    status = Status.IDLE
                                 }
                             })
                             .show()
                     }
+
+                    else -> {}
                 }
 
                 Log.i("PROGRESS", value.toString())
             }
         })
-    }
-
-    private fun getOverlayBehavior(view: View): OverlayBehavior<View> {
-        val params = view.layoutParams as CoordinatorLayout.LayoutParams
-        return params.behavior as OverlayBehavior
     }
 
     /**
@@ -212,7 +231,7 @@ class CalendarFragment : Fragment() {
         shouldBlockScroll = canBlockScroll && canSwipe
         canBlockScroll = (verticalOffset + appBarLayout.totalScrollRange > 0)
 
-        val behavior = getOverlayBehavior(front_layout)
+        val behavior = OverlayBehavior.from(front_layout)
         behavior.canSwipe = canSwipe
     }
 
@@ -233,51 +252,31 @@ class CalendarFragment : Fragment() {
                 day_scroll.scrollTo(0,0)
                 shouldBlockScroll = false
 
-                val behavior = getOverlayBehavior(front_layout)
+                val behavior = OverlayBehavior.from(front_layout)
                 behavior.canSwipe = true
             }
         }
     }
 
     /**
-     * This function moves and change the
-     * opacity of the refresh button in order
-     * to avoid visibility problems when
-     * the events are displayed on the screen.
+     * This function hides the refresh button
+     * depending on the app bar vertical offset.
      *
-     * When the calendar is unfolded, the button
-     * is fully visible and at its highest position
-     * while when the calendar is folded the button
-     * isn't visible and at its lowest position.
-     *
-     * All of this is interpolated in this function
-     * to display a smooth animation.
-     *
-     * @param appBarLayout The action bar
      * @param verticalOffset The vertical offset of the action bar
      */
-    private fun moveRefreshButton(appBarLayout: AppBarLayout, verticalOffset: Int) {
-        println("Status=$status")
-        if (!refreshInitialized || status == Status.UPDATING) {
+    private fun hideRefreshWhenNecessary(verticalOffset: Int) {
+        if (status == Status.UPDATING) {
             return
         }
 
-        val total = appBarLayout.totalScrollRange.toFloat()
-        val offset = (total + verticalOffset)
-        val amount = (offset / total).coerceIn(0f, 1f)
-        val totalHeight = refreshButtonTotalHeight()
-
-        val opacity = (amount * 255f).toInt()
-        val translationAmount = refreshButtonY + totalHeight * (1f - amount)
-
-
-        refresh_button.apply {
-            background.alpha = opacity
-            y = translationAmount
+        if (verticalOffset == 0) {
+            refresh_button.show()
+            settings_button.show()
+        } else {
+            settings_button.hide()
+            refresh_button.hide()
         }
     }
-
-    private fun refreshButtonTotalHeight() = refresh_button.height + 16.toDp(requireContext())
 
     /**
      * This function handle when a new bunch of
@@ -293,7 +292,10 @@ class CalendarFragment : Fragment() {
     private fun handleEventsChange(root: View, eventList: List<Event>?) {
         if (eventList == null) return
 
-        root.day_view.setViewBuilder(this::buildEventView)
+        root.day_view.dayBuilder = this::buildEventView
+        root.day_view.allDayBuilder = this::buildAllDayView
+        root.day_view.emptyDayBuilder = this::buildEmptyDayView
+
         filterEvents(root, eventList)
     }
 
@@ -307,23 +309,31 @@ class CalendarFragment : Fragment() {
     @ExperimentalTime
     private fun filterEvents(root: View, eventList: List<Event>) {
         val selectedDate = calendarViewModel.selectedDate
+        val hiddenCourses = calendarViewModel.getCoursesVisibility(requireContext()).value
+            ?.filter { !it.visible }
+            ?.map { it.title }?.toHashSet() ?: hashSetOf()
+
 
         job?.cancel()
-        job = lifecycleScope.launch {
+        job = lifecycleScope.launchWhenResumed {
             println(selectedDate.toString())
             withContext(IO) {
                 val events = withContext(Default) {
-                    eventList.filter {
-                            ev -> ev.start >= selectedDate
-                            && ev.start <= selectedDate + 1.days
+                    eventList.filter { ev ->
+                        ev.start >= selectedDate
+                        && ev.start <= selectedDate + 1.days
+                        && ev.courseName !in hiddenCourses
                     }.map { ev -> Event.Wrapper(ev) }
                 }
 
-                root.day_view.autoFitHours = true
-                root.day_view.setEvents(events)
-
-                withContext(Main) {
-                    root.day_view.requestLayout()
+                root.day_view.post {
+                    lifecycleScope.launchWhenStarted {
+                        root.day_view.setEvents(events, day_scroll.height)
+                        
+                        withContext(Main) {
+                            root.day_view.requestLayout()
+                        }
+                    }
                 }
             }
         }
@@ -342,22 +352,52 @@ class CalendarFragment : Fragment() {
      */
     private fun buildEventView(context: Context, eventWrapper: EventWrapper, x: Int, y: Int, w:Int, h: Int)
             : Pair<Boolean, View> {
-        return Pair(false, EventView(context, eventWrapper as Event.Wrapper).apply {
-            setOnClickListener {
-//                PopupMenu(context, this).apply {
-//                    inflate(R.menu.event_menu)
-//                    setOnMenuItemClickListener {
-//                        when (it.itemId) {
-//                            R.id.add_note -> {
-//                                BottomSheetBehavior.from<CardView>(requireView().bottomNav).setState(STATE_EXPANDED)/*.state = STATE_EXPANDED*/
-//                            }
-//                            else -> println("wtf")
-//                        }
-//
-//                        false
-//                    }
-//                }.show()
+        return Pair(true, EventView(context, eventWrapper as Event.Wrapper).apply {
+            val spacing = context.resources.getDimension(R.dimen.event_spacing).toInt()
+            val positionAdder = {x:Int -> x+spacing}
+            val sizeChanger = {x:Int -> x-spacing}
+
+            layoutParams = ConstraintLayout.LayoutParams(sizeChanger(w), sizeChanger(h)).apply {
+                leftMargin = positionAdder(x)
+                topMargin = positionAdder(y)
             }
+
+            setOnClickListener { openEventDetailsView(event) }
         })
+    }
+
+    private fun openEventDetailsView(event: Event) {
+        requireActivity().supportFragmentManager.beginTransaction()
+            .setCustomAnimations(
+                R.anim.slide_in,
+                R.anim.fade_out,
+                R.anim.fade_in,
+                R.anim.slide_out
+            )
+            .replace(R.id.nav_host_fragment, FragmentEventDetails(event))
+            .addToBackStack(null)
+            .commitAllowingStateLoss()
+    }
+
+    private fun buildAllDayView(events: List<EventWrapper>): View {
+        val builder = { event: EventWrapper ->
+            buildEventView(requireContext(), event, 0, 0, 0, 0).run {
+                (second as EventView).apply {
+                    padding = 16.toDp(context).toInt()
+
+                    layoutParams = ViewGroup.LayoutParams(
+                        MATCH_PARENT, WRAP_CONTENT
+                    )
+                }
+            }
+        }
+
+        return LayoutAllDay(requireContext()).apply {
+            setEvents(events, builder)
+        }
+    }
+
+    private fun buildEmptyDayView(): View {
+        return View(requireContext())
     }
 }

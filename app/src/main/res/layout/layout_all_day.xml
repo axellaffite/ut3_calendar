@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="16dp"
+    android:background="?customCalendarColor">
+
+    <!--    <TextView-->
+    <!--        android:id="@+id/all_day_text"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:padding="8dp"-->
+    <!--        android:text="@string/all_day"-->
+    <!--        android:textAppearance="@style/TextAppearance.AppCompat.Large" />-->
+
+    <com.edt.ut3.ui.custom_views.NoScrollListView
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="PlaceInfo">
+    <declare-styleable name="PlaceInfo"/>
 
-    </declare-styleable>
+    <attr name="customCalendarColor" format="color" type="color"/>
+    <attr name="customForegroundColor" format="color" type="color"/>
+    <attr name="customBackgroundColor" format="color" type="color"/>
+    <attr name="customCalendarFloatingButtonColor" format="color" type="color"/>
+    <attr name="customCalendarFloatingButtonIconColor" format="color" type="color"/>
+    <attr name="customMapsFloatingButtonColor" format="color" type="color"/>
+    <attr name="customMapsFloatingButtonIconColor" format="color" type="color"/>
+    <attr name="customTextColor" format="color" type="color"/>
+
+    <attr name="picturePreviewAddButtonColor" format="color" type="color"/>
+
 </resources>

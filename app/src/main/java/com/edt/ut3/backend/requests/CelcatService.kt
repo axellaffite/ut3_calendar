@@ -4,6 +4,8 @@ import android.util.Log
 import com.edt.ut3.misc.plus
 import com.edt.ut3.misc.timeCleaned
 import com.edt.ut3.misc.toCelcatDateStr
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.withContext
 import okhttp3.*
 import java.io.IOException
 import java.util.*
@@ -14,7 +16,7 @@ import kotlin.time.days
 class CelcatService {
     @ExperimentalTime
     @Throws(IOException::class)
-    fun getEvents(formations: List<String>) : Response {
+    suspend fun getEvents(formations: List<String>): Response = withContext(IO) {
         val today = Date().timeCleaned()
 
         val body = RequestsUtils.EventBody().apply {
@@ -38,27 +40,27 @@ class CelcatService {
             .post(encodedBody)
             .build()
 
-        return HttpClientProvider.generateNewClient().newCall(request).execute()
+        HttpClientProvider.generateNewClient().newCall(request).execute()
     }
 
 
     @Throws(IOException::class)
-    fun getClasses() : Response {
+    suspend fun getClasses() = withContext(IO) {
         val request = Request.Builder()
             .url("https://edt.univ-tlse3.fr/calendar2/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=1000000&pageNumber=1&resType=102&_=1595177163927")
             .get()
             .build()
 
-        return HttpClientProvider.generateNewClient().newCall(request).execute()
+        HttpClientProvider.generateNewClient().newCall(request).execute()
     }
 
     @Throws(IOException::class)
-    fun getCoursesNames() : Response {
+    suspend fun getCoursesNames() = withContext(IO) {
         val request = Request.Builder()
             .url("https://edt.univ-tlse3.fr/calendar2/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=10000000&pageNumber=1&resType=100&_=1595183277988")
             .get()
             .build()
 
-        return HttpClientProvider.generateNewClient().newCall(request).execute()
+        HttpClientProvider.generateNewClient().newCall(request).execute()
     }
 }

@@ -9,7 +9,14 @@
         android:id="@+id/navigation_calendar"
         android:name="com.edt.ut3.ui.calendar.CalendarFragment"
         android:label="@string/title_calendar"
-        tools:layout="@layout/fragment_calendar" />
+        tools:layout="@layout/fragment_calendar" >
+        <action
+            android:id="@+id/action_navigation_calendar_to_eventDetails"
+            app:destination="@id/eventDetails" />
+        <action
+            android:id="@+id/action_navigation_calendar_to_preferencesFragment"
+            app:destination="@id/preferencesFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_notes"
@@ -22,4 +29,17 @@
         android:name="com.edt.ut3.ui.map.MapsFragment"
         android:label="@string/title_map"
         tools:layout="@layout/fragment_maps" />
+    <fragment
+        android:id="@+id/eventDetails"
+        android:name="com.edt.ut3.ui.calendar.event_details.FragmentEventDetails"
+        android:label="EventDetails" />
+    <fragment
+        android:id="@+id/preferencesFragment"
+        android:name="com.edt.ut3.ui.preferences.PreferencesFragment"
+        android:label="PreferencesFragment" />
+    <fragment
+        android:id="@+id/roomFinder"
+        android:name="com.edt.ut3.ui.room_finder.RoomFinderFragment"
+        android:label="room_finder_fragment"
+        tools:layout="@layout/room_finder_fragment" />
 </navigation>

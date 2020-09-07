@@ -7,9 +7,11 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.work.*
 import androidx.work.impl.utils.PreferenceUtils
+import com.edt.ut3.backend.celcat.Course
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.AppDatabase
 import com.edt.ut3.backend.notification.NotificationManager
+import com.edt.ut3.backend.database.viewmodels.CoursesViewModel
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.CelcatService
 import com.edt.ut3.misc.fromHTML
@@ -27,23 +29,41 @@ import java.util.concurrent.TimeUnit
 import kotlin.time.ExperimentalTime
 
 
+/**
+ * Used to update the Calendar data in background.
+ *
+ * @param appContext The application context
+ * @param workerParams The worker's parameters
+ */
 class Updater(appContext: Context, workerParams: WorkerParameters):
     CoroutineWorker(appContext, workerParams) {
 
     companion object {
+        // Used to provide a progress value outside
+        // of the Worker.
         const val Progress = "progress"
 
+        /**
+         * Schedule a periodic update.
+         * If the periodic update is already launched
+         * it is not replaced.
+         *
+         * @param context A valid context
+         */
         fun scheduleUpdate(context: Context) {
             val worker = PeriodicWorkRequestBuilder<Updater>(1, TimeUnit.HOURS).build()
-            WorkManager.getInstance(context).let {
-                it.enqueueUniquePeriodicWork(
-                    "event_update",
-                    ExistingPeriodicWorkPolicy.KEEP,
-                    worker
-                )
-            }
+            WorkManager.getInstance(context)
+                .enqueueUniquePeriodicWork("event_update", ExistingPeriodicWorkPolicy.KEEP, worker)
         }
 
+        /**
+         * Force an update that will execute
+         * almost directly after the function call.
+         *
+         * @param context A valid context
+         * @param viewLifecycleOwner The fragment's viewLifeCycleOwner which will observe the Worker *optional*
+         * @param observer An observer *optional*
+         */
         fun forceUpdate(
             context: Context,
             viewLifecycleOwner: LifecycleOwner? = null,
@@ -93,7 +113,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                     Event.fromJSON(it as JSONObject, classes, courses)
                 }
             }
-            Log.d("UPDATER", "Events count : ${receivedEvent.size}")
+            Log.d("UPDATER", "Events count : ${eventsArray.size}")
 
 
             setProgress(workDataOf(Progress to 80))
@@ -146,10 +166,8 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
             e.printStackTrace()
 //            TODO("Catch exceptions properly")
             when (e) {
-                is IOException -> {
-                }
-                is JSONException -> {
-                }
+                is IOException -> {}
+                is JSONException -> {}
                 else -> {}
             }
 
@@ -162,17 +180,22 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
         result
     }
 
+    /**
+     * Returns the classes parsed properly.
+     */
     @Throws(IOException::class)
     private suspend fun getClasses() = withContext(IO) {
         val data = CelcatService().getClasses().body()?.string() ?: throw IOException()
 
         JSONObject(data).getJSONArray("results").map {
             (it as JSONObject).run { getString("id").fromHTML().trim() }
-        }.also {
-            println("Classes count : ${it.size}")
         }
     }
 
+
+    /**
+     * Returns the courses parsed properly.
+     */
     private suspend fun getCourses() = withContext(IO) {
         val data = CelcatService().getCoursesNames().body()?.string() ?: throw IOException()
 
@@ -182,8 +205,40 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                 val id = getString("id").fromHTML().trim()
                 "$text [$id]"
             }
-        }.also {
-            println("Courses count: ${it.size}")
+        }
+    }
+
+    /**
+     * Update the course table which
+     * defines which courses are visible
+     * on the calendar.
+     *
+     * @param events The new event list
+     */
+    private suspend fun insertCoursesVisibility(events: List<Event>) {
+        CoursesViewModel(applicationContext).run {
+            val old = getCoursesVisibility().toMutableSet()
+            val new = events.map { it.courseName }
+                .toHashSet()
+                .filterNotNull()
+                .map { Course(it) }
+
+            println(new)
+
+            val titleToRemove = mutableListOf<String>()
+            old.forEach { course ->
+                new.find { it.title == course.title }?.let {
+                    it.visible = course.visible
+                } ?: run {
+                    titleToRemove.add(course.title)
+                }
+            }
+
+            println("Remove: $titleToRemove")
+            println("Insert: $new")
+
+            remove(*titleToRemove.toTypedArray())
+            insert(*new.toTypedArray())
         }
     }
 }

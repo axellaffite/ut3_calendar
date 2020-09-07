@@ -1,9 +1,12 @@
 package com.edt.ut3.misc
 
+import android.app.Activity
 import android.content.Context
 import android.text.Html
 import android.text.format.DateFormat
 import android.util.TypedValue
+import android.view.inputmethod.InputMethodManager
+import androidx.fragment.app.Fragment
 import org.json.JSONArray
 import org.json.JSONException
 import java.text.SimpleDateFormat
@@ -78,6 +81,8 @@ fun Date.set(year: Int, month: Int, day: Int): Date = this.apply {
     cleanTime()
 }
 
+fun Date.toFormattedTime(format: String) = SimpleDateFormat(format).format(this)
+
 
 
 @Throws(JSONException::class)
@@ -112,3 +117,10 @@ fun Number.toDp(context: Context) = TypedValue.applyDimension(
     this.toFloat(),
     context.resources.displayMetrics
 )
+
+fun Fragment.hideKeyboard() {
+    val imm = activity?.getSystemService(Activity.INPUT_METHOD_SERVICE)
+    with (imm as InputMethodManager?) {
+        this?.hideSoftInputFromWindow(requireView().windowToken, 0)
+    }
+}

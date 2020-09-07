@@ -1,8 +1,13 @@
 package com.edt.ut3.backend.note
 
+import android.content.Context
 import androidx.room.*
 import com.edt.ut3.backend.celcat.Event
+import com.edt.ut3.backend.database.AppDatabase
 import com.edt.ut3.backend.database.Converter
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.withContext
+import java.io.File
 import java.util.*
 
 @Entity(tableName = "note",
@@ -13,12 +18,54 @@ import java.util.*
             onDelete = ForeignKey.CASCADE
         )
     ], indices = [Index("event_id")])
-class Note(
-    @PrimaryKey(autoGenerate = true) val id: Long,
+data class Note(
+    @PrimaryKey(autoGenerate = true) var id: Long,
     @ColumnInfo(name = "event_id") var eventID: String?,
     var title: String?,
     var contents: String,
     @TypeConverters(Converter::class) var date: Date,
     var color: String?,
-    var reminder: Boolean = false
-)
+    var textColor: String?,
+    var reminder: Boolean = false,
+    @TypeConverters(Converter::class) val pictures: MutableList<Picture> = mutableListOf())
+{
+
+    private constructor(id: Long, note: Note): this(
+        id = id,
+        eventID = note.eventID,
+        title = note.title,
+        contents = note.contents,
+        date = note.date,
+        color = note.color,
+        textColor = note.textColor,
+        reminder = note.reminder,
+        pictures = note.pictures
+    )
+
+    companion object {
+        fun generateEmptyNote(eventID: String? = null) = Note(0L, eventID, null, "", Date(), null, null, false)
+
+        suspend fun saveNote(note: Note, context: Context) = withContext(IO) {
+            AppDatabase.getInstance(context).noteDao().let {
+                val ids = it.insert(note)
+
+                if (note.id == 0L) {
+                    note.id = ids[0]
+                }
+            }
+        }
+    }
+
+    fun removePictureAt(position: Int) {
+        if (position in 0 until pictures.size) {
+            removePicture(pictures[position])
+        }
+    }
+
+    fun removePicture(picture: Picture) {
+        pictures.remove(picture)
+        File(picture.picture).delete()
+        File(picture.thumbnail).delete()
+    }
+
+}

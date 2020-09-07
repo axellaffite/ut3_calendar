@@ -4,4 +4,7 @@
     <color name="colorPrimaryDark">#0A1926</color>
     <color name="colorAccent">#006064</color>
     <color name="fontColor">#EEEEEE</color>
+
+    <color name="positionColor">#3949ab</color>
+    <color name="textSecondary">#BDBDBD</color>
 </resources>
