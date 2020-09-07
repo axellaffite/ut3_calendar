@@ -113,7 +113,6 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                     Event.fromJSON(it as JSONObject, classes, courses)
                 }
             }
-            Log.d("UPDATER", "Events count : ${eventsArray.size}")
 
 
             setProgress(workDataOf(Progress to 80))
