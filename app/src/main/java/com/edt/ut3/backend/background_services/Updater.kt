@@ -94,7 +94,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                 JSONArray(
                 CelcatService()
                         .getEvents(groups)
-                        .body()
+                        .body
                         ?.string()
                         ?: throw IOException()
                 )
@@ -140,7 +140,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
      */
     @Throws(IOException::class)
     private suspend fun getClasses() = withContext(IO) {
-        val data = CelcatService().getClasses().body()?.string() ?: throw IOException()
+        val data = CelcatService().getClasses().body?.string() ?: throw IOException()
 
         JSONObject(data).getJSONArray("results").map {
             (it as JSONObject).run { getString("id").fromHTML().trim() }
@@ -152,7 +152,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
      * Returns the courses parsed properly.
      */
     private suspend fun getCourses() = withContext(IO) {
-        val data = CelcatService().getCoursesNames().body()?.string() ?: throw IOException()
+        val data = CelcatService().getCoursesNames().body?.string() ?: throw IOException()
 
         JSONObject(data).getJSONArray("results").map {
             (it as JSONObject).run {

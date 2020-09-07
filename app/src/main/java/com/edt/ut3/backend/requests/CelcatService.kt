@@ -6,7 +6,10 @@ import com.edt.ut3.misc.timeCleaned
 import com.edt.ut3.misc.toCelcatDateStr
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
-import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import java.io.IOException
 import java.util.*
 import kotlin.time.ExperimentalTime
@@ -29,8 +32,7 @@ class CelcatService {
 
         Log.d("CELCAT_SERVICE", "Request body: $body")
 
-        val encodedBody = RequestBody.create(MediaType.parse("application/x-www-form-urlencoded; charset=UTF-8"), body)
-
+        val encodedBody = body.toRequestBody("application/x-www-form-urlencoded; charset=UTF-8".toMediaType())
 
         val request = Request.Builder()
             .url("https://edt.univ-tlse3.fr/calendar2/Home/GetCalendarData")

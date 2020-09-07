@@ -21,7 +21,7 @@ class MapsViewModel: ViewModel() {
         return withContext(Default) {
             if (crousPlaces.isEmpty()) {
                 val result = withContext(IO) {
-                    val body = MapsServices().getCrousPlaces().body()?.string() ?: throw IOException()
+                    val body = MapsServices().getCrousPlaces().body?.string() ?: throw IOException()
                     JSONObject(body).getJSONArray("records")
                 }
 
@@ -42,7 +42,7 @@ class MapsViewModel: ViewModel() {
         return withContext(Default) {
             if (paulSabatierPlaces.isEmpty()) {
                 val result = withContext(IO) {
-                    val body = MapsServices().getPaulSabatierPlaces().body()?.string() ?: throw IOException()
+                    val body = MapsServices().getPaulSabatierPlaces().body?.string() ?: throw IOException()
                     JSONObject(body).getJSONArray("records")
                 }
 
