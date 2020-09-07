@@ -1,9 +1,8 @@
 package com.edt.ut3.backend.preferences
 
 import android.content.Context
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
-import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+import android.content.res.Configuration
+import androidx.appcompat.app.AppCompatDelegate.*
 import androidx.preference.PreferenceManager
 import com.edt.ut3.ui.preferences.Theme
 import com.edt.ut3.ui.preferences.ThemePreference
@@ -29,22 +28,41 @@ class PreferencesManager(private val context: Context) {
         preferences.edit().putString(Groups, groups.toString()).apply()
     }
 
-    fun setupTheme() {
-        val theme = getTheme()
-        println("Theme: $theme")
-        when (getTheme()) {
-            Theme.LIGHT -> AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_NO)
-            else -> AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_YES)
+    fun setupTheme(pref: ThemePreference? = null) {
+        val preference = pref ?: run {
+            val choice = preferences.getString("theme", "0")!!.toInt()
+            val possibilities = ThemePreference.values()
+            possibilities[choice.coerceAtMost(possibilities.lastIndex)]
+        }
+
+        when (preference) {
+            ThemePreference.SMARTPHONE -> setDefaultNightMode(MODE_NIGHT_FOLLOW_SYSTEM)
+            ThemePreference.DARK -> setDefaultNightMode(MODE_NIGHT_YES)
+            ThemePreference.LIGHT -> setDefaultNightMode(MODE_NIGHT_NO)
+            ThemePreference.TIME -> getThemeDependingOnTime()
         }
     }
 
-    fun getTheme() : Theme {
-        val choice = preferences.getString("theme", "0")!!.toInt()
-        val posibilities = ThemePreference.values()
-        val themePreference = posibilities[choice.coerceAtMost(posibilities.lastIndex)]
+    fun getTheme(pref: ThemePreference? = null) : Theme {
+        val themePreference = pref ?: run {
+            val choice = preferences.getString("theme", "0")!!.toInt()
+            val possibilities = ThemePreference.values()
+            possibilities[choice.coerceAtMost(possibilities.lastIndex)]
+        }
 
-         return when (themePreference) {
+        return when (themePreference) {
             ThemePreference.DARK -> Theme.DARK
+            ThemePreference.LIGHT -> Theme.LIGHT
+            ThemePreference.SMARTPHONE -> getThemeDependingOnSmartphone()
+            ThemePreference.TIME -> getThemeDependingOnTime()
+        }
+    }
+
+    private fun getThemeDependingOnSmartphone(): Theme {
+        val currentNightMode: Int = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK)
+        return when (currentNightMode) {
+            Configuration.UI_MODE_NIGHT_NO -> Theme.LIGHT
+            Configuration.UI_MODE_NIGHT_YES -> Theme.DARK
             else -> Theme.LIGHT
         }
     }

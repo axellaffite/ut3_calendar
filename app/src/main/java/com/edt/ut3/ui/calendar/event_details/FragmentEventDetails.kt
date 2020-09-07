@@ -273,8 +273,8 @@ class FragmentEventDetails() : Fragment() {
             getString(R.string.all_day)
         } else {
             val date = SimpleDateFormat("dd/MM/yyyy").format(event.start)
-            val start = "${event.start.get(Calendar.HOUR_OF_DAY)}h${event.start.get(Calendar.MINUTE)}"
-            val end = "${event.end.get(Calendar.HOUR_OF_DAY)}h${event.end.get(Calendar.MINUTE)}"
+            val start = "%02dh%02d".format(event.start.get(Calendar.HOUR_OF_DAY), event.start.get(Calendar.MINUTE))
+            val end = "%02dh%02d".format(event.end.get(Calendar.HOUR_OF_DAY), event.end.get(Calendar.MINUTE))
 
             "$date $start-$end"
         }
