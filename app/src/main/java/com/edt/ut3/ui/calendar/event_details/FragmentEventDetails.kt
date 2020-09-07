@@ -1,6 +1,5 @@
 package com.edt.ut3.ui.calendar.event_details
 
-//import com.squareup.picasso.Picasso
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
@@ -8,8 +7,6 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.GONE
-import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
@@ -33,7 +30,6 @@ import com.elzozor.yoda.utils.DateExtensions.get
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.squareup.picasso.Picasso
 import com.stfalcon.imageviewer.StfalconImageViewer
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_event_details.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
@@ -104,7 +100,6 @@ class FragmentEventDetails() : Fragment() {
                     }
 
                     view?.post {
-                        requireActivity().nav_view.visibility = GONE
                         setupContent()
                         setupListeners()
                     }
@@ -114,17 +109,8 @@ class FragmentEventDetails() : Fragment() {
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-
-        // Show the app bar
-        requireActivity().nav_view.visibility = VISIBLE
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_event_details, container, false).also {
-            // Hide the app bar
-        }
+        return inflater.inflate(R.layout.fragment_event_details, container, false)
     }
 
     /**

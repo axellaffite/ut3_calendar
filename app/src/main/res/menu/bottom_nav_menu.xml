@@ -12,7 +12,7 @@
         android:title="@string/title_calendar" />
 
     <item
-        android:id="@+id/roomFinder"
+        android:id="@+id/navigation_room_finder"
         android:icon="@drawable/ic_search"
         android:title="@string/title_room_finder" />
 

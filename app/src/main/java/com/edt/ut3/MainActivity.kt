@@ -1,11 +1,12 @@
 package com.edt.ut3
 
 import android.os.Bundle
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.ui.preferences.Theme
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
@@ -20,21 +21,24 @@ class MainActivity : AppCompatActivity() {
         val controller = findNavController(R.id.nav_host_fragment)
 
         navView.setupWithNavController(controller)
-    }
 
-    private fun setupTheme() {
-        val theme = PreferencesManager(this).getTheme()
-        when (theme) {
-            Theme.LIGHT -> setLightTheme()
-            Theme.DARK -> setDarkTheme()
+        controller.addOnDestinationChangedListener { _, destination, _ ->
+
+            when (destination.id) {
+                R.id.navigation_notes -> showBottomNav(navView)
+                R.id.navigation_calendar -> showBottomNav(navView)
+                R.id.navigation_room_finder -> showBottomNav(navView)
+                R.id.navigation_map -> showBottomNav(navView)
+                else -> hideBottomNav(navView)
+            }
         }
     }
 
-    private fun setLightTheme() {
-//        setTheme(R.style.AppTheme)
+    private fun showBottomNav(bottomNav : BottomNavigationView) {
+        bottomNav.visibility = VISIBLE
     }
 
-    private fun setDarkTheme() {
-//        setTheme(R.style.DarkTheme)
+    private fun hideBottomNav(bottomNav : BottomNavigationView) {
+        bottomNav.visibility = GONE
     }
 }
