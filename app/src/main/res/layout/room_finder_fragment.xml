@@ -37,7 +37,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <EditText
+                <Button
                     android:id="@+id/search_bar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -45,9 +45,13 @@
                     android:backgroundTint="@android:color/transparent"
                     android:ems="10"
                     android:hint="@string/building_search"
-                    android:inputType="text"
                     android:textColor="@color/textColor"
-                    android:textColorHint="@android:color/secondary_text_dark" />
+                    android:textColorHint="@android:color/secondary_text_dark"
+                    android:gravity="start|center_vertical"
+                    android:drawableEnd="@drawable/ic_unfold"
+                    app:drawableTint="@color/iconTint"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:background="@android:color/transparent"/>
 
                 <ListView
                     android:id="@+id/hints"
@@ -62,9 +66,12 @@
 
         <HorizontalScrollView
             android:id="@+id/filters_container"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:padding="8dp"
+            android:paddingStart="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/search_bar_container">
 
             <com.google.android.material.chip.ChipGroup
@@ -74,12 +81,12 @@
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/filter_from_now"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/since_now"
-                    style="@style/Widget.MaterialComponents.Chip.Filter"
                     android:checkable="true"
-                    android:checked="true"/>
+                    android:checked="true"
+                    android:text="@string/since_now" />
 
             </com.google.android.material.chip.ChipGroup>
 
@@ -89,9 +96,6 @@
             android:id="@+id/result"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

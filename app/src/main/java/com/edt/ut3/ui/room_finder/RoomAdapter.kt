@@ -55,10 +55,12 @@ class RoomAdapter(val dataset: List<Room>) : RecyclerView.Adapter<RoomAdapter.Ro
             val spaceHeight = 16.toDp(parent.context).toInt()
 
             with(outRect) {
-                if (parent.getChildAdapterPosition(view) == 0) {
-                    top = spaceHeight
-                }
+//                if (parent.getChildAdapterPosition(view) == 0) {
+//                    top = spaceHeight
+//                }
 
+                left = spaceHeight
+                right = spaceHeight
                 bottom = spaceHeight
             }
         }

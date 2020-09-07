@@ -65,22 +65,23 @@ class RoomFinderFragment : Fragment() {
     private fun setupListeners() {
         hints.setOnItemClickListener { parent: AdapterView<*>, view: View, position: Int, id: Long ->
             with (view as TextView) {
-                lifecycleScope.launchWhenResumed {
-                    getFreeRooms(view.text.toString(), true)
-                    status = Status.RESULT
-                }
+                val building = view.text.toString()
+                search_bar.text = building
+                getFreeRooms(building, true)
             }
         }
 
         search_bar.apply {
-            setOnFocusChangeListener { _, hasFocus ->
-                if (hasFocus) {
+            setOnClickListener {
+                if (status == Status.SEARCHING) {
+                    status = if (idle) {
+                        Status.IDLE
+                    } else {
+                        Status.RESULT
+                    }
+                } else {
                     status = Status.SEARCHING
                 }
-            }
-
-            setOnClickListener {
-                status = Status.SEARCHING
             }
         }
 
@@ -221,7 +222,7 @@ class RoomFinderFragment : Fragment() {
         }
 
         Status.DOWNLOADING -> {
-            8.toDp(requireContext())
+            search_bar_container.cardElevation = 0f
 
             hints.visibility = GONE
             thanks.visibility = GONE

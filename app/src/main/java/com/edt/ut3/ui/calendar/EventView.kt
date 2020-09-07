@@ -52,6 +52,8 @@ class EventView(context: Context, private var ev: Event.Wrapper): CardView(conte
                     LinearLayout.LayoutParams.MATCH_PARENT
                 )
 
+                isVerticalScrollBarEnabled = false
+
                 padding?.let {
                     setPadding(it, it, it, it)
                 }

@@ -48,4 +48,8 @@
     <string name="searching_room">Looking for an empty room for you ❤️</string>
     <string name="find_a_free_room">Find a free room thanks to\nhttps://rooms-finder.goulin.fr</string>
     <string name="from_to_format">From %s to %s</string>
+    <string name="smartphone_theme">Smartphone theme</string>
+    <string name="since_now">Until now</string>
+    <string name="data_update_failed">Unable to retrieve data, please check your internet connection</string>
+    <string name="building_search">Select a building</string>
 </resources>

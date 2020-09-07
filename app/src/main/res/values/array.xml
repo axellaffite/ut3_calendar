@@ -4,11 +4,13 @@
         <item>0</item>
         <item>1</item>
         <item>2</item>
+        <item>3</item>
     </string-array>
 
     <string-array name="themes">
         <item>@string/light</item>
         <item>@string/dark</item>
         <item>@string/depending_time</item>
+        <item>@string/smartphone_theme</item>
     </string-array>
 </resources>
