@@ -51,4 +51,9 @@
     <string name="hour_format" translatable="false">HH:mm</string>
     <string name="from_to_format">De %s à %s</string>
     <string name="data_update_failed">Impossible de récupérer les données, veuillez vérifier votre connexion internet</string>
+    <string name="new_event_added">%s ajouté.</string>
+    <string name="new_event_added_full">Le %s à %s.</string>
+    <string name="event_deleted">%s supprimé.</string>
+    <string name="event_updated">%s mis à jour.</string>
+    <string name="event_updated_full">Déplacé au %s</string>
 </resources>
