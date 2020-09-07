@@ -45,7 +45,7 @@
             android:elevation="8dp"
             app:cardCornerRadius="8dp"
             app:cardElevation="8dp"
-            app:cardBackgroundColor="?customForegroundColor"
+            app:cardBackgroundColor="@color/foregroundColor"
             app:layout_constrainedHeight="true"
             app:layout_constraintBottom_toBottomOf="@+id/map"
             app:layout_constraintEnd_toEndOf="parent"
@@ -67,7 +67,7 @@
                     android:hint="@string/map_search_hint"
                     android:inputType="text"
                     android:backgroundTint="@android:color/transparent"
-                    android:textColor="?customTextColor"
+                    android:textColor="@color/textColor"
                     android:textColorHint="@android:color/secondary_text_dark"/>
 
                 <HorizontalScrollView

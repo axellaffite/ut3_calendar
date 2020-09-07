@@ -6,57 +6,56 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
 
-        <item name="android:colorBackground">@android:color/white</item>
-        <item name="customForegroundColor">#EDEDED</item>
-        <item name="customBackgroundColor">#FFFFFF</item>
-        <item name="customCalendarColor">@color/colorPrimaryDark</item>
-        <item name="customCalendarFloatingButtonIconColor">@android:color/white</item>
-        <item name="customCalendarFloatingButtonColor">@color/colorAccent</item>
-        <item name="customMapsFloatingButtonColor">#FFFFFF</item>
-        <item name="customMapsFloatingButtonIconColor">#FFFFFF</item>
-        <item name="android:textColor">@android:color/black</item>
-        <item name="customTextColor">@android:color/black</item>
-        <item name="iconTint">@android:color/black</item>
-
-        <item name="android:textViewStyle">@style/RobotoTextViewStyle</item>
-        <item name="android:buttonStyle">@style/RobotoTextViewStyle</item>
-    </style>
-
-    <style name="DarkTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:listDivider">@android:color/white</item>
-
-        <item name="android:colorBackground">@color/colorPrimary</item>
-        <item name="customForegroundColor">@color/colorPrimaryDark</item>
-        <item name="customBackgroundColor">@color/colorPrimary</item>
-        <item name="customCalendarColor">@color/colorPrimaryDark</item>
-        <item name="customCalendarFloatingButtonColor">@color/colorAccent</item>
-        <item name="customCalendarFloatingButtonIconColor">#FFFFFF</item>
-        <item name="customMapsFloatingButtonColor">#FFFFFF</item>
-        <item name="customMapsFloatingButtonIconColor">#FFFFFF</item>
-        <item name="android:textColor">@android:color/white</item>
-        <item name="customTextColor">@android:color/white</item>
-        <item name="iconTint">@android:color/white</item>
+        <item name="android:colorBackground">@color/backgroundColor</item>
+        <item name="android:colorForeground">@color/foregroundColor</item>
+        <item name="calendarColor">@color/colorPrimaryDark</item>
+        <item name="calendarFloatingButtonIconColor">@android:color/white</item>
+        <item name="calendarFloatingButtonColor">@color/colorAccent</item>
+        <item name="mapsFloatingButtonColor">@color/mapsFloatingButtonColor</item>
+        <item name="mapsFloatingButtonIconColor">@color/mapsFloatingButtonIconColor</item>
+        <item name="android:textColor">@color/textColor</item>
+        <item name="iconTint">@color/textColor</item>
         <item name="android:textColorSecondary">@color/textSecondary</item>
-        <item name="android:textColorSecondaryInverse">@color/textSecondaryDisable</item>
 
         <item name="android:textViewStyle">@style/RobotoTextViewStyle</item>
         <item name="android:buttonStyle">@style/RobotoTextViewStyle</item>
     </style>
+
+<!--    <style name="DarkTAppThemeheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">-->
+<!--        &lt;!&ndash; Customize your theme here. &ndash;&gt;-->
+<!--        <item name="colorPrimary">@color/colorPrimary</item>-->
+<!--        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>-->
+<!--        <item name="colorAccent">@color/colorAccent</item>-->
+<!--        <item name="android:listDivider">@android:color/white</item>-->
+
+<!--        <item name="android:colorBackground">@color/colorPrimary</item>-->
+<!--        <item name="customForegroundColor">@color/colorPrimaryDark</item>-->
+<!--        <item name="customBackgroundColor">@color/colorPrimary</item>-->
+<!--        <item name="customCalendarColor">@color/colorPrimaryDark</item>-->
+<!--        <item name="customCalendarFloatingButtonColor">@color/colorAccent</item>-->
+<!--        <item name="customCalendarFloatingButtonIconColor">#FFFFFF</item>-->
+<!--        <item name="customMapsFloatingButtonColor">#FFFFFF</item>-->
+<!--        <item name="customMapsFloatingButtonIconColor">#FFFFFF</item>-->
+<!--        <item name="android:textColor">@android:color/white</item>-->
+<!--        <item name="customTextColor">@android:color/white</item>-->
+<!--        <item name="iconTint">@android:color/white</item>-->
+<!--        <item name="android:textColorSecondary">@color/textSecondary</item>-->
+<!--        <item name="android:textColorSecondaryInverse">@color/textSecondaryDisable</item>-->
+
+<!--        <item name="android:textViewStyle">@style/RobotoTextViewStyle</item>-->
+<!--        <item name="android:buttonStyle">@style/RobotoTextViewStyle</item>-->
+<!--    </style>-->
 
     <color name="textSecondaryDisable">#999999</color>
 
     <style name="RobotoTextViewStyle" parent="android:Widget.Material.TextView">
         <item name="android:fontFamily">@font/open_sans</item>
-        <item name="android:textColor">?customTextColor</item>
+        <item name="android:textColor">@color/textColor</item>
     </style>
 
     <style name="RobotoButtonStyle" parent="android:Widget.Material.Button">
         <item name="android:fontFamily">@font/open_sans</item>
-        <item name="android:textColor">?customTextColor</item>
+        <item name="android:textColor">@color/textColor</item>
     </style>
 
     <style name="takePictureStyleDark" parent="CardView">

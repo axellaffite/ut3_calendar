@@ -1,5 +1,6 @@
 package com.edt.ut3.ui.calendar.event_details
 
+//import com.squareup.picasso.Picasso
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
@@ -31,7 +32,6 @@ import com.edt.ut3.ui.preferences.Theme
 import com.elzozor.yoda.utils.DateExtensions.get
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.squareup.picasso.Picasso
-//import com.squareup.picasso.Picasso
 import com.stfalcon.imageviewer.StfalconImageViewer
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_event_details.*
@@ -42,7 +42,13 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
-class FragmentEventDetails(private val event: Event) : Fragment() {
+class FragmentEventDetails() : Fragment() {
+
+    constructor(event: Event): this() {
+        this.event = event
+    }
+
+    private lateinit var event: Event
 
     private val viewModel: CalendarViewModel by activityViewModels()
 
@@ -50,30 +56,6 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
 
     private var pictureFile: File? = null
     private var pictureName: String? = null
-
-    init {
-        // Load asynchronously the attached note.
-        // Once it's done, the contents
-        lifecycleScope.launch {
-            whenCreated {
-                note = Note.generateEmptyNote(event.id)
-
-                AppDatabase.getInstance(requireContext()).noteDao().run {
-                    val result = selectByEventIDs(event.id)
-
-                    if (result.size == 1) {
-                        note = result[0]
-                    }
-
-                    view?.post {
-                        setupContent()
-                        setupListeners()
-                    }
-
-                }
-            }
-        }
-    }
 
     /**
      * Used to launch an Intent that will take
@@ -100,6 +82,34 @@ class FragmentEventDetails(private val event: Event) : Fragment() {
             }
         } else {
             pictureFile?.delete()
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        event = viewModel.selectedEvent!!
+
+        // Load asynchronously the attached note.
+        // Once it's done, the contents
+        lifecycleScope.launch {
+            whenCreated {
+                note = Note.generateEmptyNote(event.id)
+
+                AppDatabase.getInstance(requireContext()).noteDao().run {
+                    val result = selectByEventIDs(event.id)
+
+                    if (result.size == 1) {
+                        note = result[0]
+                    }
+
+                    view?.post {
+                        setupContent()
+                        setupListeners()
+                    }
+
+                }
+            }
         }
     }
 

@@ -1,11 +1,13 @@
 package com.edt.ut3.backend.celcat
 
 import android.content.Context
+import android.os.Parcelable
 import androidx.room.*
 import com.edt.ut3.backend.database.Converter
 import com.edt.ut3.backend.note.Note
 import com.edt.ut3.misc.*
 import com.elzozor.yoda.events.EventWrapper
+import kotlinx.android.parcel.Parcelize
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
@@ -19,6 +21,7 @@ import java.util.*
         )
     ], indices = [Index("note_id")]
 )
+@Parcelize
 data class Event(
     @PrimaryKey var id: String,
     var category: String?,
@@ -32,7 +35,7 @@ data class Event(
     var backgroundColor: String?,
     var textColor: String?,
     @ColumnInfo(name = "note_id") var noteID: Long?
-) {
+) : Parcelable {
     companion object {
         @Throws(JSONException::class)
         fun fromJSON(obj: JSONObject, classes: Set<String>, courses: Set<String>) = obj.run {

@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    app:cardBackgroundColor="?customForegroundColor"
+    app:cardBackgroundColor="@color/foregroundColor"
     app:cardCornerRadius="8dp"
     app:cardElevation="0dp">
 
@@ -20,7 +20,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:textColor="?customTextColor"
+            android:textColor="@color/textColor"
             style="@style/TextAppearance.MaterialComponents.Headline6"
             tools:text="Title" />
 

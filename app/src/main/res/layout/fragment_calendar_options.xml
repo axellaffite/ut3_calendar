@@ -15,7 +15,7 @@
             android:text="@string/course_visibility"
             style="@style/TextAppearance.MaterialComponents.Headline5"
             android:padding="8dp"
-            android:textColor="?customTextColor"/>
+            android:textColor="@color/iconTint"/>
 
         <LinearLayout
             android:id="@+id/group_list"

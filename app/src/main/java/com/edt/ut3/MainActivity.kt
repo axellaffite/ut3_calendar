@@ -10,21 +10,16 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
 
-    companion object {
-        var createFunction : (() -> Unit)? = null
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(null)
-        setupTheme()
-
+        super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        PreferencesManager(this).setupTheme()
+
 
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
-        val navController = findNavController(R.id.nav_host_fragment)
-        navView.setupWithNavController(navController)
+        val controller = findNavController(R.id.nav_host_fragment)
 
-        createFunction?.invoke()
+        navView.setupWithNavController(controller)
     }
 
     private fun setupTheme() {
@@ -36,10 +31,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setLightTheme() {
-        setTheme(R.style.AppTheme)
+//        setTheme(R.style.AppTheme)
     }
 
     private fun setDarkTheme() {
-        setTheme(R.style.DarkTheme)
+//        setTheme(R.style.DarkTheme)
     }
 }

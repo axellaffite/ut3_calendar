@@ -16,6 +16,7 @@ import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.work.WorkInfo
 import com.edt.ut3.R
 import com.edt.ut3.backend.background_services.Updater
@@ -25,10 +26,8 @@ import com.edt.ut3.misc.plus
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.timeCleaned
 import com.edt.ut3.misc.toDp
-import com.edt.ut3.ui.calendar.event_details.FragmentEventDetails
 import com.edt.ut3.ui.calendar.options.CalendarOptionsFragment
 import com.edt.ut3.ui.custom_views.overlay_layout.OverlayBehavior
-import com.edt.ut3.ui.preferences.PreferencesFragment
 import com.elzozor.yoda.events.EventWrapper
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.BaseTransientBottomBar
@@ -122,10 +121,7 @@ class CalendarFragment : Fragment() {
         }
 
         settings_button.setOnClickListener {
-            requireActivity().supportFragmentManager.beginTransaction()
-                .replace(R.id.nav_host_fragment, PreferencesFragment())
-                .addToBackStack(null)
-                .commitAllowingStateLoss()
+            findNavController().navigate(R.id.action_navigation_calendar_to_preferencesFragment)
         }
 
         calendarViewModel.getCoursesVisibility(requireContext()).observe(viewLifecycleOwner) {
@@ -367,16 +363,8 @@ class CalendarFragment : Fragment() {
     }
 
     private fun openEventDetailsView(event: Event) {
-        requireActivity().supportFragmentManager.beginTransaction()
-            .setCustomAnimations(
-                R.anim.slide_in,
-                R.anim.fade_out,
-                R.anim.fade_in,
-                R.anim.slide_out
-            )
-            .replace(R.id.nav_host_fragment, FragmentEventDetails(event))
-            .addToBackStack(null)
-            .commitAllowingStateLoss()
+        calendarViewModel.selectedEvent = event
+        findNavController().navigate(R.id.action_navigation_calendar_to_fragmentEventDetails)
     }
 
     private fun buildAllDayView(events: List<EventWrapper>): View {

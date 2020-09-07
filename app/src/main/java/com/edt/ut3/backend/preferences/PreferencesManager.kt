@@ -1,6 +1,9 @@
 package com.edt.ut3.backend.preferences
 
 import android.content.Context
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
+import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
 import androidx.preference.PreferenceManager
 import com.edt.ut3.ui.preferences.Theme
 import com.edt.ut3.ui.preferences.ThemePreference
@@ -26,17 +29,24 @@ class PreferencesManager(private val context: Context) {
         preferences.edit().putString(Groups, groups.toString()).apply()
     }
 
-    fun getTheme() : Theme {
-        val themePreference = ThemePreference.values()
-        val selectedTheme = preferences.getString("theme", "0")!!.toInt().coerceIn(0, themePreference.size - 1)
-        val theme = ThemePreference.values()[selectedTheme]
-
-        if (theme == ThemePreference.TIME) {
-            return getThemeDependingOnTime()
+    fun setupTheme() {
+        val theme = getTheme()
+        println("Theme: $theme")
+        when (getTheme()) {
+            Theme.LIGHT -> AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_NO)
+            else -> AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_YES)
         }
+    }
 
+    fun getTheme() : Theme {
+        val choice = preferences.getString("theme", "0")!!.toInt()
+        val posibilities = ThemePreference.values()
+        val themePreference = posibilities[choice.coerceAtMost(posibilities.lastIndex)]
 
-        return Theme.values()[selectedTheme]
+         return when (themePreference) {
+            ThemePreference.DARK -> Theme.DARK
+            else -> Theme.LIGHT
+        }
     }
 
     private fun getThemeDependingOnTime(): Theme = PreferencesManager(context).run {

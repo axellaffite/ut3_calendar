@@ -1,19 +1,18 @@
 package com.edt.ut3.ui.preferences
 
 import android.content.Context
-import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
-import androidx.core.content.ContextCompat
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.widget.doOnTextChanged
 import androidx.preference.EditTextPreference
+import androidx.preference.ListPreference
 import androidx.preference.PreferenceFragmentCompat
 import com.edt.ut3.R
-import com.edt.ut3.backend.preferences.PreferencesManager
 import org.json.JSONArray
 
 class PreferencesFragment: PreferenceFragmentCompat() {
@@ -26,19 +25,27 @@ class PreferencesFragment: PreferenceFragmentCompat() {
         super.onViewCreated(view, savedInstanceState)
 
         setupListeners()
-
-        when (PreferencesManager(requireContext()).getTheme()) {
-            Theme.LIGHT -> {
-                view.setBackgroundColor(Color.WHITE)
-            }
-
-            Theme.DARK -> {
-                view.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
-            }
-        }
     }
 
     private fun setupListeners() {
+        val list = findPreference<ListPreference>("theme")
+        list?.run {
+            setOnPreferenceChangeListener { preference, newValue ->
+                val index = findIndexOfValue(newValue.toString())
+                val possibleChoices = ThemePreference.values()
+                val choice = possibleChoices[index.coerceAtMost(possibleChoices.lastIndex)]
+
+                println("Setting up theme to  : $choice")
+                when (choice) {
+                    ThemePreference.DARK -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                    ThemePreference.LIGHT -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                    else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                }
+
+                true
+            }
+        }
+
         findPreference<EditTextPreference>("section")?.let { editText ->
             editText.setOnBindEditTextListener(EditTextListener(requireContext()))
             editText.setOnPreferenceChangeListener { _, link -> setSections(link as String) }

@@ -13,6 +13,7 @@ import java.util.*
 
 class CalendarViewModel : ViewModel() {
 
+    var selectedEvent: Event? = null
     var selectedEventNote: Note? = null
     var selectedDate = Date().timeCleaned()
 
