@@ -40,10 +40,6 @@ import java.util.*
 
 class FragmentEventDetails() : Fragment() {
 
-    constructor(event: Event): this() {
-        this.event = event
-    }
-
     private lateinit var event: Event
 
     private val viewModel: CalendarViewModel by activityViewModels()
