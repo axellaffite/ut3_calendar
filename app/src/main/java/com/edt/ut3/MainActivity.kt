@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.misc.hideKeyboard
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
@@ -23,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         navView.setupWithNavController(controller)
 
         controller.addOnDestinationChangedListener { _, destination, _ ->
-
+            hideKeyboard()
             when (destination.id) {
                 R.id.navigation_notes -> showBottomNav(navView)
                 R.id.navigation_calendar -> showBottomNav(navView)

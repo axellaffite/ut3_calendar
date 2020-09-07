@@ -118,6 +118,13 @@ fun Number.toDp(context: Context) = TypedValue.applyDimension(
     context.resources.displayMetrics
 )
 
+fun Activity.hideKeyboard() {
+    val imm = getSystemService(Activity.INPUT_METHOD_SERVICE)
+    with (imm as InputMethodManager?) {
+        this?.hideSoftInputFromWindow(window.decorView.windowToken, 0)
+    }
+}
+
 fun Fragment.hideKeyboard() {
     val imm = activity?.getSystemService(Activity.INPUT_METHOD_SERVICE)
     with (imm as InputMethodManager?) {
