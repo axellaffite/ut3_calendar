@@ -141,6 +141,7 @@ class RoomFinderFragment : Fragment() {
             if (forceRefresh) {
                 status = Status.DOWNLOADING
             }
+
             try {
                 val rooms = filterResult(viewModel.getFreeRooms(building, forceRefresh))
                 result.adapter = RoomAdapter(rooms)
