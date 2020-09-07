@@ -9,18 +9,23 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import androidx.activity.addCallback
+import androidx.core.view.children
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.edt.ut3.R
+import com.edt.ut3.backend.goulin_room_finder.Room
 import com.edt.ut3.misc.hideKeyboard
 import com.edt.ut3.misc.toDp
+import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.room_finder_fragment.*
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.util.*
 
 class RoomFinderFragment : Fragment() {
 
@@ -35,6 +40,10 @@ class RoomFinderFragment : Fragment() {
     private var idle = true
 
     private val viewModel: RoomFinderViewModel by viewModels()
+
+    private val activatedFilters = hashSetOf<Int>()
+
+    private var downloadSortJob : Job? = null
 
     override fun onCreateView(inflater: LayoutInflater,
                               container: ViewGroup?,
@@ -53,32 +62,11 @@ class RoomFinderFragment : Fragment() {
         launchBuildingsDownload()
     }
 
-    private fun launchBuildingsDownload() {
-        lifecycleScope.launchWhenResumed {
-            try {
-                val buildings = viewModel.getBuildings()
-                hints.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, buildings.map { it.name })
-
-                setupListeners()
-            } catch (e: IOException) {
-                withContext(Main) {
-                    Snackbar.make(result, getString(R.string.data_update_failed), Snackbar.LENGTH_INDEFINITE)
-                        .setAction(R.string.action_retry) {
-                            launchBuildingsDownload()
-                        }
-                        .show()
-                }
-            }
-        }
-    }
-
     private fun setupListeners() {
         hints.setOnItemClickListener { parent: AdapterView<*>, view: View, position: Int, id: Long ->
             with (view as TextView) {
                 lifecycleScope.launchWhenResumed {
-                    status = Status.DOWNLOADING
-                    val rooms = viewModel.getFreeRooms(view.text.toString())
-                    result.adapter = RoomAdapter(rooms)
+                    getFreeRooms(view.text.toString(), true)
                     status = Status.RESULT
                 }
             }
@@ -107,6 +95,93 @@ class RoomFinderFragment : Fragment() {
                 }
             }
         }
+
+        filters_chipgroup.children.forEach {
+            it.setOnClickListener {
+                with (it as Chip) {
+                    if (isChecked) {
+                        activatedFilters.add(id)
+                    } else {
+                        activatedFilters.remove(id)
+                    }
+
+                    getFreeRooms(search_bar.text.toString(), forceRefresh = false)
+                }
+            }
+
+            with (it as Chip) {
+                if (it.isChecked) {
+                    activatedFilters.add(it.id)
+                }
+            }
+        }
+    }
+
+    private fun launchBuildingsDownload() {
+        downloadSortJob?.cancel()
+        downloadSortJob = lifecycleScope.launchWhenResumed {
+            try {
+                val buildings = viewModel.getBuildings()
+                hints.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, buildings.map { it.name })
+
+                setupListeners()
+            } catch (e: IOException) {
+                withContext(Main) {
+                    displayInternetError {
+                        launchBuildingsDownload()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getFreeRooms(building: String, forceRefresh: Boolean = false) {
+        downloadSortJob?.cancel()
+        downloadSortJob = lifecycleScope.launchWhenResumed {
+            if (forceRefresh) {
+                status = Status.DOWNLOADING
+            }
+            try {
+                val rooms = filterResult(viewModel.getFreeRooms(building, forceRefresh))
+                result.adapter = RoomAdapter(rooms)
+                status = Status.RESULT
+            } catch (e: IOException) {
+                status = Status.IDLE
+                displayInternetError {
+                    getFreeRooms(building, forceRefresh)
+                }
+            }
+        }
+    }
+
+    private fun filterResult(result: List<Room>) =
+        activatedFilters.fold(result) { acc, id ->
+            when (id) {
+                R.id.filter_from_now -> run {
+                    val now = Date()
+                    acc.map { room ->
+                        Room (
+                            room.building,
+                            room.freeSchedules.filter { schedule ->
+                                schedule.end > now
+                            },
+                            room.room
+                        )
+                    }.filter { room ->
+                        room.freeSchedules.isNotEmpty()
+                    }
+                }
+
+                else -> acc
+            }
+        }
+
+    private fun displayInternetError(onError: () -> Unit) {
+        Snackbar.make(result, getString(R.string.data_update_failed), Snackbar.LENGTH_INDEFINITE)
+            .setAction(R.string.action_retry) {
+                onError()
+            }
+            .show()
     }
 
     private fun handleStatusChange(status: Status) = when (status) {

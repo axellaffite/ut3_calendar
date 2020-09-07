@@ -104,6 +104,7 @@ class FragmentEventDetails() : Fragment() {
                     }
 
                     view?.post {
+                        requireActivity().nav_view.visibility = GONE
                         setupContent()
                         setupListeners()
                     }
@@ -123,7 +124,6 @@ class FragmentEventDetails() : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_event_details, container, false).also {
             // Hide the app bar
-            requireActivity().nav_view.visibility = GONE
         }
     }
 

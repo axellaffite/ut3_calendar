@@ -2,6 +2,7 @@ package com.edt.ut3.ui.room_finder
 
 import androidx.lifecycle.ViewModel
 import com.edt.ut3.backend.goulin_room_finder.Building
+import com.edt.ut3.backend.goulin_room_finder.Room
 import com.edt.ut3.backend.requests.ServiceBuilder
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
@@ -10,7 +11,8 @@ import java.io.IOException
 class RoomFinderViewModel : ViewModel() {
 
     private val service = ServiceBuilder.buildRoomFinderService()
-    private  val buildings = mutableListOf<Building>()
+    private val buildings = mutableListOf<Building>()
+    private var rooms = listOf<Room>()
 
     @Throws(IOException::class)
     suspend fun getBuildings(forceRefresh: Boolean = false) = withContext(IO) {
@@ -24,6 +26,12 @@ class RoomFinderViewModel : ViewModel() {
     }
 
     @Throws(IOException::class)
-    suspend fun getFreeRooms(building: String) = withContext(IO) { service.getFreeRooms(building) }
+    suspend fun getFreeRooms(building: String, forceRefresh: Boolean = false) = withContext(IO) {
+        if (rooms.isEmpty() || forceRefresh) {
+            rooms = service.getFreeRooms(building)
+        }
+
+        rooms
+    }
 
 }

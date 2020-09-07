@@ -51,4 +51,5 @@
     <string name="hour_format" translatable="false">HH:mm</string>
     <string name="from_to_format">De %s à %s</string>
     <string name="data_update_failed">Impossible de récupérer les données, veuillez vérifier votre connexion internet</string>
+    <string name="since_now">À partir de maintenant</string>
 </resources>
