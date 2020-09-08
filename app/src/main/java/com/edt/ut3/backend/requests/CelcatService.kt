@@ -19,7 +19,7 @@ import kotlin.time.days
 class CelcatService {
     @ExperimentalTime
     @Throws(IOException::class)
-    suspend fun getEvents(formations: List<String>): Response = withContext(IO) {
+    suspend fun getEvents(link: String, formations: List<String>): Response = withContext(IO) {
         val today = Date().timeCleaned()
 
         val body = RequestsUtils.EventBody().apply {
@@ -35,7 +35,7 @@ class CelcatService {
         val encodedBody = body.toRequestBody("application/x-www-form-urlencoded; charset=UTF-8".toMediaType())
 
         val request = Request.Builder()
-            .url("https://edt.univ-tlse3.fr/calendar2/Home/GetCalendarData")
+            .url("$link/Home/GetCalendarData")
             .addHeader("Accept", "application/json, text/javascript")
             .addHeader("X-Requested-With", "XMLHttpRequest")
             .addHeader("Content-Length", encodedBody.contentLength().toString())
@@ -47,9 +47,14 @@ class CelcatService {
 
 
     @Throws(IOException::class)
-    suspend fun getClasses() = withContext(IO) {
+    suspend fun getClasses(link: String) = withContext(IO) {
+        println(link)
+        val search =
+            if (link.contains("calendar2")) { "___" }
+            else { "__" }
+
         val request = Request.Builder()
-            .url("https://edt.univ-tlse3.fr/calendar2/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=1000000&pageNumber=1&resType=102&_=1595177163927")
+            .url("$link/Home/ReadResourceListItems?myResources=false&searchTerm=$search&pageSize=1000000&pageNumber=1&resType=102&_=1595177163927")
             .get()
             .build()
 
@@ -57,9 +62,13 @@ class CelcatService {
     }
 
     @Throws(IOException::class)
-    suspend fun getCoursesNames() = withContext(IO) {
+    suspend fun getCoursesNames(link: String) = withContext(IO) {
+        val search =
+            if (link.contains("calendar2")) { "___" }
+            else { "__" }
+
         val request = Request.Builder()
-            .url("https://edt.univ-tlse3.fr/calendar2/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=10000000&pageNumber=1&resType=100&_=1595183277988")
+            .url("$link/Home/ReadResourceListItems?myResources=false&searchTerm=$search&pageSize=10000000&pageNumber=1&resType=100&_=1595183277988")
             .get()
             .build()
 

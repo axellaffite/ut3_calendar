@@ -38,7 +38,7 @@ data class Event(
 ) : Parcelable {
     companion object {
         @Throws(JSONException::class)
-        fun fromJSON(obj: JSONObject, classes: Set<String>, courses: Set<String>) = obj.run {
+        fun fromJSON(obj: JSONObject, classes: Set<String>, courses: Map<String, String>) = obj.run {
             val category = optString("eventCategory").fromHTML()
             val parsedDescription = ParsedDescription(category, optString("description").fromHTML(), classes, courses)
 
@@ -122,30 +122,35 @@ data class Event(
      * @param classesNames All the classes names that exists (otherwise classes will always be empty)
      * @param coursesNames All the courses names that exists (otherwise course will always be null)
      */
-    class ParsedDescription(category: String?, description: String?, classesNames: Set<String>, coursesNames: Set<String>) {
+    class ParsedDescription(category: String?, description: String?, classesNames: Set<String>, coursesNames: Map<String, String>) {
         var course: String? = null
         val classes = mutableListOf<String>()
         var teacherID: Int? = null
         var precisions: String? = null
+        val regex = Regex(".*(\\[\\w+\\])")
 
         init {
+            println(classesNames.contains("TD Elec 1a"))
             val precisionBuilder = StringBuilder()
 
+            println("DESCRIPTION: $description")
             description?.lines()?.map { it.trim() }?.forEach {
-                println("Line: $it")
+                val line = regex.find(it)?.groups?.get(1)?.let { module ->
+                    it.removeSuffix(module.value).trim()
+                } ?: it
                 when {
-                    it.matches(Regex("\\d\\*")) -> { teacherID = it.toInt() }
+                    it.matches(Regex("\\d\\*")) -> { teacherID = line.toInt() }
 
-                    classesNames.contains(it) -> classes.add(it)
+                    classesNames.contains(line) -> classes.add(line)
 
-                    coursesNames.contains(it) -> course = it
+                    coursesNames.contains(line) -> course = coursesNames[line]
 
-                    it == category -> { /* ignore it */ }
+                    line == category -> { /* ignore line */ }
 
                     else -> if (precisionBuilder.isBlank()) {
-                        precisionBuilder.append(it)
+                        precisionBuilder.append(line)
                     } else {
-                        precisionBuilder.append("\n").append(it)
+                        precisionBuilder.append("\n").append(line)
                     }
                 }
             }

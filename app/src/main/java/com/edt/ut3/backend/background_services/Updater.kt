@@ -83,8 +83,11 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
             val groups = PreferencesManager(applicationContext).getGroups().toList<String>()
             Log.d("UPDATER", "Downloading events for theses groups: $groups")
 
-            val classes = getClasses().toHashSet()
-            val courses = getCourses().toHashSet()
+            val link = PreferencesManager(applicationContext).getLink()
+                ?: throw IllegalStateException("Link must be set")
+
+            val classes = getClasses(link).toHashSet()
+            val courses = getCourses(link)
 
             println(classes)
             println(courses)
@@ -93,7 +96,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
             val eventsJSONArray = withContext(IO) {
                 JSONArray(
                 CelcatService()
-                        .getEvents(groups)
+                        .getEvents(link, groups)
                         .body
                         ?.string()
                         ?: throw IOException()
@@ -123,6 +126,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
             when (e) {
                 is IOException -> {}
                 is JSONException -> {}
+                is IllegalStateException -> {}
                 else -> {}
             }
 
@@ -139,9 +143,8 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
      * Returns the classes parsed properly.
      */
     @Throws(IOException::class)
-    private suspend fun getClasses() = withContext(IO) {
-        val data = CelcatService().getClasses().body?.string() ?: throw IOException()
-
+    private suspend fun getClasses(link: String) = withContext(IO) {
+        val data = CelcatService().getClasses(link).body?.string() ?: throw IOException()
         JSONObject(data).getJSONArray("results").map {
             (it as JSONObject).run { getString("id").fromHTML().trim() }
         }
@@ -151,16 +154,18 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
     /**
      * Returns the courses parsed properly.
      */
-    private suspend fun getCourses() = withContext(IO) {
-        val data = CelcatService().getCoursesNames().body?.string() ?: throw IOException()
+    @Throws(IOException::class)
+    private suspend fun getCourses(link: String) = withContext(IO) {
+        val data = CelcatService().getCoursesNames(link).body?.string() ?: throw IOException()
+
 
         JSONObject(data).getJSONArray("results").map {
             (it as JSONObject).run {
                 val text = getString("text").fromHTML().trim()
                 val id = getString("id").fromHTML().trim()
-                "$text [$id]"
+                listOf(id to text, text to text)
             }
-        }
+        }.flatten().toMap()
     }
 
     /**
@@ -181,12 +186,9 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
             println(new)
 
             val titleToRemove = mutableListOf<String>()
-            old.forEach { course ->
-                new.find { it.title == course.title }?.let {
-                    it.visible = course.visible
-                } ?: run {
-                    titleToRemove.add(course.title)
-                }
+            old.forEach { oldCourse ->
+                new.find { it.title == oldCourse.title }?.let { it.visible = oldCourse.visible }
+                    ?: run { titleToRemove.add(oldCourse.title) }
             }
 
             println("Remove: $titleToRemove")

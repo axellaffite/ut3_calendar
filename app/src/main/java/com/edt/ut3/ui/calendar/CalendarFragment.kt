@@ -199,7 +199,7 @@ class CalendarFragment : Fragment() {
                                 override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
                                     super.onDismissed(transientBottomBar, event)
 
-                                    refresh_button.show()
+                                    refresh_button?.show()
                                     status = Status.IDLE
                                 }
                             })

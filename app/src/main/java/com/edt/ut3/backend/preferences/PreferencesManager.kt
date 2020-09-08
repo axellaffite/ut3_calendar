@@ -14,18 +14,28 @@ import java.util.*
 class PreferencesManager(private val context: Context) {
 
     companion object {
-        const val Groups = "groups"
+        enum class PreferenceKey (val value: String) {
+            GROUPS("groups"), LINK("link")
+        }
     }
 
     private val preferences = PreferenceManager.getDefaultSharedPreferences(context)
 
     @Throws(JSONException::class)
     fun getGroups(): JSONArray {
-        return JSONArray(preferences.getString(Groups, null))
+        return JSONArray(preferences.getString(PreferenceKey.GROUPS.value, null))
     }
 
-    fun setGroups(groups: JSONArray) {
-        preferences.edit().putString(Groups, groups.toString()).apply()
+    fun setGroups(groups: List<String>) {
+        preferences.edit().putString(PreferenceKey.GROUPS.value, JSONArray(groups).toString()).apply()
+    }
+
+    fun setLink(link: String) {
+        preferences.edit().putString(PreferenceKey.LINK.value, link).apply()
+    }
+
+    fun getLink(): String? {
+        return preferences.getString(PreferenceKey.LINK.value, null)
     }
 
     fun setupTheme(pref: ThemePreference? = null) {
