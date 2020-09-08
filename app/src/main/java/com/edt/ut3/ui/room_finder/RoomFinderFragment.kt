@@ -106,7 +106,10 @@ class RoomFinderFragment : Fragment() {
                         activatedFilters.remove(id)
                     }
 
-                    getFreeRooms(search_bar.text.toString(), forceRefresh = false)
+                    val selectedBuilding = search_bar.text
+                    if (!selectedBuilding.isNullOrBlank()) {
+                        getFreeRooms(search_bar.text.toString(), forceRefresh = false)
+                    }
                 }
             }
 

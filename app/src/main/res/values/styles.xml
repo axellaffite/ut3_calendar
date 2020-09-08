@@ -1,6 +1,6 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -15,38 +15,34 @@
         <item name="mapsFloatingButtonIconColor">@color/mapsFloatingButtonIconColor</item>
         <item name="android:textColor">@color/textColor</item>
         <item name="iconTint">@color/textColor</item>
+        <item name="android:windowBackground">@color/foregroundColor</item>
+        <item name="android:textColorPrimary">@color/textColor</item>
         <item name="android:textColorSecondary">@color/textSecondary</item>
+
+
+        <item name="chipStyle">@style/Widget.App.Chip</item>
 
         <item name="android:textViewStyle">@style/RobotoTextViewStyle</item>
         <item name="android:buttonStyle">@style/RobotoTextViewStyle</item>
     </style>
 
-<!--    <style name="DarkTAppThemeheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">-->
-<!--        &lt;!&ndash; Customize your theme here. &ndash;&gt;-->
-<!--        <item name="colorPrimary">@color/colorPrimary</item>-->
-<!--        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>-->
-<!--        <item name="colorAccent">@color/colorAccent</item>-->
-<!--        <item name="android:listDivider">@android:color/white</item>-->
 
-<!--        <item name="android:colorBackground">@color/colorPrimary</item>-->
-<!--        <item name="customForegroundColor">@color/colorPrimaryDark</item>-->
-<!--        <item name="customBackgroundColor">@color/colorPrimary</item>-->
-<!--        <item name="customCalendarColor">@color/colorPrimaryDark</item>-->
-<!--        <item name="customCalendarFloatingButtonColor">@color/colorAccent</item>-->
-<!--        <item name="customCalendarFloatingButtonIconColor">#FFFFFF</item>-->
-<!--        <item name="customMapsFloatingButtonColor">#FFFFFF</item>-->
-<!--        <item name="customMapsFloatingButtonIconColor">#FFFFFF</item>-->
-<!--        <item name="android:textColor">@android:color/white</item>-->
-<!--        <item name="customTextColor">@android:color/white</item>-->
-<!--        <item name="iconTint">@android:color/white</item>-->
-<!--        <item name="android:textColorSecondary">@color/textSecondary</item>-->
-<!--        <item name="android:textColorSecondaryInverse">@color/textSecondaryDisable</item>-->
+    <style name="Widget.App.Chip" parent="Widget.MaterialComponents.Chip.Entry">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.App.Chip</item>
+        <item name="chipIconTint">@color/iconTint</item>
+        <item name="chipBackgroundColor">@color/foregroundColor</item>
+    </style>
 
-<!--        <item name="android:textViewStyle">@style/RobotoTextViewStyle</item>-->
-<!--        <item name="android:buttonStyle">@style/RobotoTextViewStyle</item>-->
-<!--    </style>-->
+    <style name="ThemeOverlay.App.Chip" parent="">
+        <item name="colorOnSurface">@color/textColor</item>
+        <item name="chipIconTint">@color/iconTint</item>
+        <item name="chipBackgroundColor">@color/foregroundColor</item>
+    </style>
 
-    <color name="textSecondaryDisable">#999999</color>
+    <style name="Widget.App.Chip.Filter" parent="Widget.MaterialComponents.Chip.Filter">
+        <item name="chipIconTint">@color/iconTint</item>
+        <item name="chipBackgroundColor">@color/foregroundColor</item>
+    </style>
 
     <style name="RobotoTextViewStyle" parent="android:Widget.Material.TextView">
         <item name="android:fontFamily">@font/open_sans</item>

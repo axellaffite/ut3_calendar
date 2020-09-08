@@ -26,7 +26,11 @@
         android:id="@+id/navigation_notes"
         android:name="com.edt.ut3.ui.notes.NotesFragment"
         android:label="@string/title_notes"
-        tools:layout="@layout/fragment_notes" />
+        tools:layout="@layout/fragment_notes" >
+        <action
+            android:id="@+id/action_navigation_notes_to_fragmentNoteDetails"
+            app:destination="@id/fragmentNoteDetails" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_map"
@@ -50,5 +54,14 @@
         android:name="com.edt.ut3.ui.calendar.event_details.FragmentEventDetails"
         android:label="FragmentEventDetails"
         tools:layout="@layout/fragment_event_details"/>
+    <fragment
+        android:id="@+id/fragmentNoteDetails"
+        android:name="com.edt.ut3.ui.notes.FragmentNoteDetails"
+        android:label="FragmentNoteDetails"
+        tools:layout="@layout/fragment_note_details">
+        <action
+            android:id="@+id/action_fragmentNoteDetails_to_fragmentEventDetails"
+            app:destination="@id/fragmentEventDetails" />
+    </fragment>
 
 </navigation>

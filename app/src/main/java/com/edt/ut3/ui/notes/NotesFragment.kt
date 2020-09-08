@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.edt.ut3.R
 import com.edt.ut3.backend.note.Note
@@ -37,7 +38,12 @@ class NotesFragment : Fragment() {
 
     private fun updateRecyclerAdapter() {
         if (notes_container.adapter == null) {
-            notes_container.adapter = NoteAdapter(notes)
+            notes_container.adapter = NoteAdapter(notes).apply {
+                onItemClickListener = { note ->
+                    println("clicked")
+                    findNavController().navigate(R.id.action_navigation_notes_to_fragmentNoteDetails)
+                }
+            }
         }
 
         println("DEBUG: $notes")

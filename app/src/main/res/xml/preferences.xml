@@ -11,7 +11,7 @@
             android:entryValues="@array/themesAlias"
             android:entries="@array/themes"
             android:icon="@drawable/ic_theme"
-            android:summary="@string/you_must_restart"/>
+            android:defaultValue="3"/>
 
         <PreferenceCategory
             app:title="@string/dark_theme_bounds_title"
@@ -34,7 +34,8 @@
             android:key="notification"
             android:title="@string/enable_update_notifications"
             android:summary="@string/summary_notifications"
-            android:icon="@drawable/ic_notifications"/>
+            android:icon="@drawable/ic_notifications"
+            android:defaultValue="true" />
 
     </PreferenceCategory>
 

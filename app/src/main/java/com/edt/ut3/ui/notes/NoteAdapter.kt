@@ -17,6 +17,12 @@ class NoteAdapter(val dataset: MutableList<Note>) : RecyclerView.Adapter<NoteAda
 
     class NoteViewHolder(val noteView: View): RecyclerView.ViewHolder(noteView)
 
+    companion object {
+        fun from(v: RecyclerView) = (v.adapter as NoteAdapter?)
+    }
+
+    var onItemClickListener: ((Note) -> Unit)? = null
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
         val rootView = LayoutInflater.from(parent.context).inflate(R.layout.layout_note, parent, false)
 
@@ -26,6 +32,12 @@ class NoteAdapter(val dataset: MutableList<Note>) : RecyclerView.Adapter<NoteAda
     @SuppressLint("SimpleDateFormat")
     override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
         val currentNote = dataset[position]
+
+        onItemClickListener?.let { itemListener ->
+            holder.noteView.setOnClickListener {
+                itemListener(currentNote)
+            }
+        }
 
         holder.noteView.apply {
             currentNote.title?.let {
