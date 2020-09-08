@@ -44,6 +44,32 @@ Ce fragment permet par ailleurs de prendre des photos qui seront associées à l
 :---------------:|:-----------------:
 <img src="https://raw.githubusercontent.com/ElZozor/ut3_calendar/master/previews/event_details_white.png" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/ElZozor/ut3_calendar/master/previews/event_details_dark.png" height="600" alt="Theme sombre">
 
+### Trouver une salle
+
+Cette fonctionnalité n'est disponible que pour l'université Paul Sabatier.  
+Elle permet de trouver une salle vide en fonction du bâtiment donné.  
+Cela a été rendu possible grâce à [Goulin](https://www.goulin.fr/).  
+Le code source est dispo --> [ICI](https://github.com/goulinkh/rooms-finder) <--
+La version web se trouve --> [ICI](https://rooms-finder.goulin.fr/) <--  
+
+   Theme Clair   |   Theme sombre
+:---------------:|:-----------------:
+<img src="https://raw.githubusercontent.com/ElZozor/ut3_calendar/master/previews/find_a_room_loading_white.png" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/ElZozor/ut3_calendar/master/previews/find_a_room_loading_dark.png" height="600" alt="Theme sombre">
+<img src="https://raw.githubusercontent.com/ElZozor/ut3_calendar/master/previews/find_a_room_white.png" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/ElZozor/ut3_calendar/master/previews/find_a_room_dark.png" height="600" alt="Theme sombre">
+
+L'API retenue a finalement été OSMDroid qui utilise OpenStreeMap.
+Pour la recherche de chemin, cela se fera via un Intent Google Maps.
+
+### Carte
+
+   Theme Clair   |   Theme sombre
+:---------------:|:-----------------:
+<img src="https://raw.githubusercontent.com/ElZozor/ut3_calendar/master/previews/maps_white.png" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/ElZozor/ut3_calendar/master/previews/maps_dark.png" height="600" alt="Theme sombre">
+<img src="https://raw.githubusercontent.com/ElZozor/ut3_calendar/master/previews/maps_choices_white.png" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/ElZozor/ut3_calendar/master/previews/maps_choices_dark.png" height="600" alt="Theme sombre">
+
+L'API retenue a finalement été OSMDroid qui utilise OpenStreeMap.
+Pour la recherche de chemin, cela se fera via un Intent Google Maps.
+
 ### Préférences
 
    Theme Clair   |   Theme sombre
@@ -58,13 +84,3 @@ Les différentes options qui s'offrent maintenant à l'utilisateur sont :
  - Le lien vers le calendrier Celcat qui permettra à l'application de récupérer l'emploi du temps. Le choix de la formation ne se fait donc plus via l'onglet de choix de formation pour plusieurs raisons qui sont notamment que cette page n'est pas fixe dans le temps ainsi que certaines formations qui sont présentent dessus ne possède pas d'emploi du temps sur Celcat.
 
 D'autres options sont à l'étude comme la suppression des événements à partir d'un certain temps, la possibilité de n'afficher qu'une seule section (pour ceux qui sont en double licence, enjambement ou autre).
-
-### Carte
-
-   Theme Clair   |   Theme sombre
-:---------------:|:-----------------:
-<img src="https://raw.githubusercontent.com/ElZozor/ut3_calendar/master/previews/maps_white.png" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/ElZozor/ut3_calendar/master/previews/maps_dark.png" height="600" alt="Theme sombre">
-<img src="https://raw.githubusercontent.com/ElZozor/ut3_calendar/master/previews/maps_choices_white.png" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/ElZozor/ut3_calendar/master/previews/maps_choices_dark.png" height="600" alt="Theme sombre">
-
-L'API retenue a finalement été OSMDroid qui utilise OpenStreeMap.
-Pour la recherche de chemin, cela se fera via un Intent Google Maps.

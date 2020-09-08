@@ -86,7 +86,9 @@
                     android:layout_height="wrap_content"
                     android:checkable="true"
                     android:checked="true"
-                    android:text="@string/since_now" />
+                    android:text="@string/since_now"
+                    app:chipBackgroundColor="@color/foregroundColor"
+                    app:checkedIconTint="@color/iconTint"/>
 
             </com.google.android.material.chip.ChipGroup>
 
