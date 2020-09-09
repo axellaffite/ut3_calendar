@@ -3,7 +3,7 @@
 Cette application permet de consulter le calendrier Celcat de l'université Paul Sabatier directement sur votre téléphone.  
 Disponible pour Android --> [ici](https://play.google.com/store/apps/details?id=com.edt.ut3&hl=ln) <-- !
 
-## Faites partit du projet !  
+## Faites parti du projet !  
 Nous avons ouvert un Discord pour les bêtas afin que les testeurs puissent nous contacter plus facilement.  
 Il est possible que l'application soit portée sur IOS, nous sommes donc à la recherche de développeurs qui pourraient nous aider à le concevoir en Flutter. N'hésitez donc pas à rejoindre le serveur pour nous en parler :)
 
