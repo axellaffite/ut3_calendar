@@ -2,6 +2,7 @@ package com.edt.ut3.ui.calendar
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,41 +12,50 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.CalendarView
+import android.widget.FrameLayout
+import android.widget.ImageButton
+import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.children
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.work.WorkInfo
+import com.edt.ut3.MainActivity
 import com.edt.ut3.R
 import com.edt.ut3.backend.background_services.Updater
 import com.edt.ut3.backend.background_services.Updater.Companion.Progress
 import com.edt.ut3.backend.celcat.Event
-import com.edt.ut3.misc.plus
+import com.edt.ut3.misc.add
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.timeCleaned
 import com.edt.ut3.misc.toDp
 import com.edt.ut3.ui.calendar.options.CalendarOptionsFragment
 import com.edt.ut3.ui.custom_views.overlay_layout.OverlayBehavior
+import com.elzozor.yoda.Day
+import com.elzozor.yoda.Week
 import com.elzozor.yoda.events.EventWrapper
+import com.elzozor.yoda.utils.DateExtensions.get
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_calendar.*
 import kotlinx.android.synthetic.main.fragment_calendar.view.*
 import kotlinx.coroutines.Dispatchers.Default
-import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.time.ExperimentalTime
-import kotlin.time.days
 
 class CalendarFragment : Fragment() {
 
     enum class Status { IDLE, UPDATING }
+    enum class CalendarMode { DAY, WEEK }
 
     private val calendarViewModel: CalendarViewModel by activityViewModels()
 
@@ -54,6 +64,49 @@ class CalendarFragment : Fragment() {
     private var shouldBlockScroll = false
     private var canBlockScroll = false
     private var status = Status.IDLE
+    private var calendarMode = CalendarMode.DAY
+
+    @ExperimentalTime
+    private val calendarActionBar : ActionBarLayout by lazy {
+        ActionBarLayout(requireContext(), calendarView).apply {
+            fun callCalendarListener(date: Date) {
+                date.run {
+                    val year = date.get(Calendar.YEAR)
+                    val month = date.get(Calendar.MONTH)
+                    val day = date.get(Calendar.DAY_OF_MONTH)
+
+                    onCalendarDateChange(year, month, day)
+                }
+            }
+
+            fun setNewDate(date: Date) {
+                calendar.date = date.time
+
+                callCalendarListener(date)
+            }
+
+            fun addProperAmountToDate(date: Date, amount: Int): Date {
+                val field = when (calendarMode) {
+                    CalendarMode.DAY -> Calendar.DAY_OF_YEAR
+                    else -> Calendar.WEEK_OF_YEAR
+                }
+
+                return date.add(field, amount)
+            }
+
+            setOnPreviousClickListener {
+                val newDate = addProperAmountToDate(Date(calendar.date), -1)
+                setNewDate(newDate)
+            }
+
+            setOnNextClickListener {
+                val newDate = addProperAmountToDate(Date(calendar.date), +1)
+
+                setNewDate(newDate)
+            }
+        }
+    }
+
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -62,6 +115,7 @@ class CalendarFragment : Fragment() {
     ): View? {
         return inflater.inflate(R.layout.fragment_calendar, container, false)
     }
+
 
     @ExperimentalTime
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -76,40 +130,41 @@ class CalendarFragment : Fragment() {
             handleEventsChange(requireView(), it)
         }
 
-        requireActivity().supportFragmentManager.run {
-            beginTransaction()
-                .replace(R.id.settings, CalendarOptionsFragment())
-                .commit()
+        activity?.run {
+            supportFragmentManager.run {
+                beginTransaction()
+                    .replace(R.id.settings, CalendarOptionsFragment())
+                    .commit()
 
-            beginTransaction()
-                .add(R.id.news, CalendarNews())
-                .commit()
+                beginTransaction()
+                    .add(R.id.news, CalendarNews())
+                    .commit()
+            }
         }
     }
 
-    @SuppressLint("ClickableViewAccessibility")
     @ExperimentalTime
+    @SuppressLint("ClickableViewAccessibility")
+
     private fun setupListeners() {
         calendarViewModel.getEvents(requireContext()).observe(viewLifecycleOwner, { evLi ->
             handleEventsChange(requireView(), evLi)
         })
 
         calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
-            calendarViewModel.getEvents(requireContext()).value?.let {
-                calendarViewModel.selectedDate = Date().set(year, month, dayOfMonth).timeCleaned()
-                handleEventsChange(requireView(), it)
-            }
+            onCalendarDateChange(year, month, dayOfMonth)
         }
 
         app_bar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->
             checkScrollAvailability(appBarLayout, verticalOffset)
+            hideNavBarIfNecessary(appBarLayout, verticalOffset)
         })
 
         app_bar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
             hideRefreshWhenNecessary(verticalOffset)
         })
 
-        day_scroll.setOnScrollChangeListener { _: NestedScrollView?, _, scrollY, _, oldScrollY ->
+        day_scroll.setOnScrollChangeListener { scrollView: NestedScrollView?, _, scrollY, _, oldScrollY ->
             blockScrollIfNecessary(scrollY, oldScrollY)
         }
 
@@ -127,6 +182,11 @@ class CalendarFragment : Fragment() {
         calendarViewModel.getCoursesVisibility(requireContext()).observe(viewLifecycleOwner) {
             println("changed calendar")
             handleEventsChange(requireView(), calendarViewModel.getEvents(requireContext()).value)
+        }
+
+        val calendar = calendarView!!
+        (activity as MainActivity?)?.run {
+            view?.post { setActionViewContent(calendarActionBar) }
         }
 
         // This part handles the behavior of the front layout
@@ -178,13 +238,37 @@ class CalendarFragment : Fragment() {
         }
     }
 
+
+    @ExperimentalTime
+    private fun onCalendarDateChange(year: Int, month: Int, dayOfMonth: Int) {
+        calendarViewModel.getEvents(requireContext()).value?.let {
+            calendarViewModel.selectedDate = Date().set(year, month, dayOfMonth).timeCleaned()
+            handleEventsChange(requireView(), it)
+        }
+    }
+
+    /**
+     * Hide the navbar to allow the user to use
+     * bottom bar actions.
+     *
+     */
+    private fun hideNavBarIfNecessary(appBarLayout: AppBarLayout, scrollY: Int) {
+        (activity as MainActivity?)?.let {
+            if (scrollY + appBarLayout.totalScrollRange == 0) {
+                it.setActionViewVisibility(VISIBLE)
+            } else {
+                it.setActionViewVisibility(GONE)
+            }
+        }
+    }
+
     private fun forceUpdate() {
         Updater.forceUpdate(requireContext(), viewLifecycleOwner, {
-            it?.let {
-                val progress = it.progress
+            it?.let { workInfo ->
+                val progress = workInfo.progress
                 val value = progress.getInt(Progress, 0)
-                println("DEBUG: ${it.state}")
-                when (it.state) {
+
+                when (workInfo.state) {
                     WorkInfo.State.FAILED -> {
                         Snackbar.make(front_layout, R.string.update_failed, Snackbar.LENGTH_INDEFINITE)
                             .setAction(R.string.action_retry) {
@@ -284,55 +368,123 @@ class CalendarFragment : Fragment() {
      * @param root The root view
      * @param eventList The event list
      */
+
     @ExperimentalTime
     private fun handleEventsChange(root: View, eventList: List<Event>?) {
         if (eventList == null) return
 
-        root.day_view.dayBuilder = this::buildEventView
-        root.day_view.allDayBuilder = this::buildAllDayView
-        root.day_view.emptyDayBuilder = this::buildEmptyDayView
-
-        filterEvents(root, eventList)
-    }
-
-
-    /**
-     * This function filter the event and display them.
-     *
-     * @param root The root view
-     * @param eventList The event list
-     */
-    @ExperimentalTime
-    private fun filterEvents(root: View, eventList: List<Event>) {
-        val selectedDate = calendarViewModel.selectedDate
-        val hiddenCourses = calendarViewModel.getCoursesVisibility(requireContext()).value
-            ?.filter { !it.visible }
-            ?.map { it.title }?.toHashSet() ?: hashSetOf()
-
-
-        job?.cancel()
-        job = lifecycleScope.launchWhenResumed {
-            println(selectedDate.toString())
-            withContext(IO) {
-                val events = withContext(Default) {
-                    eventList.filter { ev ->
-                        ev.start >= selectedDate
-                        && ev.start <= selectedDate + 1.days
-                        && ev.courseName !in hiddenCourses
-                    }.map { ev -> Event.Wrapper(ev) }
-                }
-
-                root.day_view.post {
-                    lifecycleScope.launchWhenStarted {
-                        root.day_view.setEvents(events, day_scroll.height)
-                        
-                        withContext(Main) {
-                            root.day_view.requestLayout()
-                        }
+        context?.let {
+            root.post {
+                job?.cancel()
+                job = lifecycleScope.launchWhenResumed {
+                    when (resources.configuration.orientation) {
+                        Configuration.ORIENTATION_LANDSCAPE ->
+                            buildWeekView(root.calendar_container, eventList, root.height, root.width)
+                        else ->
+                            buildDayView(root.calendar_container, eventList, root.height, root.width)
                     }
                 }
             }
         }
+    }
+
+
+    @ExperimentalTime
+    private suspend fun buildDayView(container: FrameLayout, eventList: List<Event>, height: Int, width: Int) = withContext(Default) {
+        val selectedDate = calendarViewModel.selectedDate.timeCleaned()
+        val filter = { it: Event -> it.start > selectedDate && it.start < selectedDate.add(Calendar.DAY_OF_YEAR, 1) }
+        val filtered = filterEvents(eventList, filter)
+
+
+        val eventContainer = withContext(Main) {
+            buildEventContainer(container, { Day(requireContext(), null) }) {
+                it.apply {
+                    dayBuilder = this@CalendarFragment::buildEventView
+                    allDayBuilder = this@CalendarFragment::buildAllDayView
+                    emptyDayBuilder = this@CalendarFragment::buildEmptyDayView
+
+                    hoursMode = Day.HoursMode.COMPLETE_H
+                    fit = Day.Fit.BOUNDS_ADAPTIVE
+                    displayMode = Day.Display.FIT_TO_CONTAINER
+                    start = 7
+                    end = 20
+
+                    layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+                }
+            }
+        }
+
+        eventContainer.setEvents(filtered, height, width)
+        withContext(Main) {
+            if (eventContainer.parent == null) {
+                container.addView(eventContainer)
+            }
+
+            calendarActionBar.updateBarText(selectedDate, false)
+            calendarMode = CalendarMode.DAY
+        }
+    }
+
+
+    @ExperimentalTime
+    private suspend fun buildWeekView(container: FrameLayout, eventList: List<Event>, height: Int, width: Int) = withContext(Default) {
+        val selectedDate = Calendar.getInstance().run {
+            time = calendarViewModel.selectedDate.timeCleaned()
+            set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+            time
+        }
+
+        val filter = { it: Event -> it.start > selectedDate && it.start < selectedDate.add(Calendar.WEEK_OF_YEAR, 1) }
+        val filtered = filterEvents(eventList, filter)
+
+        val eventContainer = withContext(Main) {
+            buildEventContainer(container, { Week(requireContext(), null) }) {
+                it.apply {
+                    dayBuilder = this@CalendarFragment::buildEventView
+                    allDayBuilder = this@CalendarFragment::buildAllDayView
+                    emptyDayBuilder = this@CalendarFragment::buildEmptyDayView
+
+                    hoursMode = Day.HoursMode.SIMPLE
+                    fit = Day.Fit.BOUNDS_ADAPTIVE
+                    displayMode = Day.Display.FIT_TO_CONTAINER
+                    start = 7
+                    end = 20
+
+                    layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+                }
+            }
+        }
+
+        eventContainer.setEvents(selectedDate, filtered, height, width)
+        withContext(Main) {
+            container.removeAllViews()
+            container.addView(eventContainer)
+            container.requestLayout()
+
+            calendarActionBar.updateBarText(selectedDate, true, eventContainer.children.filter { it is Day }.count() - 1)
+            calendarMode = CalendarMode.WEEK
+        }
+    }
+
+    private suspend inline fun<reified T:View> buildEventContainer(container: FrameLayout,
+                                                                   crossinline builder: () -> T,
+                                                                   crossinline initializer: (T) -> T
+    ) = withContext(Main) {
+        container.removeAllViews()
+        initializer(builder())
+    }
+
+
+
+    private suspend fun filterEvents(eventList: List<Event>, dateFilter: (Event) -> Boolean) = withContext(Default) {
+        val hiddenCourses = calendarViewModel.getCoursesVisibility(requireContext()).value
+            ?.filter { !it.visible }
+            ?.map { it.title }?.toHashSet() ?: hashSetOf()
+
+        eventList.filter { ev ->
+            dateFilter(ev)
+            && ev.courseName !in hiddenCourses
+        }.map { ev -> Event.Wrapper(ev) }
     }
 
     /**
@@ -387,5 +539,37 @@ class CalendarFragment : Fragment() {
 
     private fun buildEmptyDayView(): View {
         return View(requireContext())
+    }
+
+    class ActionBarLayout(context: Context, val calendar: CalendarView) : ConstraintLayout(context) {
+        init {
+            inflate(context, R.layout.calendar_action, this)
+        }
+
+        fun setOnPreviousClickListener(listener: (View) -> Unit) {
+            findViewById<ImageButton>(R.id.previous).setOnClickListener {
+                listener(it)
+            }
+        }
+
+        fun setOnNextClickListener(listener: (View) -> Unit) {
+            findViewById<ImageButton>(R.id.next).setOnClickListener {
+                listener(it)
+            }
+        }
+
+        fun updateBarText(date: Date, week: Boolean, dayCount: Int = 1) {
+            println(dayCount)
+            findViewById<TextView>(R.id.text).apply {
+                text = if (week) {
+                    val start = SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(date)
+                    val end = SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(date.add(Calendar.DAY_OF_YEAR, dayCount))
+
+                    "$start - $end"
+                } else {
+                    SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(date)
+                }
+            }
+        }
     }
 }

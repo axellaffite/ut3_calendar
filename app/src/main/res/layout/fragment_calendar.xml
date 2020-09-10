@@ -74,14 +74,10 @@
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             android:background="@color/backgroundColor">
 
-            <com.elzozor.yoda.Day
-                android:id="@+id/day_view"
+            <FrameLayout
+                android:id="@+id/calendar_container"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:fit="BOUNDS_ADAPTIVE"
-                app:displayMode="FIT_TO_CONTAINER"
-                app:start="7"
-                app:end="20"/>
+                android:layout_height="match_parent"/>
 
         </androidx.core.widget.NestedScrollView>
 

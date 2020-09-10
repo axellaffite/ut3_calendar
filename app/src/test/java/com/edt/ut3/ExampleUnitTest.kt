@@ -1,11 +1,10 @@
 package com.edt.ut3
 
-import com.edt.ut3.misc.*
+import com.edt.ut3.misc.set
+import com.edt.ut3.misc.timeCleaned
+import org.junit.Assert.assertEquals
 import org.junit.Test
-
-import org.junit.Assert.*
 import java.util.*
-import kotlin.time.ExperimentalTime
 import kotlin.time.hours
 
 /**
@@ -19,7 +18,7 @@ class ExampleUnitTest {
         assertEquals(4, 2 + 2)
     }
 
-    @ExperimentalTime
+
     @Test
     fun date_test() {
         val d = Date()

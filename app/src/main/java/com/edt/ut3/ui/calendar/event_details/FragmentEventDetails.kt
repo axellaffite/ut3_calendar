@@ -256,7 +256,7 @@ class FragmentEventDetails : Fragment() {
         } else {
             val date = SimpleDateFormat("dd/MM/yyyy").format(event.start)
             val start = "%02dh%02d".format(event.start.get(Calendar.HOUR_OF_DAY), event.start.get(Calendar.MINUTE))
-            val end = "%02dh%02d".format(event.end.get(Calendar.HOUR_OF_DAY), event.end.get(Calendar.MINUTE))
+            val end = "%02dh%02d".format(event.end?.get(Calendar.HOUR_OF_DAY), event.end?.get(Calendar.MINUTE))
 
             "$date $start-$end"
         }
