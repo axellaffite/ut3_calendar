@@ -48,6 +48,9 @@ class CalendarFragment : Fragment() {
         setupListeners()
 
         calendarView.date = calendarViewModel.selectedDate.value!!.time
+
+        pager.adapter = FragmentSlider(this)
+        pager.setCurrentItem(Int.MAX_VALUE / 2, false)
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -133,9 +136,15 @@ class CalendarFragment : Fragment() {
     }
 
 
-    private inner class FragmentSlider() : FragmentStateAdapter(this) {
+    private inner class FragmentSlider(fragment: Fragment) : FragmentStateAdapter(fragment) {
+
         override fun getItemCount() = Int.MAX_VALUE
 
-        override fun createFragment(position: Int) = CalendarViewerFragment()
+        override fun createFragment(position: Int) =
+            CalendarViewerFragment.newInstance(
+                baseDate = calendarViewModel.selectedDate.value!!,
+                currentIndex = pager.currentItem,
+                thisIndex = position
+            )
     }
 }

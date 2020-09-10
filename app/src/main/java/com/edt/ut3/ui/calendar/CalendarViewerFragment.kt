@@ -12,23 +12,22 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
-import com.edt.ut3.misc.plus
+import com.edt.ut3.misc.add
 import com.edt.ut3.misc.toDp
+import com.elzozor.yoda.Day
 import com.elzozor.yoda.events.EventWrapper
-import kotlinx.android.synthetic.main.fragment_calendar.*
 import kotlinx.android.synthetic.main.fragment_calendar_viewer.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import java.util.*
 import kotlin.time.ExperimentalTime
-import kotlin.time.days
 
 class CalendarViewerFragment: Fragment() {
 
     companion object {
-        fun newInstance(baseDate: Date, index: Int) {
-            baseDate.add(Calendar.DAY_OF_YEAR, index)
+        fun newInstance(baseDate: Date, currentIndex: Int, thisIndex: Int) = CalendarViewerFragment().apply {
+            date = baseDate.add(Calendar.DAY_OF_YEAR, thisIndex - currentIndex)
         }
     }
 
@@ -40,7 +39,9 @@ class CalendarViewerFragment: Fragment() {
                               container: ViewGroup?,
                               savedInstanceState: Bundle?): View?
     {
-        return inflater.inflate(R.layout.fragment_calendar_viewer, container, false)
+        return inflater.inflate(R.layout.fragment_calendar_viewer, container, false).also {
+            setupCalendarView(it.findViewById(R.id.day_view))
+        }
     }
 
     @ExperimentalTime
@@ -62,9 +63,12 @@ class CalendarViewerFragment: Fragment() {
         }
 
         viewModel.getCoursesVisibility(requireContext()).observe(viewLifecycleOwner) {
-            println("changed calendar")
             handleEventsChange(viewModel.getEvents(requireContext()).value)
         }
+    }
+
+    private fun setupCalendarView(day: Day) {
+        day.
     }
 
     /**
@@ -108,14 +112,14 @@ class CalendarViewerFragment: Fragment() {
                 val events = withContext(Dispatchers.Default) {
                     eventList.filter { ev ->
                         ev.start >= selectedDate
-                                && ev.start <= selectedDate + 1.days
-                                && ev.courseName !in hiddenCourses
+                        && ev.start <= selectedDate.add(Calendar.DAY_OF_YEAR, 1)
+                        && ev.courseName !in hiddenCourses
                     }.map { ev -> Event.Wrapper(ev) }
                 }
 
                 day_view.post {
                     lifecycleScope.launchWhenStarted {
-                        day_view.setEvents(events, day_scroll.height)
+                        day_view.setEvents(events, requireView().height, requireView().width)
 
                         withContext(Dispatchers.Main) {
                             day_view.requestLayout()
