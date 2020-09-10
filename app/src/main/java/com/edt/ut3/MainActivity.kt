@@ -1,30 +1,40 @@
 package com.edt.ut3
 
+import android.graphics.Color
 import android.os.Bundle
+import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
+import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.misc.hideKeyboard
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+
+    lateinit var actionview: FrameLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         PreferencesManager(this).setupTheme()
 
+        actionview = findViewById(R.id.action_view)
+        println("assigning")
 
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
         val controller = findNavController(R.id.nav_host_fragment)
+
 
         navView.setupWithNavController(controller)
 
         controller.addOnDestinationChangedListener { _, destination, _ ->
             hideKeyboard()
+            action_view.visibility = GONE
             when (destination.id) {
                 R.id.navigation_notes -> showBottomNav(navView)
                 R.id.navigation_calendar -> showBottomNav(navView)
@@ -41,5 +51,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun hideBottomNav(bottomNav : BottomNavigationView) {
         bottomNav.visibility = GONE
+    }
+
+    fun setActionViewVisibility(visibility: Int) {
+        println("Visibility: $visibility")
+        action_view.visibility = visibility
+    }
+
+    fun setActionViewContent(view: View) {
+        println("setting contents")
+        this.actionview.apply {
+            removeAllViews()
+            addView(view)
+
+            setBackgroundColor(Color.WHITE)
+        }
     }
 }

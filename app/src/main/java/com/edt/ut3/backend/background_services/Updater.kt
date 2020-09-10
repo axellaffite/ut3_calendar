@@ -24,7 +24,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
-import kotlin.time.ExperimentalTime
 
 
 /**
@@ -74,7 +73,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
         }
     }
 
-    @ExperimentalTime
+
     override suspend fun doWork(): Result = coroutineScope {
         setProgress(workDataOf(Progress to 0))
 

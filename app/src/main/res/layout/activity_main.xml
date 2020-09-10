@@ -19,6 +19,22 @@
         app:itemIconTint="@color/iconTint"
         app:itemTextColor="@color/textColor"/>
 
+    <FrameLayout
+        android:id="@+id/action_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/foregroundColor"
+        app:itemIconTint="@color/iconTint"
+        app:itemTextColor="@color/textColor"
+        android:focusable="true"
+        android:clickable="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/nav_view"
+        android:elevation="8dp"
+        android:visibility="gone"/>
+
 
     <fragment
         android:name="androidx.navigation.fragment.NavHostFragment"
