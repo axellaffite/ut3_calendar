@@ -16,14 +16,12 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var actionview: FrameLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         PreferencesManager(this).setupTheme()
 
-        actionview = findViewById(R.id.action_view)
         println("assigning")
 
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
@@ -60,7 +58,7 @@ class MainActivity : AppCompatActivity() {
 
     fun setActionViewContent(view: View) {
         println("setting contents")
-        this.actionview.apply {
+        findViewById<FrameLayout>(R.id.action_view).apply {
             removeAllViews()
             addView(view)
 

@@ -1,7 +1,6 @@
 package com.edt.ut3.ui.calendar
 
 import android.content.Context
-import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -53,6 +52,7 @@ class CalendarViewerFragment: Fragment() {
             date = newDate
             pview = v
             position = thisIndex
+            this.mode = mode
         }
     }
 
@@ -62,6 +62,7 @@ class CalendarViewerFragment: Fragment() {
     var date: Date = Date()
     var job: Job? = null
     var position = 0
+    var mode = CalendarMode.DAY
     lateinit var pview: View
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -96,7 +97,6 @@ class CalendarViewerFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
         setupListeners()
     }
 
@@ -111,15 +111,30 @@ class CalendarViewerFragment: Fragment() {
         }
 
         viewModel.selectedDate.observe(viewLifecycleOwner) {
-            val coeff = when (viewModel.calendarMode) {
-                CalendarMode.WEEK -> 7
-                else -> 1
+            refreshDate(it)
+        }
+
+        viewModel.calendarMode.observe(viewLifecycleOwner) {
+            if (mode != it) {
+                mode = it
+                refreshDate(viewModel.selectedDate.value!!, false)
+                handleEventsChange(viewModel.getEvents(requireContext()).value)
             }
+        }
+    }
 
-            val newDate = it.add(Calendar.DAY_OF_YEAR, (position - viewModel.lastPosition) * coeff)
-            if (date != newDate) {
-                date = newDate
+    @ExperimentalTime
+    private fun refreshDate(up: Date, refresh: Boolean = true) {
+        val coeff = when (viewModel.calendarMode.value) {
+            CalendarMode.WEEK -> 7
+            else -> 1
+        }
 
+        val newDate = up.add(Calendar.DAY_OF_YEAR, (position - viewModel.lastPosition) * coeff)
+        if (date != newDate) {
+            date = newDate
+
+            if (refresh) {
                 handleEventsChange(viewModel.getEvents(requireContext()).value!!)
             }
         }
@@ -145,8 +160,8 @@ class CalendarViewerFragment: Fragment() {
             requireView().post {
                 job?.cancel()
                 job = lifecycleScope.launchWhenCreated {
-                    when (resources.configuration.orientation) {
-                        Configuration.ORIENTATION_LANDSCAPE ->
+                    when (viewModel.calendarMode.value) {
+                        CalendarMode.WEEK ->
                             buildWeekView(calendar_container, eventList, requireView().height, requireView().width)
                         else ->
                             buildDayView(calendar_container, eventList, requireView().height, requireView().width)
@@ -194,7 +209,7 @@ class CalendarViewerFragment: Fragment() {
                     container.addView(eventContainer)
                 }
 
-                viewModel.calendarMode = CalendarMode.DAY
+                viewModel.calendarMode.value = CalendarMode.DAY
             }
         }
     }
@@ -241,7 +256,7 @@ class CalendarViewerFragment: Fragment() {
                 container.addView(eventContainer)
                 container.requestLayout()
 
-                viewModel.calendarMode = CalendarMode.WEEK
+                viewModel.calendarMode.value = CalendarMode.WEEK
             }
         }
     }

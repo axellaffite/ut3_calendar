@@ -15,11 +15,10 @@ import java.util.*
 
 class CalendarViewModel : ViewModel() {
 
-    var calendarMode = CalendarViewerFragment.CalendarMode.DAY
+    var calendarMode = MutableLiveData(CalendarViewerFragment.CalendarMode.DAY)
     var selectedEvent: Event? = null
     var selectedEventNote: Note? = null
     var selectedDate = MutableLiveData(Date().timeCleaned())
-    var shouldUpdateCalendar = false
     var lastPosition = Int.MAX_VALUE / 2
     val positions = mutableMapOf<Int, WeakReference<CalendarViewerFragment>>()
 
