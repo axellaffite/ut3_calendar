@@ -1,10 +1,12 @@
 package com.edt.ut3.ui.calendar
 
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -13,40 +15,87 @@ import androidx.navigation.fragment.findNavController
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.misc.add
+import com.edt.ut3.misc.timeCleaned
 import com.edt.ut3.misc.toDp
 import com.elzozor.yoda.Day
+import com.elzozor.yoda.Week
 import com.elzozor.yoda.events.EventWrapper
 import kotlinx.android.synthetic.main.fragment_calendar_viewer.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.time.ExperimentalTime
 
 class CalendarViewerFragment: Fragment() {
 
-    companion object {
-        fun newInstance(baseDate: Date, currentIndex: Int, thisIndex: Int) = CalendarViewerFragment().apply {
-            date = baseDate.add(Calendar.DAY_OF_YEAR, thisIndex - currentIndex)
+    init {
+        lifecycleScope.launchWhenResumed {
+            while(true) {
+                println("Displaying fragment date=$date")
+                delay(1000)
+            }
         }
     }
+
+    companion object {
+        fun newInstance(baseDate: Date, currentIndex: Int, thisIndex: Int, mode: CalendarMode, v: View) = CalendarViewerFragment().apply {
+            val coeff = when (mode) {
+                CalendarMode.WEEK -> 7
+                else -> 1
+            }
+            val newDate = baseDate.add(Calendar.DAY_OF_YEAR, (thisIndex - currentIndex) * coeff)
+
+            println("CONSTRUCTING NEW FRAGMENT: id=$id position=$thisIndex date=${SimpleDateFormat("dd/HH/yyyy").format(newDate)}")
+
+            date = newDate
+            pview = v
+            position = thisIndex
+        }
+    }
+
+    enum class CalendarMode { DAY, WEEK }
 
     val viewModel : CalendarViewModel by activityViewModels()
     var date: Date = Date()
     var job: Job? = null
+    var position = 0
+    lateinit var pview: View
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        outState.putInt("position", position)
+        outState.putLong("date", date.time)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        savedInstanceState?.run {
+            position = getInt("position")
+            date = Date(getLong("date"))
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        viewModel.positions.remove(position)
+    }
 
     override fun onCreateView(inflater: LayoutInflater,
                               container: ViewGroup?,
                               savedInstanceState: Bundle?): View?
     {
-        return inflater.inflate(R.layout.fragment_calendar_viewer, container, false).also {
-            setupCalendarView(it.findViewById(R.id.day_view))
-        }
+        return inflater.inflate(R.layout.fragment_calendar_viewer, container, false)
     }
 
     @ExperimentalTime
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
 
         setupListeners()
     }
@@ -57,19 +106,25 @@ class CalendarViewerFragment: Fragment() {
             handleEventsChange(it)
         }
 
-        viewModel.selectedDate.observe(viewLifecycleOwner) {
-            date = it
-            handleEventsChange(viewModel.getEvents(requireContext()).value)
-        }
-
         viewModel.getCoursesVisibility(requireContext()).observe(viewLifecycleOwner) {
             handleEventsChange(viewModel.getEvents(requireContext()).value)
         }
+
+        viewModel.selectedDate.observe(viewLifecycleOwner) {
+            val coeff = when (viewModel.calendarMode) {
+                CalendarMode.WEEK -> 7
+                else -> 1
+            }
+
+            val newDate = it.add(Calendar.DAY_OF_YEAR, (position - viewModel.lastPosition) * coeff)
+            if (date != newDate) {
+                date = newDate
+
+                handleEventsChange(viewModel.getEvents(requireContext()).value!!)
+            }
+        }
     }
 
-    private fun setupCalendarView(day: Day) {
-        day.
-    }
 
     /**
      * This function handle when a new bunch of
@@ -78,56 +133,140 @@ class CalendarViewerFragment: Fragment() {
      * will filter the events and then call the
      * day_view function that display them.
      *
+     * @param root The root view
      * @param eventList The event list
      */
+
     @ExperimentalTime
-    private fun handleEventsChange(eventList: List<Event>?) {
+    fun handleEventsChange(eventList: List<Event>?) {
         if (eventList == null) return
 
-        day_view.dayBuilder = this::buildEventView
-        day_view.allDayBuilder = this::buildAllDayView
-        day_view.emptyDayBuilder = this::buildEmptyDayView
-
-        filterEvents(eventList)
-    }
-
-
-    /**
-     * This function filter the event and display them.
-     *
-     * @param eventList The event list
-     */
-    @ExperimentalTime
-    private fun filterEvents(eventList: List<Event>) {
-        val selectedDate = date
-        val hiddenCourses = viewModel.getCoursesVisibility(requireContext()).value
-            ?.filter { !it.visible }
-            ?.map { it.title }?.toHashSet() ?: hashSetOf()
-
-
-        job?.cancel()
-        job = lifecycleScope.launchWhenResumed {
-            println(selectedDate.toString())
-            withContext(Dispatchers.IO) {
-                val events = withContext(Dispatchers.Default) {
-                    eventList.filter { ev ->
-                        ev.start >= selectedDate
-                        && ev.start <= selectedDate.add(Calendar.DAY_OF_YEAR, 1)
-                        && ev.courseName !in hiddenCourses
-                    }.map { ev -> Event.Wrapper(ev) }
-                }
-
-                day_view.post {
-                    lifecycleScope.launchWhenStarted {
-                        day_view.setEvents(events, requireView().height, requireView().width)
-
-                        withContext(Dispatchers.Main) {
-                            day_view.requestLayout()
-                        }
+        context?.let {
+            requireView().post {
+                job?.cancel()
+                job = lifecycleScope.launchWhenCreated {
+                    when (resources.configuration.orientation) {
+                        Configuration.ORIENTATION_LANDSCAPE ->
+                            buildWeekView(calendar_container, eventList, requireView().height, requireView().width)
+                        else ->
+                            buildDayView(calendar_container, eventList, requireView().height, requireView().width)
                     }
                 }
             }
         }
+    }
+
+
+    @ExperimentalTime
+    private suspend fun buildDayView(container: FrameLayout, eventList: List<Event>, height: Int, width: Int) = withContext(
+        Dispatchers.Default
+    ) {
+        val selectedDate = date.timeCleaned()
+        val filter = { it: Event -> it.start > selectedDate && it.start < selectedDate.add(Calendar.DAY_OF_YEAR, 1) }
+        val filtered = filterEvents(eventList, filter)
+
+
+        val eventContainer = withContext(Dispatchers.Main) {
+            buildEventContainer(container, { Day(requireContext(), null) }) {
+                it.apply {
+                    dayBuilder = this@CalendarViewerFragment::buildEventView
+                    allDayBuilder = this@CalendarViewerFragment::buildAllDayView
+                    emptyDayBuilder = this@CalendarViewerFragment::buildEmptyDayView
+
+                    hoursMode = Day.HoursMode.COMPLETE_H
+                    fit = Day.Fit.BOUNDS_ADAPTIVE
+                    displayMode = Day.Display.FIT_TO_CONTAINER
+                    start = 7
+                    end = 20
+
+                    layoutParams = FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                }
+            }
+        }
+
+        eventContainer.setEvents(filtered, height, width)
+        withContext(Dispatchers.Main) {
+            view?.post {
+                if (eventContainer.parent == null) {
+                    container.addView(eventContainer)
+                }
+
+                viewModel.calendarMode = CalendarMode.DAY
+            }
+        }
+    }
+
+
+    @ExperimentalTime
+    private suspend fun buildWeekView(container: FrameLayout, eventList: List<Event>, height: Int, width: Int) = withContext(
+        Dispatchers.Default
+    ) {
+        val selectedDate = Calendar.getInstance().run {
+            time = date.timeCleaned()
+            set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+            time
+        }
+
+        val filter = { it: Event -> it.start > selectedDate && it.start < selectedDate.add(Calendar.WEEK_OF_YEAR, 1) }
+        val filtered = filterEvents(eventList, filter)
+
+        val eventContainer = withContext(Dispatchers.Main) {
+            buildEventContainer(container, { Week(requireContext(), null) }) {
+                it.apply {
+                    dayBuilder = this@CalendarViewerFragment::buildEventView
+                    allDayBuilder = this@CalendarViewerFragment::buildAllDayView
+                    emptyDayBuilder = this@CalendarViewerFragment::buildEmptyDayView
+
+                    hoursMode = Day.HoursMode.SIMPLE
+                    fit = Day.Fit.BOUNDS_ADAPTIVE
+                    displayMode = Day.Display.FIT_TO_CONTAINER
+                    start = 7
+                    end = 20
+
+                    layoutParams = FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                }
+            }
+        }
+
+        eventContainer.setEvents(selectedDate, filtered, height, width)
+        withContext(Dispatchers.Main) {
+            view?.post {
+                container.removeAllViews()
+                container.addView(eventContainer)
+                container.requestLayout()
+
+                viewModel.calendarMode = CalendarMode.WEEK
+            }
+        }
+    }
+
+    private suspend inline fun<reified T:View> buildEventContainer(container: FrameLayout,
+                                                                   crossinline builder: () -> T,
+                                                                   crossinline initializer: (T) -> T
+    ) = withContext(Dispatchers.Main) {
+        container.removeAllViews()
+        initializer(builder())
+    }
+
+
+
+    private suspend fun filterEvents(eventList: List<Event>, dateFilter: (Event) -> Boolean) = withContext(
+        Dispatchers.Default
+    ) {
+        val hiddenCourses = viewModel.getCoursesVisibility(requireContext()).value
+            ?.filter { !it.visible }
+            ?.map { it.title }?.toHashSet() ?: hashSetOf()
+
+        eventList.filter { ev ->
+            dateFilter(ev)
+            && ev.courseName !in hiddenCourses
+        }.map { ev -> Event.Wrapper(ev) }
     }
 
     /**

@@ -10,13 +10,18 @@ import com.edt.ut3.backend.database.viewmodels.CoursesViewModel
 import com.edt.ut3.backend.database.viewmodels.EventViewModel
 import com.edt.ut3.backend.note.Note
 import com.edt.ut3.misc.timeCleaned
+import java.lang.ref.WeakReference
 import java.util.*
 
 class CalendarViewModel : ViewModel() {
 
+    var calendarMode = CalendarViewerFragment.CalendarMode.DAY
     var selectedEvent: Event? = null
     var selectedEventNote: Note? = null
     var selectedDate = MutableLiveData(Date().timeCleaned())
+    var shouldUpdateCalendar = false
+    var lastPosition = Int.MAX_VALUE / 2
+    val positions = mutableMapOf<Int, WeakReference<CalendarViewerFragment>>()
 
     private lateinit var coursesVisibility : LiveData<List<Course>>
     private lateinit var events: LiveData<List<Event>>

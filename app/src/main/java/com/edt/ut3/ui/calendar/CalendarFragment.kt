@@ -1,6 +1,6 @@
 package com.edt.ut3.ui.calendar
 
-import android.annotation.SuppressLint
+import android.content.res.Configuration.ORIENTATION_PORTRAIT
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,10 +10,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import androidx.work.WorkInfo
+import com.edt.ut3.MainActivity
 import com.edt.ut3.R
 import com.edt.ut3.backend.background_services.Updater
 import com.edt.ut3.backend.background_services.Updater.Companion.Progress
+import com.edt.ut3.misc.add
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.timeCleaned
 import com.google.android.material.appbar.AppBarLayout
@@ -31,13 +34,19 @@ class CalendarFragment : Fragment() {
 
     private var status = Status.IDLE
 
-    override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
-    ): View? {
+
+    override fun onCreateView(inflater: LayoutInflater,
+                              container: ViewGroup?,
+                              savedInstanceState: Bundle?): View?
+    {
+        when (context?.resources?.configuration?.orientation) {
+            ORIENTATION_PORTRAIT -> calendarViewModel.calendarMode = CalendarViewerFragment.CalendarMode.DAY
+            else -> calendarViewModel.calendarMode = CalendarViewerFragment.CalendarMode.WEEK
+        }
+
         return inflater.inflate(R.layout.fragment_calendar, container, false)
     }
+
 
     @ExperimentalTime
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -50,18 +59,42 @@ class CalendarFragment : Fragment() {
         calendarView.date = calendarViewModel.selectedDate.value!!.time
 
         pager.adapter = FragmentSlider(this)
-        pager.setCurrentItem(Int.MAX_VALUE / 2, false)
+        pager.adapter?.notifyDataSetChanged()
+        pager.setCurrentItem(calendarViewModel.lastPosition, false)
+        pager.offscreenPageLimit = 1
+
+        with (activity as MainActivity?) {
+            val view =
+            activity?.setActionViewContent()
+        }
     }
 
-    @SuppressLint("ClickableViewAccessibility")
     @ExperimentalTime
     private fun setupListeners() {
 
         calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
-            calendarViewModel.getEvents(requireContext()).value?.let {
-                calendarViewModel.selectedDate.value = Date().set(year, month, dayOfMonth).timeCleaned()
-            }
+            calendarViewModel.selectedDate.value = Date().set(year, month, dayOfMonth).timeCleaned()
         }
+
+
+        pager.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+
+                val oldDate = calendarViewModel.selectedDate.value!!
+                var dayAddAmount = position - calendarViewModel.lastPosition
+
+                if (calendarViewModel.calendarMode == CalendarViewerFragment.CalendarMode.WEEK) {
+                    dayAddAmount *= 7
+                }
+
+                val newDate = oldDate.add(Calendar.DAY_OF_YEAR, dayAddAmount)
+
+                calendarViewModel.lastPosition = position
+                calendarViewModel.selectedDate.value = newDate
+                calendarView.date = newDate.time
+            }
+        })
 
         app_bar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->
             hideRefreshWhenNecessary(verticalOffset)
@@ -78,6 +111,7 @@ class CalendarFragment : Fragment() {
             findNavController().navigate(R.id.action_navigation_calendar_to_preferencesFragment)
         }
     }
+
 
     private fun forceUpdate() {
         Updater.forceUpdate(requireContext(), viewLifecycleOwner, {
@@ -143,8 +177,12 @@ class CalendarFragment : Fragment() {
         override fun createFragment(position: Int) =
             CalendarViewerFragment.newInstance(
                 baseDate = calendarViewModel.selectedDate.value!!,
-                currentIndex = pager.currentItem,
-                thisIndex = position
+                currentIndex = calendarViewModel.lastPosition,
+                thisIndex = position,
+                calendarViewModel.calendarMode,
+                front_layout
             )
+
+        override fun getItemId(position: Int) = position.toLong()
     }
 }
