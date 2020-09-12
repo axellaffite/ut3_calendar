@@ -2,10 +2,13 @@ package com.edt.ut3.ui.calendar
 
 import android.content.Context
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
+import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -13,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
+import com.edt.ut3.misc.Emoji
 import com.edt.ut3.misc.add
 import com.edt.ut3.misc.timeCleaned
 import com.edt.ut3.misc.toDp
@@ -24,7 +28,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.time.ExperimentalTime
 
@@ -40,25 +43,23 @@ class CalendarViewerFragment: Fragment() {
     }
 
     companion object {
-        fun newInstance(baseDate: Date, currentIndex: Int, thisIndex: Int, mode: CalendarMode, v: View) = CalendarViewerFragment().apply {
-            val coeff = when (mode) {
-                CalendarMode.WEEK -> 7
-                else -> 1
+        fun newInstance(baseDate: Date, currentIndex: Int, thisIndex: Int, cMode: CalendarMode, v: View) =
+            CalendarViewerFragment().apply {
+                val coeff = when (cMode) {
+                    CalendarMode.WEEK -> 7
+                    else -> 1
+                }
+
+                val newDate = baseDate.add(Calendar.DAY_OF_YEAR, (thisIndex - currentIndex) * coeff)
+
+                date = newDate
+                pview = v
+                position = thisIndex
+                mode = cMode
             }
-            val newDate = baseDate.add(Calendar.DAY_OF_YEAR, (thisIndex - currentIndex) * coeff)
-
-            println("CONSTRUCTING NEW FRAGMENT: id=$id position=$thisIndex date=${SimpleDateFormat("dd/HH/yyyy").format(newDate)}")
-
-            date = newDate
-            pview = v
-            position = thisIndex
-            this.mode = mode
-        }
     }
 
-    enum class CalendarMode { DAY, WEEK }
-
-    val viewModel : CalendarViewModel by activityViewModels()
+    private val viewModel : CalendarViewModel by activityViewModels()
     var date: Date = Date()
     var job: Job? = null
     var position = 0
@@ -148,7 +149,6 @@ class CalendarViewerFragment: Fragment() {
      * will filter the events and then call the
      * day_view function that display them.
      *
-     * @param root The root view
      * @param eventList The event list
      */
 
@@ -195,8 +195,8 @@ class CalendarViewerFragment: Fragment() {
                     end = 20
 
                     layoutParams = FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
+                        MATCH_PARENT,
+                        MATCH_PARENT
                     )
                 }
             }
@@ -242,8 +242,8 @@ class CalendarViewerFragment: Fragment() {
                     end = 20
 
                     layoutParams = FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
+                        MATCH_PARENT,
+                        MATCH_PARENT
                     )
                 }
             }
@@ -323,7 +323,7 @@ class CalendarViewerFragment: Fragment() {
                     padding = 16.toDp(context).toInt()
 
                     layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+                        MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
                     )
                 }
             }
@@ -335,7 +335,11 @@ class CalendarViewerFragment: Fragment() {
     }
 
     private fun buildEmptyDayView(): View {
-        return View(requireContext())
+        return TextView(requireContext()).apply {
+            layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+            gravity = Gravity.CENTER
+            text = getString(R.string.empty_day) + Emoji.happy()
+        }
     }
 
 

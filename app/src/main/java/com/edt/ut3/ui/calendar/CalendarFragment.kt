@@ -1,9 +1,9 @@
 package com.edt.ut3.ui.calendar
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration.ORIENTATION_PORTRAIT
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
@@ -24,7 +24,6 @@ import androidx.work.WorkInfo
 import com.edt.ut3.MainActivity
 import com.edt.ut3.R
 import com.edt.ut3.backend.background_services.Updater
-import com.edt.ut3.backend.background_services.Updater.Companion.Progress
 import com.edt.ut3.misc.add
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.timeCleaned
@@ -48,24 +47,48 @@ class CalendarFragment : Fragment(), LifecycleObserver {
 
     private var status = Status.IDLE
 
-    lateinit var actionBarLayout : ActionBarLayout
+    lateinit var calendarActionBar : CalendarActionBar
+
 
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View?
+        savedInstanceState: Bundle?): View?
     {
-        when (context?.resources?.configuration?.orientation) {
-            ORIENTATION_PORTRAIT -> calendarViewModel.calendarMode.value =
-                CalendarViewerFragment.CalendarMode.DAY
-            else -> calendarViewModel.calendarMode.value = CalendarViewerFragment.CalendarMode.WEEK
-        }
+        setupLifecycleListener()
+        updateCalendarMode()
 
-        lifecycle.addObserver(this)
+        // Schedule the periodic update in order to
+        // keep the Calendar up to date.
+        Updater.scheduleUpdate(requireContext())
 
         return inflater.inflate(R.layout.fragment_calendar, container, false)
+    }
+
+    /**
+     * This function is used to register an
+     * observer an the activity's lifecycle.
+     *
+     * It's used to setup the action bar
+     * when the activity's lifecycle is
+     * at least in "OnCreate" state.
+     */
+    private fun setupLifecycleListener() {
+        lifecycle.addObserver(this)
+    }
+
+    /**
+     * This function is used to update the calendar mode
+     * which is sets in the ViewModel.
+     */
+    private fun updateCalendarMode() {
+        when (context?.resources?.configuration?.orientation) {
+            ORIENTATION_PORTRAIT ->
+                calendarViewModel.calendarMode.value = CalendarMode.DAY
+            else ->
+                calendarViewModel.calendarMode.value = CalendarMode.WEEK
+        }
     }
 
 
@@ -73,34 +96,48 @@ class CalendarFragment : Fragment(), LifecycleObserver {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        Updater.scheduleUpdate(requireContext())
-
-        setupListeners()
-
+        setupViewPager()
         calendarView.date = calendarViewModel.selectedDate.value!!.time
 
-        pager.adapter = FragmentSlider(this)
-        pager.adapter?.notifyDataSetChanged()
-        pager.setCurrentItem(calendarViewModel.lastPosition, false)
-        pager.offscreenPageLimit = 1
 
-        pager.setPageTransformer(ZoomOutPageTransformer())
     }
 
+    /**
+     * Setup the ViewPager, construct its
+     * pager, set the recycling limit and
+     * the animation.
+     */
+    private fun setupViewPager() {
+        pager.apply {
+            val pagerAdapter = DaySlider(this@CalendarFragment)
+            adapter = pagerAdapter
+            pagerAdapter.notifyDataSetChanged()
+
+            setCurrentItem(calendarViewModel.lastPosition, false)
+            offscreenPageLimit = 1
+
+            setPageTransformer(ZoomOutPageTransformer())
+        }
+    }
+
+    @ExperimentalTime
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     private fun setupActionBar() {
-        with(activity as MainActivity?) {
-            actionBarLayout = ActionBarLayout(requireContext(), calendarView).apply {
+        val mActivity = activity
+        if (mActivity is MainActivity) {
+            val calendar_view = calendarView ?: return
+
+            calendarActionBar = CalendarActionBar(requireContext(), calendar_view).apply {
                 setOnViewChangeClickListener {
                     calendarViewModel.calendarMode.run {
                         when (value) {
-                            CalendarViewerFragment.CalendarMode.DAY -> {
-                                value = CalendarViewerFragment.CalendarMode.WEEK
+                            CalendarMode.DAY -> {
+                                value = CalendarMode.WEEK
                                 setAgendaIcon()
                             }
 
                             else -> {
-                                value = CalendarViewerFragment.CalendarMode.DAY
+                                value = CalendarMode.DAY
                                 setWeekIcon()
                             }
                         }
@@ -117,46 +154,68 @@ class CalendarFragment : Fragment(), LifecycleObserver {
                 }
             }
 
-            (activity as MainActivity?)?.run {
-                setActionViewContent(actionBarLayout)
-            }
-
-            calendarViewModel.selectedDate.observe(viewLifecycleOwner) {
-                actionBarLayout.updateBarText(it, false)
-            }
+            mActivity.setActionViewContent(calendarActionBar)
         }
+
+        setupListeners()
     }
 
     @ExperimentalTime
     private fun setupListeners() {
-
+        // This listener allows the CalendarViewerFragments to keep
+        // up to date their contents by listening to the
+        // view model's selectedDate variable.
         calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
             val newDate = Date().set(year, month, dayOfMonth).timeCleaned()
             calendarViewModel.selectedDate.value = newDate
         }
 
-
+        // This callback is in charge to update the
+        // ViewModel variables such as the current date,
+        // the current index in the viewpager and so on.
+        //
+        // This is done to give information to the
+        // CalendarViewerFragments in order to keep
+        // them up to date.
         pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
 
-                val oldDate = calendarViewModel.selectedDate.value!!
-                var dayAddAmount = position - calendarViewModel.lastPosition
+                calendarViewModel.run {
+                    // Get the old date to calculate the new one.
+                    val oldDate = selectedDate.value!!
 
-                if (calendarViewModel.calendarMode.value == CalendarViewerFragment.CalendarMode.WEEK) {
-                    dayAddAmount *= 7
+                    // The day offset that needs to be added to
+                    // the current date is the offset between the
+                    // current position and the last one that has
+                    // been registered in the ViewModel.
+                    var dayAddAmount = position - lastPosition
+
+                    // If the CalendarMode is sets to WEEK
+                    // we need to multiply the offset by 7
+                    // to get the proper date on the side fragments
+                    if (calendarMode.value == CalendarMode.WEEK) {
+                        dayAddAmount *= 7
+                    }
+
+                    // We can now add the computed offset to the
+                    // old date in order to compute the new one.
+                    val newDate = oldDate.add(Calendar.DAY_OF_YEAR, dayAddAmount)
+
+                    // Finally, we update all the variables which store
+                    // the current "state".
+                    lastPosition = position
+                    selectedDate.value = newDate
+
+                    // The calendar view needs to be updated too.
+                    calendarView.date = newDate.time
                 }
-
-                val newDate = oldDate.add(Calendar.DAY_OF_YEAR, dayAddAmount)
-
-                calendarViewModel.lastPosition = position
-                calendarViewModel.selectedDate.value = newDate
-                calendarView.date = newDate.time
-
-
             }
         })
 
+        // This listener is in charge to listen to the
+        // AppBar offset in order to hide things when
+        // necessary ( such as the refresh buttons and the action bar ).
         app_bar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->
             hideRefreshWhenNecessary(verticalOffset)
             (activity as MainActivity?)?.run {
@@ -164,6 +223,8 @@ class CalendarFragment : Fragment(), LifecycleObserver {
             }
         })
 
+        // Force the Updater to perform an update
+        // and hides the refresh button.
         refresh_button.setOnClickListener {
             refresh_button.hide()
             status = Status.UPDATING
@@ -171,25 +232,39 @@ class CalendarFragment : Fragment(), LifecycleObserver {
             forceUpdate()
         }
 
+        // Launch the setting fragment
+        // when clicked.
         settings_button.setOnClickListener {
             findNavController().navigate(R.id.action_navigation_calendar_to_preferencesFragment)
+        }
+
+        // Update the action bar text when the selected date
+        // is updated in the ViewModel.
+        calendarViewModel.selectedDate.observe(viewLifecycleOwner) {
+            calendarActionBar.updateBarText(it, calendarViewModel.calendarMode.value)
+        }
+
+        calendarViewModel.calendarMode.observe(viewLifecycleOwner) {
+            calendarActionBar.updateBarText(calendarViewModel.selectedDate.value!!, it)
         }
     }
 
 
+    /**
+     * This function performs an update
+     * and listen to it in order to display
+     * success/error message.
+     *
+     */
     private fun forceUpdate() {
-        Updater.forceUpdate(requireContext(), viewLifecycleOwner, {
-            it?.let {
-                val progress = it.progress
-                val value = progress.getInt(Progress, 0)
-                println("DEBUG: ${it.state}")
-                when (it.state) {
+        Updater.forceUpdate(requireContext(), viewLifecycleOwner, { workInfo ->
+            workInfo?.run {
+                when (state) {
                     WorkInfo.State.FAILED -> {
                         Snackbar.make(
                             front_layout,
                             R.string.update_failed,
-                            Snackbar.LENGTH_INDEFINITE
-                        )
+                            Snackbar.LENGTH_INDEFINITE)
                             .setAction(R.string.action_retry) {
                                 forceUpdate()
                             }
@@ -201,8 +276,8 @@ class CalendarFragment : Fragment(), LifecycleObserver {
                             .addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
                                 override fun onDismissed(
                                     transientBottomBar: Snackbar?,
-                                    event: Int
-                                ) {
+                                    event: Int)
+                                {
                                     super.onDismissed(transientBottomBar, event)
 
                                     refresh_button.show()
@@ -212,11 +287,8 @@ class CalendarFragment : Fragment(), LifecycleObserver {
                             .show()
                     }
 
-                    else -> {
-                    }
+                    else -> { }
                 }
-
-                Log.i("PROGRESS", value.toString())
             }
         })
     }
@@ -242,7 +314,12 @@ class CalendarFragment : Fragment(), LifecycleObserver {
     }
 
 
-    private inner class FragmentSlider(fragment: Fragment) : FragmentStateAdapter(fragment) {
+    /**
+     *  Used to display the calendar.
+     *
+     * @param fragment The fragment which contains the viewpager.
+     */
+    private inner class DaySlider(fragment: Fragment) : FragmentStateAdapter(fragment) {
 
         override fun getItemCount() = Int.MAX_VALUE
 
@@ -259,26 +336,35 @@ class CalendarFragment : Fragment(), LifecycleObserver {
     }
 
 
-    class ActionBarLayout(context: Context, val calendar: CalendarView) : ConstraintLayout(context) {
+    @SuppressLint("ViewConstructor")
+    class CalendarActionBar(context: Context, val calendar: CalendarView) : ConstraintLayout(context) {
         init {
             inflate(context, R.layout.calendar_action, this)
         }
 
-        fun updateBarText(date: Date, week: Boolean, dayCount: Int = 1) {
-            println(dayCount)
-            findViewById<TextView>(R.id.text).apply {
-                text = if (week) {
-                    val start = SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(date)
-                    val end = SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(
-                        date.add(
-                            Calendar.DAY_OF_YEAR,
-                            dayCount
-                        )
-                    )
+        fun updateBarText(date: Date, mode: CalendarMode?, dayCount: Int = 5) {
+            val beginDate = Calendar.getInstance().apply {
+                time = date
+                set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+            }.time
 
-                    "$start - $end"
-                } else {
-                    SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(date)
+            findViewById<TextView>(R.id.text)?.apply {
+                text = when (mode) {
+                    CalendarMode.WEEK -> {
+                        val start = SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(beginDate)
+                        val end = SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(
+                            beginDate.add(
+                                Calendar.DAY_OF_YEAR,
+                                dayCount - 1
+                            )
+                        )
+
+                        "$start - $end"
+                    }
+
+                    else -> {
+                        SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(date)
+                    }
                 }
             }
         }

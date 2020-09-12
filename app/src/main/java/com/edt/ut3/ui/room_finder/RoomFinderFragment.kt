@@ -97,10 +97,10 @@ class RoomFinderFragment : Fragment() {
             }
         }
 
-        filters_chipgroup.children.forEach {
-            it.setOnClickListener {
-                with (it as Chip) {
-                    if (isChecked) {
+        filters_chipgroup.children.forEach { child ->
+            if (child is Chip) {
+                child.setOnClickListener {
+                    if (child.isChecked) {
                         activatedFilters.add(id)
                     } else {
                         activatedFilters.remove(id)
@@ -111,11 +111,9 @@ class RoomFinderFragment : Fragment() {
                         getFreeRooms(search_bar.text.toString(), forceRefresh = false)
                     }
                 }
-            }
 
-            with (it as Chip) {
-                if (it.isChecked) {
-                    activatedFilters.add(it.id)
+                if (child.isChecked) {
+                    activatedFilters.add(id)
                 }
             }
         }

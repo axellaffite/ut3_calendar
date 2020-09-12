@@ -15,7 +15,7 @@ import java.util.*
 
 class CalendarViewModel : ViewModel() {
 
-    var calendarMode = MutableLiveData(CalendarViewerFragment.CalendarMode.DAY)
+    var calendarMode = MutableLiveData(CalendarMode.DAY)
     var selectedEvent: Event? = null
     var selectedEventNote: Note? = null
     var selectedDate = MutableLiveData(Date().timeCleaned())

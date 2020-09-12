@@ -33,7 +33,7 @@
                 android:fitsSystemWindows="true"
                 app:contentScrim="?attr/colorPrimary"
                 app:layout_scrollFlags="scroll|enterAlwaysCollapsed"
-                app:toolbarId="@+id/toolbar">
+                app:toolbarId="@+id/toolbar" >
 
                 <CalendarView
                     android:id="@+id/calendarView"
