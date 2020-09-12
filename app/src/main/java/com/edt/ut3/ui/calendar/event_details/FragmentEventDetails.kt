@@ -1,9 +1,7 @@
 package com.edt.ut3.ui.calendar.event_details
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,9 +15,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.whenCreated
+import androidx.navigation.fragment.FragmentNavigatorExtras
+import androidx.navigation.fragment.findNavController
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.AppDatabase
+import com.edt.ut3.backend.database.viewmodels.NotesViewModel
 import com.edt.ut3.backend.note.Note
 import com.edt.ut3.backend.note.Picture
 import com.edt.ut3.backend.preferences.PreferencesManager
@@ -27,7 +28,6 @@ import com.edt.ut3.ui.calendar.CalendarViewModel
 import com.edt.ut3.ui.custom_views.image_preview.ImagePreviewAdapter
 import com.edt.ut3.ui.preferences.Theme
 import com.elzozor.yoda.utils.DateExtensions.get
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.squareup.picasso.Picasso
 import com.stfalcon.imageviewer.StfalconImageViewer
 import kotlinx.android.synthetic.main.fragment_event_details.*
@@ -77,36 +77,33 @@ class FragmentEventDetails : Fragment() {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.fragment_event_details, container, false).also {
+            event = viewModel.selectedEvent!!
 
-        event = viewModel.selectedEvent!!
+            // Load asynchronously the attached note.
+            // Once it's done, the contents
+            lifecycleScope.launch {
+                whenCreated {
+                    val date = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(event.start)
+                    note = Note.generateEmptyNote("$date - ${event.courseName}", event.id)
 
-        // Load asynchronously the attached note.
-        // Once it's done, the contents
-        lifecycleScope.launch {
-            whenCreated {
-                note = Note.generateEmptyNote(event.id)
+                    AppDatabase.getInstance(requireContext()).noteDao().run {
+                        val result = selectByEventIDs(event.id)
 
-                AppDatabase.getInstance(requireContext()).noteDao().run {
-                    val result = selectByEventIDs(event.id)
+                        if (result.size == 1) {
+                            note = result[0]
+                        }
 
-                    if (result.size == 1) {
-                        note = result[0]
+                        view?.post {
+                            setupContent()
+                            setupListeners()
+                        }
+
                     }
-
-                    view?.post {
-                        setupContent()
-                        setupListeners()
-                    }
-
                 }
             }
         }
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_event_details, container, false)
     }
 
     /**
@@ -123,10 +120,6 @@ class FragmentEventDetails : Fragment() {
             }
 
             Theme.DARK -> {
-                val textButtonColor = Color.WHITE
-                title.setTextColor(textButtonColor)
-                close_button.setColorFilter(textButtonColor)
-
                 event.darkBackgroundColor(requireContext()).let {
                     title_container.setCardBackgroundColor(it)
                 }
@@ -185,34 +178,28 @@ class FragmentEventDetails : Fragment() {
                 // order to delete the proper file.
                 overlayLayout.apply {
                     onDeleteRequest = {
-                        MaterialAlertDialogBuilder(requireContext())
-                            .setTitle(R.string.delete_image)
-                            .setNegativeButton(android.R.string.cancel) { _, _ ->
-                                // Do nothing on dismiss
-                            }
-                            .setPositiveButton(R.string.remove) { _, _ ->
-                                // Here we remove the picture from the note
-                                // at the position where the image viewer is.
-                                // As the Picture.removeNoteAt() is safe in the
-                                // sense where it does not crash if the index isn't
-                                // in the bounds, we can call it with the provided index.
-                                //
-                                // We then save the note to update its representation
-                                // in the database.
-                                lifecycleScope.launch {
-                                    note.removePictureAt(imageViewer.currentPosition())
-                                    saveNote(note) {
-                                        imageViewer.updateImages(it.pictures)
-                                        pictures.notifyDataSetChanged()
-                                    }
-                                }
-                            }
-                            .show()
+
                     }
                 }
 
-                // Finally we display the imager viewer.
+                // Finally we display the image viewer.
                 imageViewer.show()
+            }
+
+            onItemClickListener = { imgView, picture, pictures ->
+                val extras = FragmentNavigatorExtras(
+                    imgView to "end_transition"
+                )
+
+                imgView.transitionName = "start_transition"
+
+                findNavController()
+                    .navigate(
+                        R.id.action_fragmentEventDetails_to_fragmentImageViewPager,
+                        Bundle().apply { putInt("position", pictures.indexOf(picture)) },
+                        null,
+                        extras
+                    )
             }
 
 
@@ -249,17 +236,24 @@ class FragmentEventDetails : Fragment() {
      * the event status (all day or classic)
      * and its start and end dates.
      */
-    @SuppressLint("SimpleDateFormat")
     private fun generateDateText(): String {
-        return if (event.allday) {
-            getString(R.string.all_day)
-        } else {
-            val date = SimpleDateFormat("dd/MM/yyyy").format(event.start)
-            val start = "%02dh%02d".format(event.start.get(Calendar.HOUR_OF_DAY), event.start.get(Calendar.MINUTE))
-            val end = "%02dh%02d".format(event.end?.get(Calendar.HOUR_OF_DAY), event.end?.get(Calendar.MINUTE))
+        val date =
+            SimpleDateFormat("EEEE dd/MM/yyyy", Locale.getDefault()).format(event.start)
+                .capitalize(Locale.getDefault())
 
-            "$date $start-$end"
-        }
+        val time =
+            if (event.allday) {
+                getString(R.string.all_day)
+            } else {
+                val start = "%02dh%02d".format(event.start.get(Calendar.HOUR_OF_DAY), event.start.get(Calendar.MINUTE))
+                val end = "%02dh%02d".format(event.end?.get(Calendar.HOUR_OF_DAY), event.end?.get(Calendar.MINUTE))
+
+                val fromToFormat = getString(R.string.from_to_format)
+
+                fromToFormat.format(start, end).capitalize(Locale.getDefault())
+            }
+
+        return "$date\n$time"
     }
 
     /**
@@ -355,7 +349,9 @@ class FragmentEventDetails : Fragment() {
      */
     private suspend fun saveNote(newNote: Note, callback: ((Note) -> Unit)? = null) {
         withContext(IO) {
-            Note.saveNote(newNote, requireContext())
+            NotesViewModel(requireContext()).run {
+                save(newNote)
+            }
         }
 
         callback?.invoke(note)

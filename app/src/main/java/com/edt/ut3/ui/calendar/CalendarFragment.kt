@@ -96,10 +96,16 @@ class CalendarFragment : Fragment(), LifecycleObserver {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupViewPager()
-        calendarView.date = calendarViewModel.selectedDate.value!!.time
+        setupViewPager(savedInstanceState)
+    }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
 
+        pager?.let {
+            outState.putInt("position", it.currentItem)
+            outState.putLong("date", calendarView.date)
+        }
     }
 
     /**
@@ -107,15 +113,21 @@ class CalendarFragment : Fragment(), LifecycleObserver {
      * pager, set the recycling limit and
      * the animation.
      */
-    private fun setupViewPager() {
+    private fun setupViewPager(savedInstanceState: Bundle?) {
         pager.apply {
             val pagerAdapter = DaySlider(this@CalendarFragment)
             adapter = pagerAdapter
-            pagerAdapter.notifyDataSetChanged()
 
-            setCurrentItem(calendarViewModel.lastPosition, false)
+            println("resuming: ${calendarViewModel.lastPosition}")
+            savedInstanceState?.let {
+                setCurrentItem(it.getInt("position"), false)
+                calendarViewModel.selectedDate.value = Date(it.getLong("date"))
+            } ?: run {
+                setCurrentItem(calendarViewModel.lastPosition, false)
+                calendarViewModel.selectedDate.value = Date(calendarView.date)
+            }
+
             offscreenPageLimit = 1
-
             setPageTransformer(ZoomOutPageTransformer())
         }
     }
@@ -155,6 +167,7 @@ class CalendarFragment : Fragment(), LifecycleObserver {
             }
 
             mActivity.setActionViewContent(calendarActionBar)
+            app_bar.setExpanded(false, false)
         }
 
         setupListeners()
@@ -181,7 +194,7 @@ class CalendarFragment : Fragment(), LifecycleObserver {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
 
-                calendarViewModel.run {
+                /*calendarViewModel.run {
                     // Get the old date to calculate the new one.
                     val oldDate = selectedDate.value!!
 
@@ -209,7 +222,7 @@ class CalendarFragment : Fragment(), LifecycleObserver {
 
                     // The calendar view needs to be updated too.
                     calendarView.date = newDate.time
-                }
+                }*/
             }
         })
 
@@ -242,6 +255,7 @@ class CalendarFragment : Fragment(), LifecycleObserver {
         // is updated in the ViewModel.
         calendarViewModel.selectedDate.observe(viewLifecycleOwner) {
             calendarActionBar.updateBarText(it, calendarViewModel.calendarMode.value)
+            calendarView.date = it.time
         }
 
         calendarViewModel.calendarMode.observe(viewLifecycleOwner) {
@@ -331,8 +345,6 @@ class CalendarFragment : Fragment(), LifecycleObserver {
                 calendarViewModel.calendarMode.value!!,
                 front_layout
             )
-
-        override fun getItemId(position: Int) = position.toLong()
     }
 
 

@@ -24,7 +24,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true"
-            android:background="?calendarColor">
+            android:background="?calendarColor"
+            app:expanded="false">
 
             <com.google.android.material.appbar.CollapsingToolbarLayout
                 android:id="@+id/toolbar_layout"
@@ -33,7 +34,7 @@
                 android:fitsSystemWindows="true"
                 app:contentScrim="?attr/colorPrimary"
                 app:layout_scrollFlags="scroll|enterAlwaysCollapsed"
-                app:toolbarId="@+id/toolbar" >
+                app:toolbarId="@+id/toolbar">
 
                 <CalendarView
                     android:id="@+id/calendarView"
@@ -61,7 +62,8 @@
             app:elevation="0dp"
             app:fabSize="normal"
             app:tint="?calendarFloatingButtonIconColor"
-            android:backgroundTint="?calendarFloatingButtonColor" />
+            android:backgroundTint="?calendarFloatingButtonColor"
+            android:visibility="gone"/>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/settings_button"
@@ -72,9 +74,10 @@
             android:elevation="0dp"
             android:src="@drawable/ic_settings"
             app:elevation="0dp"
-            android:backgroundTint="?calendarFloatingButtonColor"
-            app:tint="?calendarFloatingButtonIconColor"
-            app:borderWidth="0dp"/>
+            android:backgroundTint="@color/calendarFloatingButtonColor"
+            app:tint="@color/calendarFloatingButtonIconColor"
+            app:borderWidth="0dp"
+            android:visibility="gone"/>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

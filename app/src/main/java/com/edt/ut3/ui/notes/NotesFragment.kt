@@ -46,8 +46,6 @@ class NotesFragment : Fragment() {
             }
         }
 
-        println("DEBUG: $notes")
-
         notes_container.adapter?.notifyDataSetChanged()
     }
 

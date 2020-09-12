@@ -53,7 +53,11 @@
         android:id="@+id/fragmentEventDetails"
         android:name="com.edt.ut3.ui.calendar.event_details.FragmentEventDetails"
         android:label="FragmentEventDetails"
-        tools:layout="@layout/fragment_event_details"/>
+        tools:layout="@layout/fragment_event_details">
+        <action
+            android:id="@+id/action_fragmentEventDetails_to_fragmentImageViewPager"
+            app:destination="@id/fragmentImageViewPager" />
+    </fragment>
     <fragment
         android:id="@+id/fragmentNoteDetails"
         android:name="com.edt.ut3.ui.notes.FragmentNoteDetails"
@@ -62,6 +66,14 @@
         <action
             android:id="@+id/action_fragmentNoteDetails_to_fragmentEventDetails"
             app:destination="@id/fragmentEventDetails" />
+        <action
+            android:id="@+id/action_fragmentNoteDetails_to_fragmentImageViewPager"
+            app:destination="@id/fragmentImageViewPager" />
     </fragment>
+    <fragment
+        android:id="@+id/fragmentImageViewPager"
+        android:name="com.edt.ut3.ui.calendar.event_details.image_view.FragmentImageViewPager"
+        android:label="FragmentImageViewPager"
+        tools:layout="@layout/fragment_image_view_pager"/>
 
 </navigation>

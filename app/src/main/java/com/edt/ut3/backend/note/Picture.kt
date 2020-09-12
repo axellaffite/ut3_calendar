@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.media.ThumbnailUtils
 import android.os.Environment
 import android.os.Parcelable
+import android.widget.ImageView
 import com.edt.ut3.misc.toDp
 import com.squareup.picasso.Picasso
 import kotlinx.android.parcel.Parcelize
@@ -41,11 +42,6 @@ data class Picture(
          */
         fun prepareImageFile(context: Context, filename: String, format: String = ".jpg"): File =
             File(getStorageDir(context), "$filename.jpg")
-//            File.createTempFile(
-//                filename,
-//                format,
-//                getStorageDir(context)
-//            )
 
         /**
          * This function will generate and store a thumbnail
@@ -122,19 +118,19 @@ data class Picture(
      * @return Retrieve the current thumbnail
      */
     @Throws(IOException::class)
-    suspend fun loadThumbnail(): Bitmap = withContext(IO) {
+    fun loadThumbnailInto(imgView: ImageView) {
         println("Loading thumbnail $thumbnail")
         val file = File(thumbnail)
 
-        Picasso.get().load(file).get()
+        Picasso.get().load(file).into(imgView)
     }
 
     @Throws(IOException::class)
-    suspend fun loadPicture(): Bitmap = withContext(IO) {
+    fun loadPicture(imgView: ImageView) {
         println("Loading picture: $picture")
         val file = File(picture)
 
 
-        Picasso.get().load(file).get()
+        Picasso.get().load(file).into(imgView)
     }
 }

@@ -1,12 +1,8 @@
 package com.edt.ut3.backend.note
 
-import android.content.Context
 import androidx.room.*
 import com.edt.ut3.backend.celcat.Event
-import com.edt.ut3.backend.database.AppDatabase
 import com.edt.ut3.backend.database.Converter
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
 
@@ -14,8 +10,7 @@ import java.util.*
     foreignKeys = [
         ForeignKey(entity = Event::class,
             parentColumns = ["id"],
-            childColumns = ["event_id"],
-            onDelete = ForeignKey.CASCADE
+            childColumns = ["event_id"]
         )
     ], indices = [Index("event_id")])
 data class Note(
@@ -43,27 +38,29 @@ data class Note(
     )
 
     companion object {
-        fun generateEmptyNote(eventID: String? = null) = Note(0L, eventID, null, "", Date(), null, null, false)
+        fun generateEmptyNote(title: String? = null, eventID: String? = null) = Note(0L, eventID, title, "", Date(), null, null, false)
+    }
 
-        suspend fun saveNote(note: Note, context: Context) = withContext(IO) {
-            AppDatabase.getInstance(context).noteDao().let {
-                val ids = it.insert(note)
-
-                if (note.id == 0L) {
-                    note.id = ids[0]
-                }
-            }
+    fun clearPictures() {
+        while (pictures.isNotEmpty()) {
+            removePictureAt(pictures.lastIndex)
         }
     }
 
     fun removePictureAt(position: Int) {
-        if (position in 0 until pictures.size) {
-            removePicture(pictures[position])
+        if (position in 0 .. pictures.lastIndex) {
+            val picture = pictures[position]
+            pictures.removeAt(position)
+            cleanPictureData(picture)
         }
     }
 
-    fun removePicture(picture: Picture) {
+    private fun removePicture(picture: Picture) {
         pictures.remove(picture)
+        cleanPictureData(picture)
+    }
+
+    private fun cleanPictureData(picture: Picture) {
         File(picture.picture).delete()
         File(picture.thumbnail).delete()
     }

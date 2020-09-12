@@ -26,21 +26,11 @@ import com.elzozor.yoda.events.EventWrapper
 import kotlinx.android.synthetic.main.fragment_calendar_viewer.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.util.*
 import kotlin.time.ExperimentalTime
 
 class CalendarViewerFragment: Fragment() {
-
-    init {
-        lifecycleScope.launchWhenResumed {
-            while(true) {
-                println("Displaying fragment date=$date")
-                delay(1000)
-            }
-        }
-    }
 
     companion object {
         fun newInstance(baseDate: Date, currentIndex: Int, thisIndex: Int, cMode: CalendarMode, v: View) =
@@ -101,6 +91,23 @@ class CalendarViewerFragment: Fragment() {
         setupListeners()
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        println("DEBUG: resuming $id $position")
+
+        viewModel.lastPosition = position
+        viewModel.selectedDate.value = date
+
+        println("resuming (after): ${viewModel.lastPosition}")
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        println("DEBUG: pausing $id $position")
+    }
+
     @ExperimentalTime
     private fun setupListeners() {
         viewModel.getEvents(requireContext()).observe(viewLifecycleOwner) {
@@ -126,6 +133,7 @@ class CalendarViewerFragment: Fragment() {
 
     @ExperimentalTime
     private fun refreshDate(up: Date, refresh: Boolean = true) {
+        if (position == viewModel.lastPosition) return
         val coeff = when (viewModel.calendarMode.value) {
             CalendarMode.WEEK -> 7
             else -> 1
@@ -338,7 +346,7 @@ class CalendarViewerFragment: Fragment() {
         return TextView(requireContext()).apply {
             layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
             gravity = Gravity.CENTER
-            text = getString(R.string.empty_day) + Emoji.happy()
+            text = getString(R.string.empty_day).format(Emoji.happy())
         }
     }
 
