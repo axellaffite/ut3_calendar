@@ -56,4 +56,5 @@
     <string name="event_deleted">%s supprimé.</string>
     <string name="event_updated">%s mis à jour.</string>
     <string name="event_updated_full">Déplacé au %s</string>
+    <string name="cours">cours</string>
 </resources>
