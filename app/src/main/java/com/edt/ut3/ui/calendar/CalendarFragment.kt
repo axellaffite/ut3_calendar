@@ -96,16 +96,7 @@ class CalendarFragment : Fragment(), LifecycleObserver {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupViewPager(savedInstanceState)
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-
-        pager?.let {
-            outState.putInt("position", it.currentItem)
-            outState.putLong("date", calendarView.date)
-        }
+        setupViewPager()
     }
 
     /**
@@ -113,22 +104,17 @@ class CalendarFragment : Fragment(), LifecycleObserver {
      * pager, set the recycling limit and
      * the animation.
      */
-    private fun setupViewPager(savedInstanceState: Bundle?) {
+    private fun setupViewPager() {
         pager.apply {
             val pagerAdapter = DaySlider(this@CalendarFragment)
             adapter = pagerAdapter
 
-            println("resuming: ${calendarViewModel.lastPosition}")
-            savedInstanceState?.let {
-                setCurrentItem(it.getInt("position"), false)
-                calendarViewModel.selectedDate.value = Date(it.getLong("date"))
-            } ?: run {
-                setCurrentItem(calendarViewModel.lastPosition, false)
-                calendarViewModel.selectedDate.value = Date(calendarView.date)
-            }
+            setCurrentItem(calendarViewModel.lastPosition.value!!, false)
 
             offscreenPageLimit = 1
             setPageTransformer(ZoomOutPageTransformer())
+
+            calendarViewModel.selectedDate.value = Date(calendarView.date)
         }
     }
 
@@ -194,35 +180,8 @@ class CalendarFragment : Fragment(), LifecycleObserver {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
 
-                /*calendarViewModel.run {
-                    // Get the old date to calculate the new one.
-                    val oldDate = selectedDate.value!!
-
-                    // The day offset that needs to be added to
-                    // the current date is the offset between the
-                    // current position and the last one that has
-                    // been registered in the ViewModel.
-                    var dayAddAmount = position - lastPosition
-
-                    // If the CalendarMode is sets to WEEK
-                    // we need to multiply the offset by 7
-                    // to get the proper date on the side fragments
-                    if (calendarMode.value == CalendarMode.WEEK) {
-                        dayAddAmount *= 7
-                    }
-
-                    // We can now add the computed offset to the
-                    // old date in order to compute the new one.
-                    val newDate = oldDate.add(Calendar.DAY_OF_YEAR, dayAddAmount)
-
-                    // Finally, we update all the variables which store
-                    // the current "state".
-                    lastPosition = position
-                    selectedDate.value = newDate
-
-                    // The calendar view needs to be updated too.
-                    calendarView.date = newDate.time
-                }*/
+                println("POSITION: CHANGE $position")
+                calendarViewModel.lastPosition.value = position
             }
         })
 
@@ -340,7 +299,7 @@ class CalendarFragment : Fragment(), LifecycleObserver {
         override fun createFragment(position: Int) =
             CalendarViewerFragment.newInstance(
                 baseDate = calendarViewModel.selectedDate.value!!,
-                currentIndex = calendarViewModel.lastPosition,
+                currentIndex = calendarViewModel.lastPosition.value!!,
                 thisIndex = position,
                 calendarViewModel.calendarMode.value!!,
                 front_layout

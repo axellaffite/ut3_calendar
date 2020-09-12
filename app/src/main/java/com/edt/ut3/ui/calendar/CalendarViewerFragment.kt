@@ -91,22 +91,6 @@ class CalendarViewerFragment: Fragment() {
         setupListeners()
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        println("DEBUG: resuming $id $position")
-
-        viewModel.lastPosition = position
-        viewModel.selectedDate.value = date
-
-        println("resuming (after): ${viewModel.lastPosition}")
-    }
-
-    override fun onPause() {
-        super.onPause()
-
-        println("DEBUG: pausing $id $position")
-    }
 
     @ExperimentalTime
     private fun setupListeners() {
@@ -122,6 +106,12 @@ class CalendarViewerFragment: Fragment() {
             refreshDate(it)
         }
 
+        viewModel.lastPosition.observe(viewLifecycleOwner) {
+            if (position == it) {
+                viewModel.selectedDate.value = date
+            }
+        }
+
         viewModel.calendarMode.observe(viewLifecycleOwner) {
             if (mode != it) {
                 mode = it
@@ -133,13 +123,13 @@ class CalendarViewerFragment: Fragment() {
 
     @ExperimentalTime
     private fun refreshDate(up: Date, refresh: Boolean = true) {
-        if (position == viewModel.lastPosition) return
+        if (position == viewModel.lastPosition.value!!) return
         val coeff = when (viewModel.calendarMode.value) {
             CalendarMode.WEEK -> 7
             else -> 1
         }
 
-        val newDate = up.add(Calendar.DAY_OF_YEAR, (position - viewModel.lastPosition) * coeff)
+        val newDate = up.add(Calendar.DAY_OF_YEAR, (position - viewModel.lastPosition.value!!) * coeff)
         if (date != newDate) {
             date = newDate
 

@@ -19,7 +19,7 @@ class CalendarViewModel : ViewModel() {
     var selectedEvent: Event? = null
     var selectedEventNote: Note? = null
     var selectedDate = MutableLiveData(Date().timeCleaned())
-    var lastPosition = Int.MAX_VALUE / 2
+    var lastPosition = MutableLiveData(Int.MAX_VALUE / 2)
     val positions = mutableMapOf<Int, WeakReference<CalendarViewerFragment>>()
 
     private lateinit var coursesVisibility : LiveData<List<Course>>
