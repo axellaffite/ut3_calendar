@@ -122,4 +122,9 @@ dependencies {
 
     implementation "com.squareup.okhttp3:okhttp:4.8.1"
 
+    // Name : AnimatedBottomBar
+    // Summary : A customizable and easy to use bottom bar view with sleek animations.
+    // Documentation : https://github.com/Droppers/AnimatedBottomBar
+    implementation 'nl.joery.animatedbottombar:library:1.0.8'
+
 }
