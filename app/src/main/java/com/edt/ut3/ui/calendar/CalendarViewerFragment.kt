@@ -12,6 +12,7 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.edt.ut3.R
@@ -33,17 +34,8 @@ import kotlin.time.ExperimentalTime
 class CalendarViewerFragment: Fragment() {
 
     companion object {
-        fun newInstance(baseDate: Date, currentIndex: Int, thisIndex: Int, cMode: CalendarMode, v: View) =
+        fun newInstance(thisIndex: Int, cMode: CalendarMode) =
             CalendarViewerFragment().apply {
-                val coeff = when (cMode) {
-                    CalendarMode.WEEK -> 7
-                    else -> 1
-                }
-
-                val newDate = baseDate.add(Calendar.DAY_OF_YEAR, (thisIndex - currentIndex) * coeff)
-
-                date = newDate
-                pview = v
                 position = thisIndex
                 mode = cMode
             }
@@ -54,8 +46,13 @@ class CalendarViewerFragment: Fragment() {
     var job: Job? = null
     var position = 0
     var mode = CalendarMode.DAY
-    lateinit var pview: View
 
+    /**
+     * We need to save the last position and date in order to keep
+     * them after the screen rotation.
+     *
+     * @param outState
+     */
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
@@ -63,6 +60,9 @@ class CalendarViewerFragment: Fragment() {
         outState.putLong("date", date.time)
     }
 
+    /**
+     * The local variables are backed up here.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -70,11 +70,6 @@ class CalendarViewerFragment: Fragment() {
             position = getInt("position")
             date = Date(getLong("date"))
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        viewModel.positions.remove(position)
     }
 
     override fun onCreateView(inflater: LayoutInflater,
@@ -91,9 +86,9 @@ class CalendarViewerFragment: Fragment() {
         setupListeners()
     }
 
-
     @ExperimentalTime
     private fun setupListeners() {
+        // This listener refresh the current view when the events are updated.
         viewModel.getEvents(requireContext()).observe(viewLifecycleOwner) {
             handleEventsChange(it)
         }
@@ -107,7 +102,7 @@ class CalendarViewerFragment: Fragment() {
         }
 
         viewModel.lastPosition.observe(viewLifecycleOwner) {
-            if (position == it) {
+            if (position == it && lifecycle.currentState == Lifecycle.State.STARTED) {
                 viewModel.selectedDate.value = date
             }
         }
@@ -123,7 +118,6 @@ class CalendarViewerFragment: Fragment() {
 
     @ExperimentalTime
     private fun refreshDate(up: Date, refresh: Boolean = true) {
-        if (position == viewModel.lastPosition.value!!) return
         val coeff = when (viewModel.calendarMode.value) {
             CalendarMode.WEEK -> 7
             else -> 1
@@ -134,7 +128,7 @@ class CalendarViewerFragment: Fragment() {
             date = newDate
 
             if (refresh) {
-                handleEventsChange(viewModel.getEvents(requireContext()).value!!)
+                handleEventsChange(viewModel.getEvents(requireContext()).value)
             }
         }
     }

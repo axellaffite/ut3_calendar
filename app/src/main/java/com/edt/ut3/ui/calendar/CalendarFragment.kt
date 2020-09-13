@@ -35,6 +35,7 @@ import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.calendar_action.view.*
 import kotlinx.android.synthetic.main.fragment_calendar.*
+import kotlinx.android.synthetic.main.fragment_calendar.view.*
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.time.ExperimentalTime
@@ -104,17 +105,27 @@ class CalendarFragment : Fragment(), LifecycleObserver {
      * pager, set the recycling limit and
      * the animation.
      */
+    @ExperimentalTime
     private fun setupViewPager() {
         pager.apply {
+            // Creates the pager and assign it to
+            // the ViewPager2.
             val pagerAdapter = DaySlider(this@CalendarFragment)
             adapter = pagerAdapter
 
-            setCurrentItem(calendarViewModel.lastPosition.value!!, false)
-
+            // The offscreen page limit is set
+            // to 1 to optimize rendering and
+            // ram consumption.
             offscreenPageLimit = 1
+
+            // This animation is taken from the
+            // official documentation.
+            // It animate the layout with a zoom animation.
             setPageTransformer(ZoomOutPageTransformer())
 
-            calendarViewModel.selectedDate.value = Date(calendarView.date)
+            // We reset the current item to the last registered
+            // position.
+            pager.setCurrentItem(calendarViewModel.lastPosition.value!!, false)
         }
     }
 
@@ -143,10 +154,12 @@ class CalendarFragment : Fragment(), LifecycleObserver {
                 }
 
                 setOnVisibilityClickListener {
-                    BottomSheetBehavior.from(options_container).apply {
-                        state = when (state) {
-                            STATE_COLLAPSED -> STATE_EXPANDED
-                            else -> STATE_COLLAPSED
+                    view?.let { root ->
+                        BottomSheetBehavior.from(root.options_container).apply {
+                            state = when (state) {
+                                STATE_COLLAPSED -> STATE_EXPANDED
+                                else -> STATE_COLLAPSED
+                            }
                         }
                     }
                 }
@@ -164,23 +177,21 @@ class CalendarFragment : Fragment(), LifecycleObserver {
         // This listener allows the CalendarViewerFragments to keep
         // up to date their contents by listening to the
         // view model's selectedDate variable.
-        calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
+        view?.calendarView?.setOnDateChangeListener { _, year, month, dayOfMonth ->
             val newDate = Date().set(year, month, dayOfMonth).timeCleaned()
             calendarViewModel.selectedDate.value = newDate
         }
 
         // This callback is in charge to update the
-        // ViewModel variables such as the current date,
-        // the current index in the viewpager and so on.
+        // ViewModel current index.
         //
         // This is done to give information to the
         // CalendarViewerFragments in order to keep
         // them up to date.
-        pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+        view?.pager?.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
 
-                println("POSITION: CHANGE $position")
                 calendarViewModel.lastPosition.value = position
             }
         })
@@ -188,7 +199,7 @@ class CalendarFragment : Fragment(), LifecycleObserver {
         // This listener is in charge to listen to the
         // AppBar offset in order to hide things when
         // necessary ( such as the refresh buttons and the action bar ).
-        app_bar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->
+        view?.app_bar?.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->
             hideRefreshWhenNecessary(verticalOffset)
             (activity as MainActivity?)?.run {
                 setActionViewVisibility(if (verticalOffset + appBarLayout.totalScrollRange == 0) VISIBLE else GONE)
@@ -197,7 +208,7 @@ class CalendarFragment : Fragment(), LifecycleObserver {
 
         // Force the Updater to perform an update
         // and hides the refresh button.
-        refresh_button.setOnClickListener {
+        view?.refresh_button?.setOnClickListener {
             refresh_button.hide()
             status = Status.UPDATING
 
@@ -206,7 +217,7 @@ class CalendarFragment : Fragment(), LifecycleObserver {
 
         // Launch the setting fragment
         // when clicked.
-        settings_button.setOnClickListener {
+        view?.settings_button?.setOnClickListener {
             findNavController().navigate(R.id.action_navigation_calendar_to_preferencesFragment)
         }
 
@@ -298,11 +309,8 @@ class CalendarFragment : Fragment(), LifecycleObserver {
 
         override fun createFragment(position: Int) =
             CalendarViewerFragment.newInstance(
-                baseDate = calendarViewModel.selectedDate.value!!,
-                currentIndex = calendarViewModel.lastPosition.value!!,
                 thisIndex = position,
-                calendarViewModel.calendarMode.value!!,
-                front_layout
+                calendarViewModel.calendarMode.value!!
             )
     }
 
@@ -354,51 +362,6 @@ class CalendarFragment : Fragment(), LifecycleObserver {
 
         fun setAgendaIcon() {
             layout_switch_button.setImageResource(R.drawable.ic_agenda_view)
-        }
-    }
-
-
-
-
-    class ZoomOutPageTransformer : ViewPager2.PageTransformer {
-
-        private val MIN_SCALE = 0.85f
-        private val MIN_ALPHA = 0.5f
-
-        override fun transformPage(view: View, position: Float) {
-            view.apply {
-                val pageWidth = width
-                val pageHeight = height
-                when {
-                    position < -1 -> { // [-Infinity,-1)
-                        // This page is way off-screen to the left.
-                        alpha = 0f
-                    }
-                    position <= 1 -> { // [-1,1]
-                        // Modify the default slide transition to shrink the page as well
-                        val scaleFactor = Math.max(MIN_SCALE, 1 - Math.abs(position))
-                        val vertMargin = pageHeight * (1 - scaleFactor) / 2
-                        val horzMargin = pageWidth * (1 - scaleFactor) / 2
-                        translationX = if (position < 0) {
-                            horzMargin - vertMargin / 2
-                        } else {
-                            horzMargin + vertMargin / 2
-                        }
-
-                        // Scale the page down (between MIN_SCALE and 1)
-                        scaleX = scaleFactor
-                        scaleY = scaleFactor
-
-                        // Fade the page relative to its size.
-                        alpha = (MIN_ALPHA +
-                                (((scaleFactor - MIN_SCALE) / (1 - MIN_SCALE)) * (1 - MIN_ALPHA)))
-                    }
-                    else -> { // (1,+Infinity]
-                        // This page is way off-screen to the right.
-                        alpha = 0f
-                    }
-                }
-            }
         }
     }
 }
