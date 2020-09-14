@@ -2,6 +2,7 @@ package com.edt.ut3.ui.calendar
 
 import android.content.Context
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.edt.ut3.backend.celcat.Course
 import com.edt.ut3.backend.celcat.Event
@@ -15,7 +16,8 @@ class CalendarViewModel : ViewModel() {
 
     var selectedEvent: Event? = null
     var selectedEventNote: Note? = null
-    var selectedDate = Date().timeCleaned()
+    var selectedDate = MutableLiveData(Date().timeCleaned())
+    var lastPosition = MutableLiveData(Int.MAX_VALUE / 2)
 
     private lateinit var coursesVisibility : LiveData<List<Course>>
     private lateinit var events: LiveData<List<Event>>

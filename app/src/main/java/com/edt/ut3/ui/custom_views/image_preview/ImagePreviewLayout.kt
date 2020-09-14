@@ -6,7 +6,6 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.edt.ut3.backend.note.Picture
 import com.edt.ut3.misc.toDp
 
 class ImagePreviewLayout(context: Context, attributeSet: AttributeSet): RecyclerView(context, attributeSet) {
@@ -19,13 +18,6 @@ class ImagePreviewLayout(context: Context, attributeSet: AttributeSet): Recycler
     }
 
     fun notifyDataSetChanged() = adapter?.notifyDataSetChanged()
-
-    fun updateDataSet(dataSet: List<Picture>) {
-        (adapter as? ImagePreviewAdapter)?.let {
-            it.dataset = dataSet
-            it.notifyDataSetChanged()
-        }
-    }
 
     class MarginItemDecoration(private val spaceHeight: Int) : RecyclerView.ItemDecoration() {
         override fun getItemOffsets(outRect: Rect, view: View,

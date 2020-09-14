@@ -53,4 +53,6 @@
     <string name="data_update_failed">Impossible de récupérer les données, veuillez vérifier votre connexion internet</string>
     <string name="since_now">À partir de maintenant</string>
     <string name="smartphone_theme">Thème du smartphone</string>
+    <string name="no_reminder_set">"Pas de rappel définit "</string>
+    <string name="empty_day">Rien à signaler pour ce jour ! %s</string>
 </resources>

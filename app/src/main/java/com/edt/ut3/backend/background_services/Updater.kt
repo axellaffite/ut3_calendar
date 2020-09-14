@@ -24,7 +24,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
-import kotlin.time.ExperimentalTime
 
 
 /**
@@ -74,13 +73,16 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
         }
     }
 
-    @ExperimentalTime
+    private val prefManager = PreferencesManager(applicationContext)
+
+
     override suspend fun doWork(): Result = coroutineScope {
         setProgress(workDataOf(Progress to 0))
 
         var result = Result.success()
         try {
-            val groups = PreferencesManager(applicationContext).getGroups().toList<String>()
+            val groupsPreference = prefManager.get(PreferencesManager.Preference.GROUPS) as JSONArray
+            val groups = groupsPreference.toList<String>()
             Log.d("UPDATER", "Downloading events for theses groups: $groups")
 
             val link = PreferencesManager(applicationContext).getLink()

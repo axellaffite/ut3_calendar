@@ -12,6 +12,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -20,6 +21,7 @@ class MainActivity : AppCompatActivity() {
 
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
         val controller = findNavController(R.id.nav_host_fragment)
+
 
         navView.setupWithNavController(controller)
 
@@ -30,6 +32,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.navigation_calendar -> showBottomNav(navView)
                 R.id.navigation_room_finder -> showBottomNav(navView)
                 R.id.navigation_map -> showBottomNav(navView)
+                R.id.fragmentEventDetails -> showBottomNav(navView)
                 else -> hideBottomNav(navView)
             }
         }
@@ -42,4 +45,5 @@ class MainActivity : AppCompatActivity() {
     private fun hideBottomNav(bottomNav : BottomNavigationView) {
         bottomNav.visibility = GONE
     }
+
 }

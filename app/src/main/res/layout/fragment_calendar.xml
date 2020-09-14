@@ -1,120 +1,122 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ui.calendar.CalendarFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.calendar.CalendarFragment"
-    android:id="@+id/mainLayout"
-    android:background="@color/foregroundColor">
+    android:id="@+id/front_layout"
+    android:background="@color/backgroundColor">
 
 
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/settings"
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/action_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/card_background"
-        android:backgroundTint="@color/backgroundColor"
-        android:layout_marginStart="48dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginTop="8dp"/>
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/foregroundColor"
+        app:layout_collapseMode="pin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/calendar_action_menu" />
 
-
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/news"
+    <com.edt.ut3.ui.custom_views.BetterNestedScrollView
+        android:id="@+id/scroll_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/card_background"
-        android:backgroundTint="@color/backgroundColor"
-        android:layout_marginEnd="48dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"/>
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/action_view"
+        android:layout_gravity="fill_vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:clickable="false"
+            android:focusable="false">
+
+            <CalendarView
+                android:id="@+id/calendarView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/foregroundColor"
+                android:focusable="true"/>
+
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/pager"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/action_view"
+                android:layout_weight="1"/>
+
+        </LinearLayout>
+
+    </com.edt.ut3.ui.custom_views.BetterNestedScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/refresh_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="?calendarFloatingButtonColor"
+        android:elevation="0dp"
+        android:src="@drawable/ic_refresh"
+        app:borderWidth="0dp"
+        app:elevation="0dp"
+        app:fabSize="normal"
+        app:layout_constraintBottom_toTopOf="@id/settings_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="?calendarFloatingButtonIconColor" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/settings_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="@color/calendarFloatingButtonColor"
+        android:elevation="0dp"
+        android:src="@drawable/ic_settings"
+        app:borderWidth="0dp"
+        app:elevation="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@color/calendarFloatingButtonIconColor" />
 
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/coordinatorLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="com.edt.ut3.ui.custom_views.overlay_layout.OverlayBehavior"
-        android:id="@+id/front_layout"
-        android:background="@color/backgroundColor">
+        android:layout_height="match_parent">
 
-        <com.google.android.material.appbar.AppBarLayout
-            android:id="@+id/app_bar"
+        <androidx.cardview.widget.CardView
+            android:id="@+id/options_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fitsSystemWindows="true"
-            android:background="?calendarColor">
+            app:behavior_peekHeight="0dp"
+            app:cardBackgroundColor="@color/foregroundColor"
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
-            <com.google.android.material.appbar.CollapsingToolbarLayout
-                android:id="@+id/toolbar_layout"
+            <androidx.core.widget.NestedScrollView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:fitsSystemWindows="true"
-                app:contentScrim="?attr/colorPrimary"
-                app:layout_scrollFlags="scroll|enterAlwaysCollapsed"
-                app:toolbarId="@+id/toolbar">
+                android:layout_height="wrap_content">
 
-                <CalendarView
-                    android:id="@+id/calendarView"
+                <fragment
+                    android:id="@+id/options"
+                    android:name="com.edt.ut3.ui.calendar.options.CalendarOptionsFragment"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:theme="@style/ThemeOverlay.MaterialComponents.Dark"
-                    app:layout_collapseMode="parallax"
-                    android:layout_margin="16dp"
-                    android:background="@android:color/transparent"/>
+                    android:layout_height="wrap_content" />
 
-            </com.google.android.material.appbar.CollapsingToolbarLayout>
+            </androidx.core.widget.NestedScrollView>
 
-        </com.google.android.material.appbar.AppBarLayout>
-
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/day_scroll"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            android:background="@color/backgroundColor">
-
-            <com.elzozor.yoda.Day
-                android:id="@+id/day_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:fit="BOUNDS_ADAPTIVE"
-                app:displayMode="FIT_TO_CONTAINER"
-                app:start="7"
-                app:end="20"/>
-
-        </androidx.core.widget.NestedScrollView>
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/refresh_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="88dp"
-            android:src="@drawable/ic_refresh"
-            android:elevation="0dp"
-            app:borderWidth="0dp"
-            app:elevation="0dp"
-            app:fabSize="normal"
-            app:tint="?calendarFloatingButtonIconColor"
-            android:backgroundTint="?calendarFloatingButtonColor" />
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/settings_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="16dp"
-            android:elevation="0dp"
-            android:src="@drawable/ic_settings"
-            app:elevation="0dp"
-            android:backgroundTint="?calendarFloatingButtonColor"
-            app:tint="?calendarFloatingButtonIconColor"
-            app:borderWidth="0dp"/>
+        </androidx.cardview.widget.CardView>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-
-
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

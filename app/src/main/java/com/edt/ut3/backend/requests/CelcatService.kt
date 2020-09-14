@@ -1,7 +1,7 @@
 package com.edt.ut3.backend.requests
 
 import android.util.Log
-import com.edt.ut3.misc.plus
+import com.edt.ut3.misc.add
 import com.edt.ut3.misc.timeCleaned
 import com.edt.ut3.misc.toCelcatDateStr
 import kotlinx.coroutines.Dispatchers.IO
@@ -12,19 +12,17 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
 import java.util.*
-import kotlin.time.ExperimentalTime
-import kotlin.time.days
 
 
 class CelcatService {
-    @ExperimentalTime
+
     @Throws(IOException::class)
     suspend fun getEvents(link: String, formations: List<String>): Response = withContext(IO) {
         val today = Date().timeCleaned()
 
         val body = RequestsUtils.EventBody().apply {
                 add("start", (today).toCelcatDateStr())
-                add("end", (today + 365.days).toCelcatDateStr())
+                add("end", (today.add(Calendar.YEAR, 1)).toCelcatDateStr())
                 formations.forEach {
                     add("federationIds%5B%5D", it)
                 }

@@ -26,7 +26,11 @@
         android:id="@+id/navigation_notes"
         android:name="com.edt.ut3.ui.notes.NotesFragment"
         android:label="@string/title_notes"
-        tools:layout="@layout/fragment_notes" />
+        tools:layout="@layout/fragment_notes" >
+        <action
+            android:id="@+id/action_navigation_notes_to_fragmentNoteDetails"
+            app:destination="@id/fragmentNoteDetails" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_map"
@@ -49,6 +53,27 @@
         android:id="@+id/fragmentEventDetails"
         android:name="com.edt.ut3.ui.calendar.event_details.FragmentEventDetails"
         android:label="FragmentEventDetails"
-        tools:layout="@layout/fragment_event_details"/>
+        tools:layout="@layout/fragment_event_details">
+        <action
+            android:id="@+id/action_fragmentEventDetails_to_fragmentImageViewPager"
+            app:destination="@id/fragmentImageViewPager" />
+    </fragment>
+    <fragment
+        android:id="@+id/fragmentNoteDetails"
+        android:name="com.edt.ut3.ui.notes.FragmentNoteDetails"
+        android:label="FragmentNoteDetails"
+        tools:layout="@layout/fragment_note_details">
+        <action
+            android:id="@+id/action_fragmentNoteDetails_to_fragmentEventDetails"
+            app:destination="@id/fragmentEventDetails" />
+        <action
+            android:id="@+id/action_fragmentNoteDetails_to_fragmentImageViewPager"
+            app:destination="@id/fragmentImageViewPager" />
+    </fragment>
+    <fragment
+        android:id="@+id/fragmentImageViewPager"
+        android:name="com.edt.ut3.ui.calendar.event_details.image_view.FragmentImageViewPager"
+        android:label="FragmentImageViewPager"
+        tools:layout="@layout/fragment_image_view_pager"/>
 
 </navigation>

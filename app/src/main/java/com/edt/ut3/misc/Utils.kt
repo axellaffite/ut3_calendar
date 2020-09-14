@@ -11,26 +11,26 @@ import org.json.JSONArray
 import org.json.JSONException
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
 
-@ExperimentalTime
-operator fun Date.plusAssign(duration: Duration) {
-    time += duration.inMilliseconds.toLong()
+fun Date.addAssign(field: Int, amount: Int) {
+    time = Calendar.getInstance().run {
+        time = this@addAssign
+        add(field, amount)
+        time.time
+    }
 }
 
-@ExperimentalTime
-operator fun Date.plus(duration: Duration) = Date(
-    time + duration.inMilliseconds.toLong()
-)
+fun Date.add(field: Int, amount: Int): Date = Calendar.getInstance().run {
+    time = this@add
+    add(field, amount)
+    time
+}
 
-@ExperimentalTime
-operator fun Date.minus(duration: Duration) =
-    this.plus(-duration)
+fun Date.minus(field: Int, amount: Int) =
+    this.add(field, -amount)
 
-@ExperimentalTime
-operator fun Date.minusAssign(duration: Duration) =
-    this.plusAssign(-duration)
+fun Date.minusAssign(field: Int, amount: Int) =
+    this.addAssign(field, -amount)
 
 fun Date.toCelcatDateStr() =
     DateFormat.format("yyyy-MM-dd", this).toString()

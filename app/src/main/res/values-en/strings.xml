@@ -52,4 +52,6 @@
     <string name="since_now">Until now</string>
     <string name="data_update_failed">Unable to retrieve data, please check your internet connection</string>
     <string name="building_search">Select a building</string>
+    <string name="no_reminder_set">"No reminder set "</string>
+    <string name="empty_day">Nothing to report for this day ! %s</string>
 </resources>
