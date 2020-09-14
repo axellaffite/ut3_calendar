@@ -83,7 +83,7 @@ dependencies {
     // Summary : A useful library that allows us to display
     //           schedules on a given view.
     // Github : https://github.com/ElZozor/yoda
-    implementation 'com.github.ElZozor:yoda:v1.33'
+    implementation 'com.github.ElZozor:yoda:master-SNAPSHOT'
 
     // Name: Picasso
     // Summary : A library that allows us to download and

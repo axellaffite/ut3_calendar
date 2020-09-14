@@ -10,6 +10,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -46,6 +47,7 @@ class CalendarViewerFragment: Fragment() {
     var job: Job? = null
     var position = 0
     var mode = CalendarMode.DAY
+    var getHeight : () -> Int = {0}
 
     /**
      * We need to save the last position and date in order to keep
@@ -152,11 +154,12 @@ class CalendarViewerFragment: Fragment() {
             requireView().post {
                 job?.cancel()
                 job = lifecycleScope.launchWhenCreated {
+                    val height = (parentFragment as Fragment).view?.findViewById<NestedScrollView>(R.id.scroll_view)?.height ?: 0
                     when (viewModel.calendarMode.value) {
                         CalendarMode.WEEK ->
-                            buildWeekView(calendar_container, eventList, requireView().height, requireView().width)
+                            buildWeekView(calendar_container, eventList, height, requireView().width)
                         else ->
-                            buildDayView(calendar_container, eventList, requireView().height, requireView().width)
+                            buildDayView(calendar_container, eventList, height, requireView().width)
                     }
                 }
             }

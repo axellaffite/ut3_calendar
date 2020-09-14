@@ -1,46 +1,37 @@
 package com.edt.ut3.ui.calendar
 
-import android.annotation.SuppressLint
-import android.content.Context
 import android.content.res.Configuration.ORIENTATION_PORTRAIT
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
-import android.view.View.GONE
-import android.view.View.VISIBLE
 import android.view.ViewGroup
-import android.widget.CalendarView
-import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.OnLifecycleEvent
 import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import androidx.work.WorkInfo
-import com.edt.ut3.MainActivity
 import com.edt.ut3.R
 import com.edt.ut3.backend.background_services.Updater
 import com.edt.ut3.misc.add
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.timeCleaned
-import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.calendar_action.view.*
 import kotlinx.android.synthetic.main.fragment_calendar.*
 import kotlinx.android.synthetic.main.fragment_calendar.view.*
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.time.ExperimentalTime
 
-class CalendarFragment : Fragment(), LifecycleObserver {
+
+class CalendarFragment : Fragment(),
+    androidx.appcompat.widget.Toolbar.OnMenuItemClickListener {
 
     enum class Status { IDLE, UPDATING }
 
@@ -48,16 +39,14 @@ class CalendarFragment : Fragment(), LifecycleObserver {
 
     private var status = Status.IDLE
 
-    lateinit var calendarActionBar : CalendarActionBar
-
 
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?): View?
+        savedInstanceState: Bundle?
+    ): View?
     {
-        setupLifecycleListener()
         updateCalendarMode()
 
         // Schedule the periodic update in order to
@@ -65,18 +54,6 @@ class CalendarFragment : Fragment(), LifecycleObserver {
         Updater.scheduleUpdate(requireContext())
 
         return inflater.inflate(R.layout.fragment_calendar, container, false)
-    }
-
-    /**
-     * This function is used to register an
-     * observer an the activity's lifecycle.
-     *
-     * It's used to setup the action bar
-     * when the activity's lifecycle is
-     * at least in "OnCreate" state.
-     */
-    private fun setupLifecycleListener() {
-        lifecycle.addObserver(this)
     }
 
     /**
@@ -98,6 +75,7 @@ class CalendarFragment : Fragment(), LifecycleObserver {
         super.onViewCreated(view, savedInstanceState)
 
         setupViewPager()
+        setupListeners()
     }
 
     /**
@@ -130,49 +108,6 @@ class CalendarFragment : Fragment(), LifecycleObserver {
     }
 
     @ExperimentalTime
-    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-    private fun setupActionBar() {
-        val mActivity = activity
-        if (mActivity is MainActivity) {
-            val calendar_view = calendarView ?: return
-
-            calendarActionBar = CalendarActionBar(requireContext(), calendar_view).apply {
-                setOnViewChangeClickListener {
-                    calendarViewModel.calendarMode.run {
-                        when (value) {
-                            CalendarMode.DAY -> {
-                                value = CalendarMode.WEEK
-                                setAgendaIcon()
-                            }
-
-                            else -> {
-                                value = CalendarMode.DAY
-                                setWeekIcon()
-                            }
-                        }
-                    }
-                }
-
-                setOnVisibilityClickListener {
-                    view?.let { root ->
-                        BottomSheetBehavior.from(root.options_container).apply {
-                            state = when (state) {
-                                STATE_COLLAPSED -> STATE_EXPANDED
-                                else -> STATE_COLLAPSED
-                            }
-                        }
-                    }
-                }
-            }
-
-            mActivity.setActionViewContent(calendarActionBar)
-            app_bar.setExpanded(false, false)
-        }
-
-        setupListeners()
-    }
-
-    @ExperimentalTime
     private fun setupListeners() {
         // This listener allows the CalendarViewerFragments to keep
         // up to date their contents by listening to the
@@ -196,15 +131,12 @@ class CalendarFragment : Fragment(), LifecycleObserver {
             }
         })
 
-        // This listener is in charge to listen to the
-        // AppBar offset in order to hide things when
-        // necessary ( such as the refresh buttons and the action bar ).
-        view?.app_bar?.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->
-            hideRefreshWhenNecessary(verticalOffset)
-            (activity as MainActivity?)?.run {
-                setActionViewVisibility(if (verticalOffset + appBarLayout.totalScrollRange == 0) VISIBLE else GONE)
-            }
-        })
+//        // This listener is in charge to listen to the
+//        // AppBar offset in order to hide things when
+//        // necessary ( such as the refresh buttons and the action bar ).
+        view?.scroll_view?.setOnScrollChangeListener { nScrollView: NestedScrollView, x: Int, y: Int, oX: Int, oY: Int ->
+            hideRefreshWhenNecessary(oY)
+        }
 
         // Force the Updater to perform an update
         // and hides the refresh button.
@@ -224,13 +156,19 @@ class CalendarFragment : Fragment(), LifecycleObserver {
         // Update the action bar text when the selected date
         // is updated in the ViewModel.
         calendarViewModel.selectedDate.observe(viewLifecycleOwner) {
-            calendarActionBar.updateBarText(it, calendarViewModel.calendarMode.value)
+            updateBarText(it, calendarViewModel.calendarMode.value)
             calendarView.date = it.time
         }
 
         calendarViewModel.calendarMode.observe(viewLifecycleOwner) {
-            calendarActionBar.updateBarText(calendarViewModel.selectedDate.value!!, it)
+            updateBarText(calendarViewModel.selectedDate.value!!, it)
         }
+
+        scroll_view?.post {
+            scroll_view?.fullScroll(View.FOCUS_DOWN)
+        }
+
+        action_view.setOnMenuItemClickListener(this)
     }
 
 
@@ -248,7 +186,8 @@ class CalendarFragment : Fragment(), LifecycleObserver {
                         Snackbar.make(
                             front_layout,
                             R.string.update_failed,
-                            Snackbar.LENGTH_INDEFINITE)
+                            Snackbar.LENGTH_INDEFINITE
+                        )
                             .setAction(R.string.action_retry) {
                                 forceUpdate()
                             }
@@ -260,8 +199,8 @@ class CalendarFragment : Fragment(), LifecycleObserver {
                             .addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
                                 override fun onDismissed(
                                     transientBottomBar: Snackbar?,
-                                    event: Int)
-                                {
+                                    event: Int
+                                ) {
                                     super.onDismissed(transientBottomBar, event)
 
                                     refresh_button.show()
@@ -271,7 +210,8 @@ class CalendarFragment : Fragment(), LifecycleObserver {
                             .show()
                     }
 
-                    else -> { }
+                    else -> {
+                    }
                 }
             }
         })
@@ -288,12 +228,85 @@ class CalendarFragment : Fragment(), LifecycleObserver {
             return
         }
 
-        if (verticalOffset == 0) {
+        if (verticalOffset < 100) {
             refresh_button.show()
             settings_button.show()
         } else {
             settings_button.hide()
             refresh_button.hide()
+        }
+    }
+
+    override fun onMenuItemClick(item: MenuItem?): Boolean {
+        return when (item?.itemId) {
+            R.id.change_view -> onChangeViewClick(item)
+            R.id.visibility -> {
+                onVisibilityClick()
+            }
+            else -> false
+        }
+    }
+
+    private fun onVisibilityClick(): Boolean {
+        return view?.let { root ->
+            BottomSheetBehavior.from(root.options_container).apply {
+                state = when (state) {
+                    STATE_COLLAPSED -> STATE_EXPANDED
+                    else -> STATE_COLLAPSED
+                }
+            }
+
+            true
+        } ?: false
+    }
+
+    private fun onChangeViewClick(item: MenuItem): Boolean {
+        calendarViewModel.calendarMode.apply {
+            when (value) {
+                CalendarMode.DAY -> {
+                    value = CalendarMode.WEEK
+                    item.setIcon(R.drawable.ic_agenda_view)
+                }
+
+                else -> {
+                    value = CalendarMode.DAY
+                    item.setIcon(R.drawable.ic_week_view)
+                }
+            }
+        }
+
+        return true
+    }
+
+    private fun updateBarText(date: Date, mode: CalendarMode?, dayCount: Int = 5) {
+        val beginDate = Calendar.getInstance().apply {
+            time = date
+            set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+        }.time
+
+        action_view?.apply {
+            val newTitle = when (mode) {
+                CalendarMode.WEEK -> {
+                    val start = SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(
+                        beginDate
+                    )
+                    val end = SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(
+                        beginDate.add(
+                            Calendar.DAY_OF_YEAR,
+                            dayCount - 1
+                        )
+                    )
+
+                    "$start - $end"
+                }
+
+                else -> {
+                    SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(date)
+                }
+            }
+
+            title = newTitle
+            println("TITLE")
         }
     }
 
@@ -311,57 +324,8 @@ class CalendarFragment : Fragment(), LifecycleObserver {
             CalendarViewerFragment.newInstance(
                 thisIndex = position,
                 calendarViewModel.calendarMode.value!!
-            )
-    }
-
-
-    @SuppressLint("ViewConstructor")
-    class CalendarActionBar(context: Context, val calendar: CalendarView) : ConstraintLayout(context) {
-        init {
-            inflate(context, R.layout.calendar_action, this)
-        }
-
-        fun updateBarText(date: Date, mode: CalendarMode?, dayCount: Int = 5) {
-            val beginDate = Calendar.getInstance().apply {
-                time = date
-                set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
-            }.time
-
-            findViewById<TextView>(R.id.text)?.apply {
-                text = when (mode) {
-                    CalendarMode.WEEK -> {
-                        val start = SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(beginDate)
-                        val end = SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(
-                            beginDate.add(
-                                Calendar.DAY_OF_YEAR,
-                                dayCount - 1
-                            )
-                        )
-
-                        "$start - $end"
-                    }
-
-                    else -> {
-                        SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(date)
-                    }
-                }
+            ).apply {
+                getHeight = { view?.scroll_view?.measuredHeight ?: 0 }
             }
-        }
-
-        fun setOnViewChangeClickListener(listener: (View) -> Unit) {
-            layout_switch_button.setOnClickListener(listener)
-        }
-
-        fun setOnVisibilityClickListener(listener: (View) -> Unit) {
-            visibility_button.setOnClickListener(listener)
-        }
-
-        fun setWeekIcon() {
-            layout_switch_button.setImageResource(R.drawable.ic_week_view)
-        }
-
-        fun setAgendaIcon() {
-            layout_switch_button.setImageResource(R.drawable.ic_agenda_view)
-        }
     }
 }
