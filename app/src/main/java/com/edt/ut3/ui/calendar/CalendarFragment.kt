@@ -3,6 +3,7 @@ package com.edt.ut3.ui.calendar
 import android.content.SharedPreferences
 import android.content.res.Configuration.ORIENTATION_PORTRAIT
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -84,7 +85,7 @@ class CalendarFragment : Fragment(),
                 lastValue.withWeekMode()
         }
 
-        preferences.setPreference(Preference.CALENDAR, newPreference)
+        preferences.set(Preference.CALENDAR, newPreference)
 
         view?.action_view?.menu?.findItem(R.id.change_view)?.let {
             it.isEnabled = newPreference.mode == CalendarMode.Mode.AGENDA
@@ -290,8 +291,8 @@ class CalendarFragment : Fragment(),
     private fun onChangeViewClick(item: MenuItem): Boolean {
         val mode = preferences.get(Preference.CALENDAR) as CalendarMode
         val newMode = mode.invertForceWeek()
-        println("Mode: $mode | NewMode: $newMode")
-        preferences.setPreference(Preference.CALENDAR, newMode)
+        Log.d(this::class.simpleName, "Mode: $mode | NewMode: $newMode")
+        preferences.set(Preference.CALENDAR, newMode)
 
         updateViewIcon(item)
 

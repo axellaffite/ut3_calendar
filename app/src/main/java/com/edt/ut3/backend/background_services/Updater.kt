@@ -85,14 +85,14 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
             val groups = groupsPreference.toList<String>()
             Log.d("UPDATER", "Downloading events for theses groups: $groups")
 
-            val link = PreferencesManager(applicationContext).getLink()
+            val link = PreferencesManager(applicationContext).get(PreferencesManager.Preference.LINK) as String?
                 ?: throw IllegalStateException("Link must be set")
 
             val classes = getClasses(link).toHashSet()
             val courses = getCourses(link)
 
-            println(classes)
-            println(courses)
+            Log.d(this::class.simpleName, classes.toString())
+            Log.d(this::class.simpleName, courses.toString())
 
 
             val eventsJSONArray = withContext(IO) {
@@ -185,7 +185,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                 .filterNotNull()
                 .map { Course(it) }
 
-            println(new)
+            Log.d(this::class.simpleName, new.toString())
 
             val titleToRemove = mutableListOf<String>()
             old.forEach { oldCourse ->
@@ -193,8 +193,8 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                     ?: run { titleToRemove.add(oldCourse.title) }
             }
 
-            println("Remove: $titleToRemove")
-            println("Insert: $new")
+            Log.d(this::class.simpleName, "Remove: $titleToRemove")
+            Log.d(this::class.simpleName, "Insert: $new")
 
             remove(*titleToRemove.toTypedArray())
             insert(*new.toTypedArray())

@@ -130,10 +130,8 @@ data class Event(
         val regex = Regex(".*(\\[\\w+\\])")
 
         init {
-            println(classesNames.contains("TD Elec 1a"))
             val precisionBuilder = StringBuilder()
 
-            println("DESCRIPTION: $description")
             description?.lines()?.map { it.trim() }?.forEach {
                 val line = regex.find(it)?.groups?.get(1)?.let { module ->
                     it.removeSuffix(module.value).trim()

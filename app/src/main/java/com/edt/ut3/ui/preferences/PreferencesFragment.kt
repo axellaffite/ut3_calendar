@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
+import android.util.Log
 import android.view.View
 import android.widget.EditText
 import androidx.core.net.toUri
@@ -85,13 +86,13 @@ class PreferencesFragment: PreferenceFragmentCompat() {
         val baseLinkFinder = Regex("(.*)/cal.*")
         val baseLink = baseLinkFinder.find(link)?.groups?.get(1)?.value!!
 
-        println(baseLink)
+        Log.d(this::class.simpleName, "setSections: $baseLink")
 
         val fids = extractFids(link.toUri())
 
         PreferencesManager(requireContext()).run {
-            setGroups(fids)
-            setLink(baseLink)
+            set(PreferencesManager.Preference.GROUPS, fids)
+            set(PreferencesManager.Preference.LINK, baseLink)
         }
 
         return true
@@ -136,12 +137,12 @@ class PreferencesFragment: PreferenceFragmentCompat() {
 
             when {
                 removed > 0 -> {
-                    println("${previousText.toMutableList()}")
+                    Log.d(this::class.simpleName, "${previousText.toMutableList()}")
                     val res = previousText.toMutableList().apply {
                         set(if (start == 2) start - 1 else start, '0')
                     }.joinToString("")
 
-                    println(res)
+                    Log.d(this::class.simpleName, res)
                     newText = res
 
                     nextPos = (if (start == 2) 1 else start)
@@ -191,7 +192,7 @@ class PreferencesFragment: PreferenceFragmentCompat() {
         }
 
         private fun matchHoursConstrains(time: String): Boolean {
-            println(time)
+            Log.d(this::class.simpleName, time)
             val splitted = time.split(":")
             if (splitted.size != 2) {
                 return false

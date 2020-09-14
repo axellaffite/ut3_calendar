@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.media.ThumbnailUtils
 import android.os.Environment
 import android.os.Parcelable
+import android.util.Log
 import android.widget.ImageView
 import com.edt.ut3.misc.toDp
 import com.squareup.picasso.Picasso
@@ -119,7 +120,7 @@ data class Picture(
      */
     @Throws(IOException::class)
     fun loadThumbnailInto(imgView: ImageView) {
-        println("Loading thumbnail $thumbnail")
+        Log.d(this::class.simpleName, "Loading thumbnail $thumbnail")
         val file = File(thumbnail)
 
         Picasso.get().load(file).into(imgView)
@@ -127,7 +128,7 @@ data class Picture(
 
     @Throws(IOException::class)
     fun loadPicture(imgView: ImageView) {
-        println("Loading picture: $picture")
+        Log.d(this::class.simpleName, "Loading picture: $picture")
         val file = File(picture)
 
 

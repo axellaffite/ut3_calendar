@@ -11,6 +11,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -504,7 +505,7 @@ class MapsFragment : Fragment() {
             }
 
             // Calling the callback.
-            println("DEBUG: Download result: $errorCount ${error?.javaClass?.simpleName}")
+            Log.d(this::class.simpleName, "Download result: $errorCount ${error?.javaClass?.simpleName}")
             maps_main?.post(callback)
         }
     }
@@ -542,10 +543,10 @@ class MapsFragment : Fragment() {
                                 val cate = text.toString()
                                 if (b) {
                                     selectedCategories.add(cate)
-                                    println("Added: $cate")
+                                    Log.d(this::class.simpleName, "Added: $cate")
                                 } else {
                                     selectedCategories.remove(cate)
-                                    println("Removed: $cate")
+                                    Log.d(this::class.simpleName, "Removed: $cate")
                                 }
 
 

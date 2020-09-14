@@ -46,7 +46,7 @@ class CelcatService {
 
     @Throws(IOException::class)
     suspend fun getClasses(link: String) = withContext(IO) {
-        println(link)
+        Log.d(this::class.simpleName, link)
         val search =
             if (link.contains("calendar2")) { "___" }
             else { "__" }

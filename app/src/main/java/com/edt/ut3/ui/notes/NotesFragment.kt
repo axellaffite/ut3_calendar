@@ -40,7 +40,6 @@ class NotesFragment : Fragment() {
         if (notes_container.adapter == null) {
             notes_container.adapter = NoteAdapter(notes).apply {
                 onItemClickListener = { note ->
-                    println("clicked")
                     findNavController().navigate(R.id.action_navigation_notes_to_fragmentNoteDetails)
                 }
             }

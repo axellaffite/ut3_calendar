@@ -3,6 +3,7 @@ package com.edt.ut3.backend.preferences
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
+import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate.*
 import androidx.preference.PreferenceManager
 import com.edt.ut3.ui.calendar.CalendarMode
@@ -24,14 +25,23 @@ class PreferencesManager(private val context: Context) {
 
     private fun serialize(pref: Preference, value: Any): String {
         val serialized = when (pref) {
-            Preference.GROUPS -> with (value as String) { JSONArray(value).toString() }
-            Preference.CALENDAR -> with(value as CalendarMode) { toJSON() }
-            Preference.THEME -> with (value as ThemePreference) { toString() }
-            Preference.NOTIFICATION -> with (value as Boolean) { toString() }
-            Preference.LINK -> with (value as String) { this }
+            Preference.GROUPS ->
+                with (value as List<*>) { JSONArray(this).toString() }
+
+            Preference.CALENDAR ->
+                with(value as CalendarMode) { toJSON() }
+
+            Preference.THEME ->
+                with (value as ThemePreference) { toString() }
+
+            Preference.NOTIFICATION ->
+                with (value as Boolean) { toString() }
+
+            Preference.LINK ->
+                with (value as String) { this }
         }
 
-        println("Serializing $value into $serialized")
+        Log.d(this::class.simpleName, "Serializing $value into $serialized")
 
         return serialized
     }
@@ -56,7 +66,7 @@ class PreferencesManager(private val context: Context) {
         }
     }
 
-    fun setPreference(pref: Preference, value: Any) {
+    fun set(pref: Preference, value: Any) {
         preferences.edit().putString(pref.value, serialize(pref, value)).apply()
     }
 

@@ -26,20 +26,10 @@ class BetterNestedScrollView(context: Context, attributeSet: AttributeSet? = nul
                 val distanceX = Math.abs(event.rawX.toInt() - downX)
                 val distanceY = Math.abs(event.rawY.toInt() - downY)
 
-                println("$distanceX $distanceY")
-                if (distanceY > distanceX && distanceY > dragthreshold) {
-                    println("TRUE SCROLL")
-                    return true
-                }
-
-                false
+                distanceY > distanceX && distanceY > dragthreshold
             }
 
-            else -> {
-                val ev = super.onInterceptTouchEvent(event)
-                println("ev scrollview: $ev")
-                ev
-            }
+            else -> { super.onInterceptTouchEvent(event) }
         }
     }
 
