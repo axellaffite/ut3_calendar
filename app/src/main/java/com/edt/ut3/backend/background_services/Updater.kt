@@ -73,13 +73,16 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
         }
     }
 
+    private val prefManager = PreferencesManager(applicationContext)
+
 
     override suspend fun doWork(): Result = coroutineScope {
         setProgress(workDataOf(Progress to 0))
 
         var result = Result.success()
         try {
-            val groups = PreferencesManager(applicationContext).getGroups().toList<String>()
+            val groupsPreference = prefManager.get(PreferencesManager.Preference.GROUPS) as JSONArray
+            val groups = groupsPreference.toList<String>()
             Log.d("UPDATER", "Downloading events for theses groups: $groups")
 
             val classes = getClasses().toHashSet()

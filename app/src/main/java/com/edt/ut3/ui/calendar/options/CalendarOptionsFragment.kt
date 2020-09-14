@@ -20,7 +20,6 @@ import com.edt.ut3.misc.toDp
 import com.edt.ut3.ui.calendar.CalendarViewModel
 import com.edt.ut3.ui.preferences.Theme
 import kotlinx.android.synthetic.main.fragment_calendar_options.*
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class CalendarOptionsFragment: Fragment() {
@@ -33,17 +32,7 @@ class CalendarOptionsFragment: Fragment() {
     {
         return inflater.inflate(R.layout.fragment_calendar_options, container, false).also {
             viewModel.getCoursesVisibility(requireContext()).observe(viewLifecycleOwner) {
-                println("changed: $it")
                 generateCoursesChips(it)
-
-                lifecycleScope.launchWhenResumed {
-                    delay(2000)
-                    viewModel.getCoursesVisibility(requireContext()).value?.let {
-                        println(it)
-                    }
-
-                    println(CoursesViewModel(requireContext()).getCoursesVisibility())
-                }
             }
         }
     }
@@ -83,9 +72,9 @@ class CalendarOptionsFragment: Fragment() {
         } else R.drawable.ic_checked_round_empty
 
         ContextCompat.getDrawable(requireContext(), icon)?.apply {
-            val color = when (PreferencesManager(requireContext()).getTheme()) {
+            val color = when (PreferencesManager(requireContext()).get(PreferencesManager.Preference.THEME)) {
                 Theme.LIGHT -> Color.BLACK
-                Theme.DARK -> Color.WHITE
+                else -> Color.WHITE
             }
 
             DrawableCompat.setTint(this, color)

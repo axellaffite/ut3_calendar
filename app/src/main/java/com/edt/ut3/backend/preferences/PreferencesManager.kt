@@ -1,60 +1,85 @@
 package com.edt.ut3.backend.preferences
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatDelegate.*
 import androidx.preference.PreferenceManager
+import com.edt.ut3.ui.calendar.CalendarMode
 import com.edt.ut3.ui.preferences.Theme
 import com.edt.ut3.ui.preferences.ThemePreference
-import com.elzozor.yoda.utils.DateExtensions.get
 import org.json.JSONArray
-import org.json.JSONException
-import java.util.*
 
 class PreferencesManager(private val context: Context) {
 
-    companion object {
-        const val Groups = "groups"
+    enum class Preference(val value : String) {
+        GROUPS("groups"),
+        THEME("theme"),
+        CALENDAR("calendar_mode"),
+        NOTIFICATION("notification")
     }
 
     private val preferences = PreferenceManager.getDefaultSharedPreferences(context)
 
-    @Throws(JSONException::class)
-    fun getGroups(): JSONArray {
-        return JSONArray(preferences.getString(Groups, null))
-    }
-
-    fun setGroups(groups: JSONArray) {
-        preferences.edit().putString(Groups, groups.toString()).apply()
-    }
-
-    fun setupTheme(pref: ThemePreference? = null) {
-        val preference = pref ?: run {
-            val choice = preferences.getString("theme", "0")!!.toInt()
-            val possibilities = ThemePreference.values()
-            possibilities[choice.coerceAtMost(possibilities.lastIndex)]
+    private fun serialize(pref: Preference, value: Any): String {
+        val serialized = when (pref) {
+            Preference.GROUPS -> with (value as String) { JSONArray(value).toString() }
+            Preference.CALENDAR -> with(value as CalendarMode) { toJSON() }
+            Preference.THEME -> with (value as ThemePreference) { toString() }
+            Preference.NOTIFICATION -> with (value as String) { toString() }
         }
+
+        println("Serializing $value into $serialized")
+
+        return serialized
+    }
+
+    private fun deserialize(pref: Preference, value: String?): Any? {
+        return when (pref) {
+            Preference.GROUPS ->
+                value ?.let { JSONArray(value) }
+
+            Preference.CALENDAR ->
+                value?.let { CalendarMode.fromJson(it) } ?: CalendarMode.default()
+
+            Preference.THEME -> {
+                val selected = value?.let { ThemePreference.valueOf(it) } ?: ThemePreference.SMARTPHONE
+                guessTheme(selected)
+            }
+
+            Preference.NOTIFICATION ->
+                value?.let { it.toBoolean() } ?: true
+        }
+    }
+
+    fun setPreference(pref: Preference, value: Any) {
+        preferences.edit().putString(pref.value, serialize(pref, value)).apply()
+    }
+
+    fun get(pref: Preference) =
+        deserialize(pref, preferences.getString(pref.value, null))
+
+    fun observe(observer: SharedPreferences.OnSharedPreferenceChangeListener) {
+        observer.let {
+            preferences.registerOnSharedPreferenceChangeListener(it)
+        }
+    }
+
+    fun setupTheme() {
+        val preference = get(Preference.THEME)
 
         when (preference) {
             ThemePreference.SMARTPHONE -> setDefaultNightMode(MODE_NIGHT_FOLLOW_SYSTEM)
             ThemePreference.DARK -> setDefaultNightMode(MODE_NIGHT_YES)
             ThemePreference.LIGHT -> setDefaultNightMode(MODE_NIGHT_NO)
-            ThemePreference.TIME -> getThemeDependingOnTime()
         }
     }
 
-    fun getTheme(pref: ThemePreference? = null) : Theme {
-        val themePreference = pref ?: run {
-            val choice = preferences.getString("theme", "0")!!.toInt()
-            val possibilities = ThemePreference.values()
-            possibilities[choice.coerceAtMost(possibilities.lastIndex)]
-        }
-
-        return when (themePreference) {
+    fun guessTheme(pref: ThemePreference) : Theme {
+        return when (pref) {
             ThemePreference.DARK -> Theme.DARK
             ThemePreference.LIGHT -> Theme.LIGHT
             ThemePreference.SMARTPHONE -> getThemeDependingOnSmartphone()
-            ThemePreference.TIME -> getThemeDependingOnTime()
         }
     }
 
@@ -65,68 +90,6 @@ class PreferencesManager(private val context: Context) {
             Configuration.UI_MODE_NIGHT_YES -> Theme.DARK
             else -> Theme.LIGHT
         }
-    }
-
-    private fun getThemeDependingOnTime(): Theme = PreferencesManager(context).run {
-            val start = getDarkStart()
-            val end = getDarkEnd()
-
-            val now = Calendar.getInstance().time
-            val nowHours = now.get(Calendar.HOUR_OF_DAY)!!
-            val nowMinutes = now.get(Calendar.MINUTE)!!
-
-            val startInMinutes = start.toMinutes()
-            val minutes = end.toMinutes()
-            val endInMinutes = when {
-                minutes < startInMinutes -> minutes + (24*60)
-                else -> minutes
-            }
-
-            val currentInMinutes = nowHours * 60 + nowMinutes
-
-            if (currentInMinutes in startInMinutes until endInMinutes) {
-                Theme.DARK
-            } else {
-                Theme.LIGHT
-            }
-        }
-
-    private fun getDarkStart() : Time {
-        return Time(preferences.getString("dark_theme_start", "00:00")!!)
-    }
-
-    private fun getDarkEnd() : Time {
-        return Time(preferences.getString("dark_theme_end", "00:00")!!)
-    }
-
-    class Time(time: String) {
-        var hours: Int
-        var minutes: Int
-
-        init {
-            if (!time.matches(Regex("\\d{2}:\\d{2}"))) {
-                throw IllegalArgumentException("The provided string must match the current pattern :\\d{2}:\\d{2}")
-            }
-
-            time.split(":").let {
-                hours = it[0].toInt()
-                minutes = it[1].toInt()
-            }
-        }
-
-        override fun toString(): String {
-            return "${timeToString(hours)}:${timeToString(minutes)}"
-        }
-
-        private fun timeToString(value: Int): String {
-            if (value < 10) {
-                return "0$value"
-            }
-
-            return value.toString()
-        }
-
-        fun toMinutes() = hours * 60 + minutes
     }
 
 }

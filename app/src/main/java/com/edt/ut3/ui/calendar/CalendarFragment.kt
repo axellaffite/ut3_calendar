@@ -1,11 +1,14 @@
 package com.edt.ut3.ui.calendar
 
+import android.content.SharedPreferences
 import android.content.res.Configuration.ORIENTATION_PORTRAIT
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.widget.LinearLayout
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -15,6 +18,8 @@ import androidx.viewpager2.widget.ViewPager2
 import androidx.work.WorkInfo
 import com.edt.ut3.R
 import com.edt.ut3.backend.background_services.Updater
+import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.backend.preferences.PreferencesManager.Preference
 import com.edt.ut3.misc.add
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.timeCleaned
@@ -27,7 +32,6 @@ import kotlinx.android.synthetic.main.fragment_calendar.*
 import kotlinx.android.synthetic.main.fragment_calendar.view.*
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.time.ExperimentalTime
 
 
 class CalendarFragment : Fragment(),
@@ -39,6 +43,17 @@ class CalendarFragment : Fragment(),
 
     private var status = Status.IDLE
 
+    private lateinit var preferences: PreferencesManager
+
+    private val preferenceChangeListener =
+        SharedPreferences.OnSharedPreferenceChangeListener { sharedPreference: SharedPreferences, key: String ->
+            when (key) {
+                Preference.CALENDAR.value -> {
+                    val newPreference = preferences.get(Preference.CALENDAR) as CalendarMode
+                    updateBarText(calendarViewModel.selectedDate.value!!, newPreference)
+                }
+            }
+        }
 
 
     override fun onCreateView(
@@ -47,7 +62,7 @@ class CalendarFragment : Fragment(),
         savedInstanceState: Bundle?
     ): View?
     {
-        updateCalendarMode()
+        preferences = PreferencesManager(requireContext())
 
         // Schedule the periodic update in order to
         // keep the Calendar up to date.
@@ -61,21 +76,33 @@ class CalendarFragment : Fragment(),
      * which is sets in the ViewModel.
      */
     private fun updateCalendarMode() {
-        when (context?.resources?.configuration?.orientation) {
+        val lastValue = preferences.get(Preference.CALENDAR) as CalendarMode
+        val newPreference = when (context?.resources?.configuration?.orientation) {
             ORIENTATION_PORTRAIT ->
-                calendarViewModel.calendarMode.value = CalendarMode.DAY
+                lastValue.withAgendaMode()
             else ->
-                calendarViewModel.calendarMode.value = CalendarMode.WEEK
+                lastValue.withWeekMode()
+        }
+
+        preferences.setPreference(Preference.CALENDAR, newPreference)
+
+        view?.action_view?.menu?.findItem(R.id.change_view)?.let {
+            it.isEnabled = newPreference.mode == CalendarMode.Mode.AGENDA
         }
     }
 
 
-    @ExperimentalTime
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        updateCalendarMode()
+
         setupViewPager()
         setupListeners()
+
+        view.action_view?.menu?.findItem(R.id.change_view)?.let {
+            updateViewIcon(it)
+        }
     }
 
     /**
@@ -83,9 +110,8 @@ class CalendarFragment : Fragment(),
      * pager, set the recycling limit and
      * the animation.
      */
-    @ExperimentalTime
     private fun setupViewPager() {
-        pager.apply {
+        pager?.apply {
             // Creates the pager and assign it to
             // the ViewPager2.
             val pagerAdapter = DaySlider(this@CalendarFragment)
@@ -107,7 +133,6 @@ class CalendarFragment : Fragment(),
         }
     }
 
-    @ExperimentalTime
     private fun setupListeners() {
         // This listener allows the CalendarViewerFragments to keep
         // up to date their contents by listening to the
@@ -131,10 +156,10 @@ class CalendarFragment : Fragment(),
             }
         })
 
-//        // This listener is in charge to listen to the
-//        // AppBar offset in order to hide things when
-//        // necessary ( such as the refresh buttons and the action bar ).
-        view?.scroll_view?.setOnScrollChangeListener { nScrollView: NestedScrollView, x: Int, y: Int, oX: Int, oY: Int ->
+        // This listener is in charge to listen to the
+        // AppBar offset in order to hide things when
+        // necessary ( such as the refresh buttons and the action bar ).
+        view?.scroll_view?.setOnScrollChangeListener { _: NestedScrollView, x: Int, y: Int, oX: Int, oY: Int ->
             hideRefreshWhenNecessary(oY)
         }
 
@@ -156,19 +181,21 @@ class CalendarFragment : Fragment(),
         // Update the action bar text when the selected date
         // is updated in the ViewModel.
         calendarViewModel.selectedDate.observe(viewLifecycleOwner) {
-            updateBarText(it, calendarViewModel.calendarMode.value)
+            updateBarText(it, preferences.get(Preference.CALENDAR) as CalendarMode)
             calendarView.date = it.time
         }
 
-        calendarViewModel.calendarMode.observe(viewLifecycleOwner) {
-            updateBarText(calendarViewModel.selectedDate.value!!, it)
+        preferences.observe(preferenceChangeListener)
+
+        view?.scroll_view?.post {
+            scroll_view?.let {
+                pager?.apply {
+                    layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, it.height)
+                }
+            }
         }
 
-        scroll_view?.post {
-            scroll_view?.fullScroll(View.FOCUS_DOWN)
-        }
-
-        action_view.setOnMenuItemClickListener(this)
+        view?.action_view?.setOnMenuItemClickListener(this)
     }
 
 
@@ -261,21 +288,24 @@ class CalendarFragment : Fragment(),
     }
 
     private fun onChangeViewClick(item: MenuItem): Boolean {
-        calendarViewModel.calendarMode.apply {
-            when (value) {
-                CalendarMode.DAY -> {
-                    value = CalendarMode.WEEK
-                    item.setIcon(R.drawable.ic_agenda_view)
-                }
+        val mode = preferences.get(Preference.CALENDAR) as CalendarMode
+        val newMode = mode.invertForceWeek()
+        println("Mode: $mode | NewMode: $newMode")
+        preferences.setPreference(Preference.CALENDAR, newMode)
 
-                else -> {
-                    value = CalendarMode.DAY
-                    item.setIcon(R.drawable.ic_week_view)
-                }
-            }
-        }
+        updateViewIcon(item)
 
         return true
+    }
+
+    private fun updateViewIcon(item: MenuItem) {
+        val mode = preferences.get(Preference.CALENDAR) as CalendarMode
+        val icon = when (mode) {
+            CalendarMode.default() -> R.drawable.ic_week_view
+            else -> R.drawable.ic_agenda_view
+        }
+
+        item.setIcon(icon)
     }
 
     private fun updateBarText(date: Date, mode: CalendarMode?, dayCount: Int = 5) {
@@ -286,7 +316,11 @@ class CalendarFragment : Fragment(),
 
         action_view?.apply {
             val newTitle = when (mode) {
-                CalendarMode.WEEK -> {
+                CalendarMode.default() -> {
+                    SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(date)
+                }
+
+                else -> {
                     val start = SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(
                         beginDate
                     )
@@ -299,14 +333,9 @@ class CalendarFragment : Fragment(),
 
                     "$start - $end"
                 }
-
-                else -> {
-                    SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(date)
-                }
             }
 
             title = newTitle
-            println("TITLE")
         }
     }
 
@@ -322,8 +351,7 @@ class CalendarFragment : Fragment(),
 
         override fun createFragment(position: Int) =
             CalendarViewerFragment.newInstance(
-                thisIndex = position,
-                calendarViewModel.calendarMode.value!!
+                thisIndex = position
             ).apply {
                 getHeight = { view?.scroll_view?.measuredHeight ?: 0 }
             }

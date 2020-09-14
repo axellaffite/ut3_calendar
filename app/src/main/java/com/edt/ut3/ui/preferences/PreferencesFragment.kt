@@ -35,8 +35,7 @@ class PreferencesFragment: PreferenceFragmentCompat() {
                 val possibleChoices = ThemePreference.values()
                 val choice = possibleChoices[index.coerceAtMost(possibleChoices.lastIndex)]
 
-                println("Setting up theme to  : $choice")
-                PreferencesManager(context).setupTheme(choice)
+                PreferencesManager(context).setupTheme()
 
                 true
             }

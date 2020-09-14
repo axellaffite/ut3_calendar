@@ -112,7 +112,7 @@ class FragmentEventDetails : Fragment() {
      *
      */
     private fun setupContent() {
-        when (PreferencesManager(requireContext()).getTheme()) {
+        when (PreferencesManager(requireContext()).get(PreferencesManager.Preference.THEME)) {
             Theme.LIGHT -> {
                 event.lightBackgroundColor(requireContext()).let {
                     title_container.setCardBackgroundColor(it)

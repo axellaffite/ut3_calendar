@@ -1,6 +1,7 @@
 package com.edt.ut3.ui.calendar
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -18,6 +19,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
+import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.backend.preferences.PreferencesManager.Preference
 import com.edt.ut3.misc.Emoji
 import com.edt.ut3.misc.add
 import com.edt.ut3.misc.timeCleaned
@@ -30,24 +33,38 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import java.util.*
-import kotlin.time.ExperimentalTime
 
 class CalendarViewerFragment: Fragment() {
 
     companion object {
-        fun newInstance(thisIndex: Int, cMode: CalendarMode) =
+        fun newInstance(thisIndex: Int) =
             CalendarViewerFragment().apply {
                 position = thisIndex
-                mode = cMode
             }
     }
 
     private val viewModel : CalendarViewModel by activityViewModels()
+    private lateinit var preferences: PreferencesManager
     var date: Date = Date()
     var job: Job? = null
     var position = 0
-    var mode = CalendarMode.DAY
+    var mode = CalendarMode.default()
     var getHeight : () -> Int = {0}
+
+    val calendarModeObserver =
+        SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+            if (key == Preference.CALENDAR.value) {
+                context?.let {
+                    val newMode = preferences.get(Preference.CALENDAR) as CalendarMode
+
+                    if (mode != newMode) {
+                        mode = newMode
+                        refreshDate(viewModel.selectedDate.value!!, false)
+                        handleEventsChange(viewModel.getEvents(it).value)
+                    }
+                }
+            }
+        }
 
     /**
      * We need to save the last position and date in order to keep
@@ -68,6 +85,9 @@ class CalendarViewerFragment: Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        preferences = PreferencesManager(requireContext())
+        mode = preferences.get(Preference.CALENDAR) as CalendarMode
+
         savedInstanceState?.run {
             position = getInt("position")
             date = Date(getLong("date"))
@@ -81,14 +101,12 @@ class CalendarViewerFragment: Fragment() {
         return inflater.inflate(R.layout.fragment_calendar_viewer, container, false)
     }
 
-    @ExperimentalTime
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         setupListeners()
     }
 
-    @ExperimentalTime
     private fun setupListeners() {
         // This listener refresh the current view when the events are updated.
         viewModel.getEvents(requireContext()).observe(viewLifecycleOwner) {
@@ -109,20 +127,13 @@ class CalendarViewerFragment: Fragment() {
             }
         }
 
-        viewModel.calendarMode.observe(viewLifecycleOwner) {
-            if (mode != it) {
-                mode = it
-                refreshDate(viewModel.selectedDate.value!!, false)
-                handleEventsChange(viewModel.getEvents(requireContext()).value)
-            }
-        }
+        preferences.observe(calendarModeObserver)
     }
 
-    @ExperimentalTime
     private fun refreshDate(up: Date, refresh: Boolean = true) {
-        val coeff = when (viewModel.calendarMode.value) {
-            CalendarMode.WEEK -> 7
-            else -> 1
+        val coeff = when (preferences.get(Preference.CALENDAR)) {
+            CalendarMode.default() -> 1
+            else -> 7
         }
 
         val newDate = up.add(Calendar.DAY_OF_YEAR, (position - viewModel.lastPosition.value!!) * coeff)
@@ -146,7 +157,6 @@ class CalendarViewerFragment: Fragment() {
      * @param eventList The event list
      */
 
-    @ExperimentalTime
     fun handleEventsChange(eventList: List<Event>?) {
         if (eventList == null) return
 
@@ -155,11 +165,11 @@ class CalendarViewerFragment: Fragment() {
                 job?.cancel()
                 job = lifecycleScope.launchWhenCreated {
                     val height = (parentFragment as Fragment).view?.findViewById<NestedScrollView>(R.id.scroll_view)?.height ?: 0
-                    when (viewModel.calendarMode.value) {
-                        CalendarMode.WEEK ->
-                            buildWeekView(calendar_container, eventList, height, requireView().width)
-                        else ->
+                    when (preferences.get(Preference.CALENDAR)) {
+                        CalendarMode.default() ->
                             buildDayView(calendar_container, eventList, height, requireView().width)
+                        else ->
+                            buildWeekView(calendar_container, eventList, height, requireView().width)
                     }
                 }
             }
@@ -167,7 +177,6 @@ class CalendarViewerFragment: Fragment() {
     }
 
 
-    @ExperimentalTime
     private suspend fun buildDayView(container: FrameLayout, eventList: List<Event>, height: Int, width: Int) = withContext(
         Dispatchers.Default
     ) {
@@ -203,14 +212,11 @@ class CalendarViewerFragment: Fragment() {
                 if (eventContainer.parent == null) {
                     container.addView(eventContainer)
                 }
-
-                viewModel.calendarMode.value = CalendarMode.DAY
             }
         }
     }
 
 
-    @ExperimentalTime
     private suspend fun buildWeekView(container: FrameLayout, eventList: List<Event>, height: Int, width: Int) = withContext(
         Dispatchers.Default
     ) {
@@ -250,8 +256,6 @@ class CalendarViewerFragment: Fragment() {
                 container.removeAllViews()
                 container.addView(eventContainer)
                 container.requestLayout()
-
-                viewModel.calendarMode.value = CalendarMode.WEEK
             }
         }
     }
@@ -271,7 +275,8 @@ class CalendarViewerFragment: Fragment() {
     ) {
         val hiddenCourses = viewModel.getCoursesVisibility(requireContext()).value
             ?.filter { !it.visible }
-            ?.map { it.title }?.toHashSet() ?: hashSetOf()
+            ?.map { it.title }?.toHashSet()
+            ?: hashSetOf()
 
         eventList.filter { ev ->
             dateFilter(ev)

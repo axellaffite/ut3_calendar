@@ -10,25 +10,7 @@
             app:title="@string/theme"
             android:entryValues="@array/themesAlias"
             android:entries="@array/themes"
-            android:icon="@drawable/ic_theme"
-            android:defaultValue="3"/>
-
-        <PreferenceCategory
-            app:title="@string/dark_theme_bounds_title"
-            android:icon="@drawable/ic_time">
-
-            <EditTextPreference
-                android:key="dark_theme_start"
-                app:title="@string/starting_hour"
-                android:defaultValue="00:00"/>
-
-            <EditTextPreference
-                android:key="dark_theme_end"
-                app:title="@string/ending_hour"
-                android:defaultValue="00:00"/>
-
-        </PreferenceCategory>
-
+            android:icon="@drawable/ic_theme"/>
 
         <SwitchPreference
             android:key="notification"
