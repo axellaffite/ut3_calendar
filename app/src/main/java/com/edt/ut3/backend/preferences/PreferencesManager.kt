@@ -55,8 +55,7 @@ class PreferencesManager(private val context: Context) {
                 value?.let { CalendarMode.fromJson(it) } ?: CalendarMode.default()
 
             Preference.THEME -> {
-                val selected = value?.let { ThemePreference.valueOf(it) } ?: ThemePreference.SMARTPHONE
-                guessTheme(selected)
+                value?.let { ThemePreference.valueOf(it) } ?: ThemePreference.SMARTPHONE
             }
 
             Preference.NOTIFICATION ->
@@ -82,6 +81,8 @@ class PreferencesManager(private val context: Context) {
     fun setupTheme() {
         val preference = get(Preference.THEME)
 
+        Log.d(this::class.simpleName, "Setting up $preference theme")
+
         when (preference) {
             ThemePreference.SMARTPHONE -> setDefaultNightMode(MODE_NIGHT_FOLLOW_SYSTEM)
             ThemePreference.DARK -> setDefaultNightMode(MODE_NIGHT_YES)
@@ -89,7 +90,12 @@ class PreferencesManager(private val context: Context) {
         }
     }
 
-    fun guessTheme(pref: ThemePreference) : Theme {
+    fun currentTheme() : Theme {
+        val themePreference = get(Preference.THEME) as ThemePreference
+        return guessTheme(themePreference)
+    }
+
+    private fun guessTheme(pref: ThemePreference) : Theme {
         return when (pref) {
             ThemePreference.DARK -> Theme.DARK
             ThemePreference.LIGHT -> Theme.LIGHT

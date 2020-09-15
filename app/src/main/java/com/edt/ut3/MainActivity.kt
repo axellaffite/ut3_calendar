@@ -1,5 +1,6 @@
 package com.edt.ut3
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View.GONE
 import android.view.View.VISIBLE
@@ -12,11 +13,19 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
 
+    private val themeListener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+        if (key == "theme") {
+            PreferencesManager(this).setupTheme()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        PreferencesManager(this).setupTheme()
+        PreferencesManager(this).apply {
+            observe(themeListener)
+            setupTheme()
+        }
 
 
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
