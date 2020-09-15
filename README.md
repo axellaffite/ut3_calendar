@@ -1,4 +1,4 @@
-# Calendrier UT3 (Anciennement EDT UT3) ![Logo](https://github.com/axellaffite/ut3_calendar/blob/master/logo/ic_launcher/res/mipmap-mdpi/ic_launcher.jpg?raw=true)
+# Calendrier UT3 (Anciennement EDT UT3) ![Logo](https://github.com/axellaffite/ut3_calendar/blob/master/logo/ic_launcher/res/mipmap-mdpi/ic_launcher.png?raw=true)
 
 Cette application permet de consulter le calendrier Celcat de l'université Paul Sabatier directement sur votre téléphone.  
 Disponible pour Android --> [ici](https://play.google.com/store/apps/details?id=com.edt.ut3&hl=ln) <-- !
