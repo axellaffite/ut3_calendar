@@ -30,8 +30,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.observe
 import com.edt.ut3.R
 import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.backend.requests.Place
 import com.edt.ut3.misc.hideKeyboard
-import com.edt.ut3.ui.map.SearchPlaceAdapter.Place
 import com.edt.ut3.ui.map.custom_makers.LocationMarker
 import com.edt.ut3.ui.map.custom_makers.PlaceMarker
 import com.edt.ut3.ui.preferences.Theme
@@ -44,7 +44,6 @@ import kotlinx.android.synthetic.main.fragment_maps.*
 import kotlinx.android.synthetic.main.fragment_maps.view.*
 import kotlinx.android.synthetic.main.place_info.view.*
 import kotlinx.coroutines.Dispatchers.Default
-import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -55,6 +54,7 @@ import org.osmdroid.tileprovider.tilesource.XYTileSource
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Overlay
 import org.osmdroid.views.overlay.TilesOverlay
 import java.io.File
@@ -65,16 +65,16 @@ class MapsFragment : Fragment() {
 
     enum class State { MAP, SEARCHING, PLACE }
     private var selectedPlace: Place? = null
-    private var state = MutableLiveData<State>(State.MAP)
+    private var selectedPlaceMarker: PlaceMarker? = null
+    private var state = MutableLiveData(State.MAP)
 
     private val viewModel: MapsViewModel by viewModels { defaultViewModelProviderFactory }
-
 
     private var searchJob : Job? = null
     private var downloadJob : Job? = null
 
     private val selectedCategories = HashSet<String>()
-    private var places = mutableMapOf<String, MutableList<Place>>()
+    private val places = mutableListOf<Place>()
 
     override fun onPause() {
         super.onPause()
@@ -156,6 +156,7 @@ class MapsFragment : Fragment() {
             val overlay = object: Overlay() {
                 override fun onSingleTapConfirmed(e: MotionEvent?, mapView: MapView?): Boolean {
                     state.value = State.MAP
+                    selectedPlaceMarker?.closeInfoWindow()
 
                     return super.onSingleTapConfirmed(e, mapView)
                 }
@@ -200,6 +201,7 @@ class MapsFragment : Fragment() {
         val listener = object: LocationListener {
             override fun onLocationChanged(p0: Location) {
                 view?.let {
+                    it.map.overlays.removeAll { it is LocationMarker }
                     it.map.overlays.add(LocationMarker(it.map).apply {
                         title = "position"
                         position = GeoPoint(p0)
@@ -269,6 +271,10 @@ class MapsFragment : Fragment() {
                 smoothMoveTo(me.position)
             }
         }
+
+        viewModel.getPlaces(requireContext()).observe(viewLifecycleOwner) { newPlaces ->
+            setupCategoriesAndPlaces(newPlaces)
+        }
     }
 
     private fun executeIfLocationPermissionIsGranted(callback: () -> Unit) {
@@ -323,21 +329,16 @@ class MapsFragment : Fragment() {
 
             // We then filter the result and assign them to a variable
             val matchingPlaces = withContext(Default) {
-                // Filtering the keys to keep only the ones that matches
+                // Filtering the places to keep only the ones that matches
                 // the selected categories.
-                // If no category is selected the Map is kept as it.
-                val searchingMap = if (selectedCategories.isEmpty()) {
-                    places
-                } else {
-                    places.filterKeys { selectedCategories.contains(it) }
-                }
+                // If no category is selected the list is kept as it.
+                val searchingList = if (selectedCategories.isNotEmpty()) {
+                    places.filter { selectedCategories.contains(it.type) }
+                } else { places }
 
-                // We then flat map every values for every remaining keys
-                // to obtain them in a single Collection
                 // After that, we keep only the ones that contains the
-                // search bar text and return them
-                searchingMap.
-                    flatMap { it.value }
+                // search bar text in their title and return them
+                searchingList
                     .filter { it.title.toLowerCase(Locale.getDefault()).contains(lowerCaseText) }
                     .toTypedArray()
             }
@@ -397,73 +398,30 @@ class MapsFragment : Fragment() {
             return
         }
 
-        var newPlaces = mutableMapOf<String, MutableList<Place>>()
-
         // Assign the downloadJob to the new operation
         downloadJob = lifecycleScope.launchWhenResumed {
-            // The error variable will store the last exception
-            // encountered and the errorCount the number
-            // of exceptions encountered.
-            // There are 4 cases after the two downloads :
-            // - errorCount = 0 : There are no error, we can
-            //                    display a success message
-            // - errorCount = 1 : The Paul Sabatier places aren't
-            //                    available, the internet connection
-            //                    seems to be good as the second download
-            //                    is a success, we check if it's a parsing
-            //                    error or a timeout error.
-            // - errorCount = 2 : Same logic as =1 but for the Crous places.
-            // - errorCount = 3 : The internet connection does not seem to work,
-            //                    we display an error message saying to check it.
-            var error: Exception? = null
-            var errorCount = 0
-
-
-            // First download for Paul Sabatier places
-            // (from our github)
-            try {
-                newPlaces = withContext(IO) {
-                    viewModel.getPaulSabatierPlaces()
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                error = e
-                errorCount += 1
+            withContext(Main) {
+                Snackbar.make(maps_main, R.string.data_update, Snackbar.LENGTH_SHORT).show()
             }
 
-            // Second download for Crous places
-            // (from the government website)
-            try {
-                val temp = withContext(IO) {
-                    viewModel.getCrousPlaces()
-                }
-
-                temp.forEach { entry ->
-                    newPlaces.getOrPut(entry.key) { mutableListOf() }.addAll(entry.value)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                error = e
-                errorCount += 2
-            }
+            val downloadResult = viewModel.launchDataUpdate(requireContext())
 
             // This callback will hold the callback action.
             // We put it in a variable to avoid duplicate code
             // as the code must be use in a post {} function
             // of the main view (to avoid view nullability and things like that)
             val callback : () -> Unit
-            when (errorCount) {
+            when (downloadResult.errorCount) {
                 // Display success message
                 0 -> callback = {
                     Snackbar.make(maps_main, R.string.maps_update_success, Snackbar.LENGTH_LONG)
                         .show()
-                    setupCategoriesAndPlaces(newPlaces)
                 }
 
                 // Display an error message depending on
                 // what type of error it is
                 1 -> callback = {
-                    val errRes = when (error) {
+                    val errRes = when (downloadResult.error) {
                         is JSONException -> R.string.building_data_invalid
                         else -> R.string.building_update_failed
                     }
@@ -473,14 +431,12 @@ class MapsFragment : Fragment() {
                             startDownloadJob()
                         }
                         .show()
-
-                    setupCategoriesAndPlaces(newPlaces)
                 }
 
                 // Display an error message depending on
                 // what type of error it is
                 2 -> callback = {
-                    val errRes = when (error) {
+                    val errRes = when (downloadResult.error) {
                         is JSONException -> R.string.restaurant_data_invalid
                         else -> R.string.restaurant_update_failed
                     }
@@ -490,8 +446,6 @@ class MapsFragment : Fragment() {
                             startDownloadJob()
                         }
                         .show()
-
-                    setupCategoriesAndPlaces(newPlaces)
                 }
 
                 // Display an internet error message
@@ -505,16 +459,18 @@ class MapsFragment : Fragment() {
             }
 
             // Calling the callback.
-            Log.d(this::class.simpleName, "Download result: $errorCount ${error?.javaClass?.simpleName}")
+            Log.d(this::class.simpleName, downloadResult.toString())
             maps_main?.post(callback)
         }
     }
 
-    private fun setupCategoriesAndPlaces(incomingPlaces: MutableMap<String, MutableList<Place>>) {
-        places = incomingPlaces
+    private fun setupCategoriesAndPlaces(incomingPlaces: List<Place>) {
+        places.clear()
+        places.addAll(incomingPlaces)
         filters_group.post {
             filters_group.run {
-                incomingPlaces.keys.forEach { category ->
+                val categories = places.map { it.type }.toHashSet()
+                categories.forEach { category ->
                     addView(
                         Chip(requireContext()).apply {
                             setChipDrawable(
@@ -563,39 +519,40 @@ class MapsFragment : Fragment() {
     }
 
     private fun refreshPlaces() {
+        val placesToShow = if (selectedCategories.isNotEmpty()) {
+            places.filter { it.type in selectedCategories }
+        } else { places }
+
+
+        map.overlays.forEach { if (it is Marker) { it.closeInfoWindow() } }
         map.overlays.removeAll { it is PlaceMarker }
+        addPlacesOnMap(placesToShow)
 
-        val categories = if (selectedCategories.isEmpty()) {
-            places.keys
-        } else {
-            selectedCategories
-        }
-
-
-        categories.forEach {
-            addPlacesOnMap(it)
-        }
+        map.invalidate()
+        map.requestLayout()
     }
 
-    private fun addPlacesOnMap(category: String) {
-        places[category]?.let { results ->
-            results.forEach { curr ->
-                map.overlays.add(
-                    PlaceMarker(map, curr.copy()).apply {
-                        onLongClickListener = {
-                            selectedPlace = place
-                            state.value = State.PLACE
-                            true
-                        }
+    private fun addPlacesOnMap(places: List<Place>) {
+        places.forEach { curr ->
+            map.overlays.add(
+                PlaceMarker(map, curr.copy()).apply {
+                    onLongClickListener = {
+                        selectedPlace = place
+                        state.value = State.PLACE
+                        true
                     }
-                )
-            }
+                }
+            )
         }
     }
 
     private fun handleStateChange(state: State) {
         when (state) {
-            State.MAP -> foldEverything()
+            State.MAP -> {
+                foldEverything()
+                refreshPlaces()
+                selectedPlaceMarker = null
+            }
 
             State.SEARCHING -> unfoldSearchTools()
 
@@ -639,20 +596,16 @@ class MapsFragment : Fragment() {
             place_info.descriptionText = selected.short_desc ?: getString(R.string.no_description_available)
             place_info.picture = selected.photo
             place_info.go_to.setOnClickListener {
-                val locationMarker = map.overlays.find { it is LocationMarker } as? LocationMarker
-                locationMarker?.let { me ->
-                    lifecycleScope.launchWhenResumed {
-                        routeFromTo(me.position, GeoPoint(selected.geolocalisation), selected.title)
-                    }
-                } ?: {
-
-                }()
+                val me = map.overlays.find { it is LocationMarker } as LocationMarker?
+                routeFromTo(me?.position, GeoPoint(selected.geolocalisation), selected.title)
             }
 
             map.overlays.removeAll { marker -> marker is PlaceMarker }
             map.overlays.add(
                 PlaceMarker(map, selected).also { marker ->
                     marker.showInfoWindow()
+                }.also {
+                    selectedPlaceMarker = it
                 }
             )
 
@@ -673,12 +626,15 @@ class MapsFragment : Fragment() {
         map.controller.animateTo(position, zoom, ms)
     }
 
-    private fun routeFromTo(from: GeoPoint, to: GeoPoint, toTitle: String) {
-        val requestLink = ("https://www.google.com/maps/dir/?api=1" +
-                "&origin=${from.latitude.toFloat()},${from.longitude.toFloat()}" +
+    private fun routeFromTo(from: GeoPoint?, to: GeoPoint, toTitle: String) {
+        var requestLink = ("https://www.google.com/maps/dir/?api=1" +
                 "&destination=${to.latitude.toFloat()},${to.longitude.toFloat()}" +
                 "&destination_place_id=$toTitle" +
                 "&travelmode=walking")
+
+        from?.run {
+            requestLink += "&origin=${latitude.toFloat()},${longitude.toFloat()}"
+        }
 
         // Create a Uri from an intent string. Use the result to create an Intent.
         val gmmIntentUri = Uri.parse(requestLink)

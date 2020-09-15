@@ -55,4 +55,5 @@
     <string name="smartphone_theme">Thème du smartphone</string>
     <string name="no_reminder_set">"Pas de rappel définit "</string>
     <string name="empty_day">Rien à signaler pour ce jour ! %s</string>
+    <string name="data_update">Mise à jour des données..</string>
 </resources>

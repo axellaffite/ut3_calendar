@@ -7,6 +7,7 @@ import com.edt.ut3.misc.toList
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import org.osmdroid.util.GeoPoint
 import java.util.*
 
 class Converter {
@@ -40,5 +41,19 @@ class Converter {
         (it as JSONObject).run {
             Picture(picture = getString("picture"), thumbnail = getString("thumbnail"))
         }
+    }
+
+    @TypeConverter
+    fun serializeGeoPoint(geoPoint: GeoPoint) = JSONObject().apply {
+        put("lat", geoPoint.latitude)
+        put("lon", geoPoint.longitude)
+    }.toString()
+
+    @TypeConverter
+    fun deserializeGeoPoint(str: String) = GeoPoint(0.0,0.0).apply {
+        JSONObject(str).run {
+            latitude = getDouble("lat")
+            longitude = getDouble("lon")
+        }.toString()
     }
 }

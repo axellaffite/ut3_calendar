@@ -1,60 +1,103 @@
 package com.edt.ut3.ui.map
 
+import android.content.Context
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
+import com.edt.ut3.backend.database.viewmodels.PlaceViewModel
 import com.edt.ut3.backend.requests.MapsServices
-import com.edt.ut3.misc.forEach
-import kotlinx.coroutines.Dispatchers.Default
+import com.edt.ut3.backend.requests.Place
+import com.edt.ut3.misc.map
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
-import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
 class MapsViewModel: ViewModel() {
-    val crousPlaces = mutableMapOf<String, MutableList<SearchPlaceAdapter.Place>>()
-    val paulSabatierPlaces = mutableMapOf<String, MutableList<SearchPlaceAdapter.Place>>()
+    lateinit var places : LiveData<List<Place>>
 
 
-    @Throws(IOException::class, JSONException::class)
     @Synchronized
-    suspend fun getCrousPlaces() : MutableMap<String, MutableList<SearchPlaceAdapter.Place>> {
-        return withContext(Default) {
-            if (crousPlaces.isEmpty()) {
-                val result = withContext(IO) {
-                    val body = MapsServices().getCrousPlaces().body?.string() ?: throw IOException()
-                    JSONObject(body).getJSONArray("records")
-                }
+    fun getPlaces(context: Context) : LiveData<List<Place>> {
+        if (!this@MapsViewModel::places.isInitialized) {
+            places = PlaceViewModel(context).selectAllLD()
+        }
 
-                withContext(Default) {
-                    result.forEach { entry ->
-                        val place = SearchPlaceAdapter.Place.fromJSON(entry as JSONObject)
-                        crousPlaces.getOrPut(place.type) { mutableListOf() }.add(place)
-                    }
+        return places
+    }
+
+
+    /**
+     * The error variable will store the last exception
+     * encountered and the errorCount the number
+     * of exceptions encountered.
+     * There are 4 cases after the two downloads :
+     * - errorCount = 0 : There are no error, we can
+     *                    display a success message
+     * - errorCount = 1 : The Paul Sabatier places aren't
+     *                    available, the internet connection
+     *                    seems to be good as the second download
+     *                    is a success, we check if it's a parsing
+     *                    error or a timeout error.
+     * - errorCount = 2 : Same logic as =1 but for the Crous places.
+     * - errorCount = 3 : The internet connection does not seem to work,
+     *                    we display an error message saying to check it.
+     */
+    suspend fun launchDataUpdate(context: Context) : DownloadResult {
+
+        var error: Exception? = null
+        var errorCount = 0
+
+        val newPlaces = mutableListOf<Place>()
+
+        // First download for Paul Sabatier places
+        // (from our github)
+        try {
+            val paulSabatierPlaces = withContext(IO) {
+                val body = MapsServices().getPaulSabatierPlaces().body?.string() ?: throw IOException()
+                JSONObject(body).getJSONArray("records")
+            }.map {
+                with (it as JSONObject) {
+                    Place.fromJSON(this)
                 }
             }
 
-            crousPlaces
+            newPlaces.addAll(paulSabatierPlaces)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            error = e
+            errorCount += 1
         }
-    }
 
-    @Throws(IOException::class, JSONException::class)
-    suspend fun getPaulSabatierPlaces() : MutableMap<String, MutableList<SearchPlaceAdapter.Place>> {
-        return withContext(Default) {
-            if (paulSabatierPlaces.isEmpty()) {
-                val result = withContext(IO) {
-                    val body = MapsServices().getPaulSabatierPlaces().body?.string() ?: throw IOException()
-                    JSONObject(body).getJSONArray("records")
-                }
 
-                withContext(Default) {
-                    result.forEach { entry ->
-                        val place = SearchPlaceAdapter.Place.fromJSON(entry as JSONObject)
-                        paulSabatierPlaces.getOrPut(place.type) { mutableListOf() }.add(place)
-                    }
+        // Second download for Crous places
+        // (from the government website)
+        try {
+            val crousPlaces = withContext(IO) {
+                val body = MapsServices().getCrousPlaces().body?.string() ?: throw IOException()
+                JSONObject(body).getJSONArray("records")
+            }.map {
+                with (it as JSONObject) {
+                    Place.fromJSON(this)
                 }
             }
 
-            paulSabatierPlaces
+            newPlaces.addAll(crousPlaces)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            error = e
+            errorCount += 2
+        }
+
+
+        PlaceViewModel(context).insert(*newPlaces.toTypedArray())
+
+        return DownloadResult(errorCount, error)
+    }
+
+    class DownloadResult(val errorCount: Int, val error: Exception?) {
+        override fun toString(): String {
+            return "DownloadResult: Error count=$errorCount, Error type= ${error?.javaClass?.simpleName}"
         }
     }
+
 }

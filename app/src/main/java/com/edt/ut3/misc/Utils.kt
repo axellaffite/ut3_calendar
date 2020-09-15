@@ -9,6 +9,7 @@ import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.Fragment
 import org.json.JSONArray
 import org.json.JSONException
+import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -100,6 +101,12 @@ fun JSONArray.forEach(consumer: (Any?) -> Unit) {
     (0 until length()).forEach {
         consumer(get(it))
     }
+}
+
+@Suppress("UNCHECKED_CAST")
+fun<T> JSONObject.realOpt(key: String): T? {
+    return if (isNull(key)) { null }
+    else { get(key) as T }
 }
 
 fun String.fromHTML() : String {

@@ -2,12 +2,13 @@ package com.edt.ut3.ui.map.custom_makers
 
 import android.view.MotionEvent
 import androidx.core.content.ContextCompat
-import com.edt.ut3.ui.map.SearchPlaceAdapter.Place
+import com.edt.ut3.backend.requests.Place
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 
 class PlaceMarker(map: MapView, val place: Place): Marker(map) {
     var onLongClickListener : (() -> Boolean)? = null
+    var onReClickListener : (() -> Boolean)? = null
 
     init {
         icon = ContextCompat.getDrawable(map.context, place.getIcon())
