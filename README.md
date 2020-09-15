@@ -1,4 +1,4 @@
-# Calendrier UT3 (Anciennement EDT UT3) ![Logo](https://github.com/axellaffite/ut3_calendar/blob/master/logo/ic_launcher/res/mipmap-mdpi/ic_launcher.png?raw=true)
+# Calendrier UT3 (Anciennement EDT UT3) ![Logo](https://github.com/axellaffite/ut3_calendar/blob/master/logo/ic_launcher/res/mipmap-mdpi/ic_launcher.jpg?raw=true)
 
 Cette application permet de consulter le calendrier Celcat de l'université Paul Sabatier directement sur votre téléphone.  
 Disponible pour Android --> [ici](https://play.google.com/store/apps/details?id=com.edt.ut3&hl=ln) <-- !
@@ -29,7 +29,7 @@ Le calendrier (et l'application en général) dispose d'un thème sombre et d'un
 
    Theme Clair   |   Theme sombre
 :---------------:|:-----------------:
-<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_white.png" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_dark.png" height="600" alt="Theme sombre">
+<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_dark.jpg" height="600" alt="Theme sombre">
 
 Les événements sont maintenant disposés côte à côte lorsque qu'ils sont à la même heure ou bien qu'ils se chevauchent.  
 Cela évite donc les "multi-event" utilisés dans l'ancienne version qui demandaient de cliquer dessus puis de traverser les différents événement pour réellement voir quels étaient les cours. Ceci est rendu possible grâce à la librarie [Yoda](https://github.com/axellaffite/yoda), codée pour ce projet.  
@@ -37,8 +37,8 @@ Cela évite donc les "multi-event" utilisés dans l'ancienne version qui demanda
 
    Theme Clair   |   Theme sombre
 :---------------:|:-----------------:
-<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_evenements_white.png" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_evenements_dark.png" height="600" alt="Theme sombre">
-<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_evenements_white_week.png" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_evenements_dark_week.png" height="600" alt="Theme sombre">
+<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_evenements_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_evenements_dark.jpg" height="600" alt="Theme sombre">
+<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_evenements_white_week.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_evenements_dark_week.jpg" height="600" alt="Theme sombre">
 
 
 Lors d'un clic sur un événement un fragment souvre par le bas, affichant les détails et la note associée à cet événement (s'il y en a une).  
@@ -46,13 +46,13 @@ Ce fragment permet par ailleurs de prendre des photos qui seront associées à l
 
    Theme Clair   |   Theme sombre
 :---------------:|:-----------------:
-<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/event_details_white.png" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/event_details_dark.png" height="600" alt="Theme sombre">
+<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/event_details_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/event_details_dark.jpg" height="600" alt="Theme sombre">
 
 
 Les matières peuvent être cachées. Il suffit de cliquer sur l'icône en forme d'oeil que l'on voit dans la barre d'action en haut pour que la page de sélection apparaisse.  
    Theme Clair   |   Theme sombre
 :---------------:|:-----------------:
-<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/visibilite_cours_white.png" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/visibilite_cours_dark.png" height="600" alt="Theme sombre">
+<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/visibilite_cours_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/visibilite_cours_dark.jpg" height="600" alt="Theme sombre">
 
 
 ### Trouver une salle
@@ -65,8 +65,8 @@ La version web se trouve --> [ICI](https://rooms-finder.goulin.fr/) <--
 
    Theme Clair   |   Theme sombre
 :---------------:|:-----------------:
-<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/find_a_room_loading_white.png" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/find_a_room_loading_dark.png" height="600" alt="Theme sombre">
-<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/find_a_room_white.png" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/find_a_room_dark.png" height="600" alt="Theme sombre">
+<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/find_a_room_loading_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/find_a_room_loading_dark.jpg" height="600" alt="Theme sombre">
+<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/find_a_room_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/find_a_room_dark.jpg" height="600" alt="Theme sombre">
 
 L'API retenue a finalement été OSMDroid qui utilise OpenStreeMap.
 Pour la recherche de chemin, cela se fera via un Intent Google Maps.
@@ -75,8 +75,8 @@ Pour la recherche de chemin, cela se fera via un Intent Google Maps.
 
    Theme Clair   |   Theme sombre
 :---------------:|:-----------------:
-<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/maps_white.png" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/maps_dark.png" height="600" alt="Theme sombre">
-<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/maps_choices_white.png" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/maps_choices_dark.png" height="600" alt="Theme sombre">
+<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/maps_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/maps_dark.jpg" height="600" alt="Theme sombre">
+<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/maps_choices_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/maps_choices_dark.jpg" height="600" alt="Theme sombre">
 
 L'API retenue a finalement été OSMDroid qui utilise OpenStreeMap.
 Pour la recherche de chemin, cela se fera via un Intent Google Maps.
@@ -85,7 +85,7 @@ Pour la recherche de chemin, cela se fera via un Intent Google Maps.
 
    Theme Clair   |   Theme sombre
 :---------------:|:-----------------:
-<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/preferences_white.png" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/preferences_dark.png" height="600" alt="Theme sombre">
+<img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/preferences_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/preferences_dark.jpg" height="600" alt="Theme sombre">
 
 
 Les différentes options qui s'offrent maintenant à l'utilisateur sont :  
