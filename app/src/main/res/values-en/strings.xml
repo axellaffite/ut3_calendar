@@ -54,4 +54,5 @@
     <string name="building_search">Select a building</string>
     <string name="no_reminder_set">"No reminder set "</string>
     <string name="empty_day">Nothing to report for this day ! %s</string>
+    <string name="data_update">Updating data..</string>
 </resources>
