@@ -2,7 +2,7 @@ package com.edt.ut3.ui.map.custom_makers
 
 import android.view.MotionEvent
 import androidx.core.content.ContextCompat
-import com.edt.ut3.backend.requests.Place
+import com.edt.ut3.backend.maps.Place
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 

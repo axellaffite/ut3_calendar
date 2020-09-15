@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.edt.ut3.backend.database.viewmodels.PlaceViewModel
+import com.edt.ut3.backend.maps.Place
 import com.edt.ut3.backend.requests.MapsServices
-import com.edt.ut3.backend.requests.Place
 import com.edt.ut3.misc.map
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext

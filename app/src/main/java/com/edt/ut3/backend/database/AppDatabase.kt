@@ -11,8 +11,8 @@ import com.edt.ut3.backend.database.daos.CourseDao
 import com.edt.ut3.backend.database.daos.EventDao
 import com.edt.ut3.backend.database.daos.NoteDao
 import com.edt.ut3.backend.database.daos.PlaceDao
+import com.edt.ut3.backend.maps.Place
 import com.edt.ut3.backend.note.Note
-import com.edt.ut3.backend.requests.Place
 
 @Database(entities = [Note::class, Event::class, Course::class, Place::class], version = 2, exportSchema = false)
 @TypeConverters(Converter::class)

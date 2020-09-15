@@ -2,7 +2,7 @@ package com.edt.ut3.backend.database.daos
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import com.edt.ut3.backend.requests.Place
+import com.edt.ut3.backend.maps.Place
 
 @Dao
 interface PlaceDao {

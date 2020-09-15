@@ -1,4 +1,4 @@
-package com.edt.ut3.backend.requests
+package com.edt.ut3.backend.maps
 
 import androidx.room.Entity
 import androidx.room.TypeConverters

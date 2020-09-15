@@ -3,7 +3,7 @@ package com.edt.ut3.backend.database.viewmodels
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import com.edt.ut3.backend.database.AppDatabase
-import com.edt.ut3.backend.requests.Place
+import com.edt.ut3.backend.maps.Place
 
 class PlaceViewModel(context: Context): ViewModel() {
 
