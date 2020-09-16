@@ -12,6 +12,8 @@ class BetterNestedScrollView(context: Context, attributeSet: AttributeSet? = nul
     private var downX = 0
     private var downY = 0
 
+    var onScrollChangeListeners = mutableListOf<(x: Int, y: Int, oldX: Int, oldY: Int) -> Unit>()
+
 
     override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
         return when (event.action) {
@@ -31,6 +33,12 @@ class BetterNestedScrollView(context: Context, attributeSet: AttributeSet? = nul
 
             else -> { super.onInterceptTouchEvent(event) }
         }
+    }
+
+    override fun onScrollChanged(x: Int, y: Int, oldX: Int, oldY: Int) {
+        onScrollChangeListeners.forEach { it.invoke(x, y, oldX, oldY) }
+
+        super.onScrollChanged(x, y, oldX, oldY)
     }
 
 }

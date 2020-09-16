@@ -10,7 +10,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.LinearLayout
-import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -160,8 +159,8 @@ class CalendarFragment : Fragment(),
         // This listener is in charge to listen to the
         // AppBar offset in order to hide things when
         // necessary ( such as the refresh buttons and the action bar ).
-        view?.scroll_view?.setOnScrollChangeListener { _: NestedScrollView, x: Int, y: Int, oX: Int, oY: Int ->
-            hideRefreshWhenNecessary(oY)
+        view?.scroll_view?.onScrollChangeListeners?.add { _: Int, y: Int, _: Int, _: Int ->
+            hideRefreshWhenNecessary(y)
         }
 
         // Force the Updater to perform an update
