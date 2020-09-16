@@ -15,6 +15,7 @@ import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
 import androidx.preference.PreferenceFragmentCompat
 import com.edt.ut3.R
+import com.edt.ut3.backend.background_services.Updater
 import com.edt.ut3.backend.preferences.PreferencesManager
 
 class PreferencesFragment: PreferenceFragmentCompat() {
@@ -94,6 +95,8 @@ class PreferencesFragment: PreferenceFragmentCompat() {
             set(PreferencesManager.Preference.GROUPS, fids)
             set(PreferencesManager.Preference.LINK, baseLink)
         }
+
+        Updater.forceUpdate(requireContext(), true)
 
         return true
     }

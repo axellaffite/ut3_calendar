@@ -61,8 +61,10 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
          * @param viewLifecycleOwner The fragment's viewLifeCycleOwner which will observe the Worker *optional*
          * @param observer An observer *optional*
          */
-        fun forceUpdate(context: Context, viewLifecycleOwner: LifecycleOwner? = null, observer: Observer<WorkInfo>? = null) {
-            val worker = OneTimeWorkRequestBuilder<Updater>().build()
+        fun forceUpdate(context: Context, firstUpdate : Boolean = false, viewLifecycleOwner: LifecycleOwner? = null, observer: Observer<WorkInfo>? = null) {
+            val inputData = Data.Builder().putBoolean("firstUpdate", firstUpdate).build()
+
+            val worker = OneTimeWorkRequestBuilder<Updater>().setInputData(inputData).build()
             WorkManager.getInstance(context).let {
                 it.enqueueUniqueWork("event_update_force", ExistingWorkPolicy.KEEP, worker)
 
@@ -78,6 +80,8 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
 
     override suspend fun doWork(): Result = coroutineScope {
         setProgress(workDataOf(Progress to 0))
+
+        val firstUpdate = inputData.getBoolean("firstUpdate", false)
 
         var result = Result.success()
         try {
@@ -98,7 +102,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
             val eventsJSONArray = withContext(IO) {
                 JSONArray(
                 CelcatService()
-                        .getEvents(link, groups)
+                        .getEvents(firstUpdate, link, groups)
                         .body
                         ?.string()
                         ?: throw IOException()

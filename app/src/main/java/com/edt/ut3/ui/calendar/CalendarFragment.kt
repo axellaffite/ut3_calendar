@@ -206,7 +206,7 @@ class CalendarFragment : Fragment(),
      *
      */
     private fun forceUpdate() {
-        Updater.forceUpdate(requireContext(), viewLifecycleOwner, { workInfo ->
+        Updater.forceUpdate(requireContext(), false, viewLifecycleOwner, { workInfo ->
             workInfo?.run {
                 when (state) {
                     WorkInfo.State.FAILED -> {

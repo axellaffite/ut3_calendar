@@ -2,6 +2,7 @@ package com.edt.ut3.backend.requests
 
 import android.util.Log
 import com.edt.ut3.misc.add
+import com.edt.ut3.misc.minus
 import com.edt.ut3.misc.timeCleaned
 import com.edt.ut3.misc.toCelcatDateStr
 import kotlinx.coroutines.Dispatchers.IO
@@ -17,16 +18,20 @@ import java.util.*
 class CelcatService {
 
     @Throws(IOException::class)
-    suspend fun getEvents(link: String, formations: List<String>): Response = withContext(IO) {
+    suspend fun getEvents(firstUpdate: Boolean, link: String, formations: List<String>): Response = withContext(IO) {
         val today = Date().timeCleaned()
 
         val body = RequestsUtils.EventBody().apply {
-                add("start", (today).toCelcatDateStr())
-                add("end", (today.add(Calendar.YEAR, 1)).toCelcatDateStr())
-                formations.forEach {
-                    add("federationIds%5B%5D", it)
-                }
-            }.build()
+            val startDate =
+                if (firstUpdate) { today.minus(Calendar.YEAR, 1) }
+                else { today }
+
+            add("start", (startDate).toCelcatDateStr())
+            add("end", (today.add(Calendar.YEAR, 1)).toCelcatDateStr())
+            formations.forEach {
+                add("federationIds%5B%5D", it)
+            }
+        }.build()
 
         Log.d("CELCAT_SERVICE", "Request body: $body")
 
