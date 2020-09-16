@@ -12,7 +12,6 @@ import android.widget.EditText
 import androidx.core.net.toUri
 import androidx.core.widget.doOnTextChanged
 import androidx.preference.EditTextPreference
-import androidx.preference.ListPreference
 import androidx.preference.PreferenceFragmentCompat
 import com.edt.ut3.R
 import com.edt.ut3.backend.background_services.Updater
@@ -48,19 +47,6 @@ class PreferencesFragment: PreferenceFragmentCompat() {
     }
 
     private fun setupListeners() {
-        val list = findPreference<ListPreference>("theme")
-        list?.run {
-            setOnPreferenceChangeListener { preference, newValue ->
-                val index = findIndexOfValue(newValue.toString())
-                val possibleChoices = ThemePreference.values()
-                val choice = possibleChoices[index.coerceAtMost(possibleChoices.lastIndex)]
-
-                PreferencesManager(context).setupTheme()
-
-                true
-            }
-        }
-
         findPreference<EditTextPreference>("section")?.let { editText ->
             editText.setOnBindEditTextListener(EditTextListener(requireContext()))
             editText.setOnPreferenceChangeListener { _, link -> setSections(link as String) }
@@ -104,7 +90,7 @@ class PreferencesFragment: PreferenceFragmentCompat() {
     private class EditTextListener(private var context: Context): EditTextPreference.OnBindEditTextListener {
         override fun onBindEditText(editText: EditText) {
             editText.doOnTextChanged { text, _, _, _ ->
-                var valid: Boolean
+                val valid: Boolean
                 valid = try {
                     val baseLinkFinder = Regex("(.*)/cal.*")
                     val baseLink = baseLinkFinder.find(text.toString())?.value

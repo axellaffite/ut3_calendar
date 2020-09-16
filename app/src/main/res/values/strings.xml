@@ -56,4 +56,9 @@
     <string name="no_reminder_set">"Pas de rappel définit "</string>
     <string name="empty_day">Rien à signaler pour ce jour ! %s</string>
     <string name="data_update">Mise à jour des données..</string>
+    <string name="reminder_none">Pas de rappel</string>
+    <string name="reminder_fifteen">15 minutes avant</string>
+    <string name="reminder_thirty">30 minutes avant</string>
+    <string name="reminder_hour">1 heure avant</string>
+    <string name="reminder_custom">Personnalisé</string>
 </resources>

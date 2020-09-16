@@ -1,12 +1,15 @@
 package com.edt.ut3.ui.calendar.event_details
 
 import android.Manifest
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
+import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -22,8 +25,11 @@ import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.AppDatabase
 import com.edt.ut3.backend.database.viewmodels.NotesViewModel
 import com.edt.ut3.backend.note.Note
+import com.edt.ut3.backend.note.Note.Reminder.ReminderType
 import com.edt.ut3.backend.note.Picture
 import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.misc.set
+import com.edt.ut3.misc.setTime
 import com.edt.ut3.ui.calendar.CalendarViewModel
 import com.edt.ut3.ui.custom_views.image_preview.ImagePreviewAdapter
 import com.edt.ut3.ui.preferences.Theme
@@ -48,6 +54,7 @@ class FragmentEventDetails : Fragment() {
 
     private var pictureFile: File? = null
     private var pictureName: String? = null
+
 
     /**
      * Used to launch an Intent that will take
@@ -215,6 +222,41 @@ class FragmentEventDetails : Fragment() {
         // to the current note.
         viewModel.selectedEventNote = note
         pictures.notifyDataSetChanged()
+
+        // The adapter is an extension of the ArrayAdapter class.
+        // It's made like this to override the getView() function
+        // in order to remove the left and right padding of the
+        // spinner.
+        val adapterValues = ReminderType.values().map { getString(reminderText(it)) }
+        reminder_spinner.adapter = object: ArrayAdapter<String>(requireContext(), android.R.layout.simple_list_item_1, adapterValues) {
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                return super.getView(position, convertView, parent).apply {
+                    setPadding(0, paddingTop, 0, paddingBottom)
+                }
+            }
+        }
+        updateReminderSpinner()
+    }
+
+    /**
+     * Returns the textual representation
+     * (from strings.xml, not .toString())
+     * of the given ReminderType.
+     *
+     * @param type The reminder type to convert
+     * @return Its textual representation
+     */
+    private fun reminderText(type: ReminderType): Int = when (type) {
+        ReminderType.NONE -> R.string.reminder_none
+        ReminderType.FIFTEEN_MINUTES -> R.string.reminder_fifteen
+        ReminderType.THIRTY_MINUTES -> R.string.reminder_thirty
+        ReminderType.ONE_HOUR -> R.string.reminder_hour
+        ReminderType.CUSTOM -> R.string.reminder_custom
+    }
+
+    private fun updateReminderSpinner() {
+        val typeIndex = ReminderType.values().indexOf(note.reminder.getReminderType())
+        reminder_spinner?.setSelection(typeIndex)
     }
 
     private fun setupListeners() {
@@ -229,6 +271,77 @@ class FragmentEventDetails : Fragment() {
                 saveNote(note)
             }
         }
+
+        reminder_spinner.onItemSelectedListener = object: AdapterView.OnItemSelectedListener {
+            var isFirstTrigger = true
+
+            override fun onItemSelected(adapter: AdapterView<*>?, view: View?, index: Int, id: Long) {
+                if (isFirstTrigger) {
+                    isFirstTrigger = false
+                    return
+                }
+
+                val type = ReminderType.values()[index]
+                when (type) {
+                    ReminderType.NONE -> note.reminder.disable()
+                    ReminderType.FIFTEEN_MINUTES -> note.reminder.setFifteenMinutesBefore()
+                    ReminderType.THIRTY_MINUTES -> note.reminder.setThirtyMinutesBefore()
+                    ReminderType.ONE_HOUR -> note.reminder.setOneHourBefore()
+                    ReminderType.CUSTOM -> askUserForDateTime(note.date) { date: Date ->
+                        note.reminder.setCustomReminder(date)
+                        lifecycleScope.launch { saveNote(note) }
+                    }
+                }
+
+                // We do not want to save the note
+                // 2 times, especially if the dialog is
+                // actually shown which is almost always the
+                // case at this point.
+                if (type != ReminderType.CUSTOM) {
+                    lifecycleScope.launch { saveNote(note) }
+                }
+            }
+
+            override fun onNothingSelected(adapter: AdapterView<*>?) {
+                // Nothing to do here
+            }
+
+        }
+    }
+
+    private fun askUserForDateTime(date: Date, callback: (Date) -> Unit) {
+        context?.let {
+            askUserForDate(it, date, callback)
+        }
+    }
+
+    private fun askUserForDate(context: Context, date: Date, callback: (Date) -> Unit) {
+        val year = date.get(Calendar.YEAR)
+        val month = date.get(Calendar.MONTH)
+        val day = date.get(Calendar.DAY_OF_MONTH)
+
+        val dateListener = { _: DatePicker, newYear: Int, newMonth: Int, newDayOfMonth: Int ->
+            val newDate = Date().set(newYear, newMonth, newDayOfMonth)
+            askUserForTime(context, date, newDate, callback)
+        }
+
+        DatePickerDialog(context, dateListener, year, month, day).apply {
+            setOnCancelListener { updateReminderSpinner() }
+        }.show()
+    }
+
+    private fun askUserForTime(context: Context, date: Date, newDate: Date, callback: (Date) -> Unit) {
+        val hour = date.get(Calendar.HOUR_OF_DAY)
+        val minute = date.get(Calendar.MINUTE)
+
+        val timeListener = { _: TimePicker, newHour: Int, newMinute: Int ->
+            newDate.setTime(newHour, newMinute)
+            callback(newDate)
+        }
+
+        TimePickerDialog(context, timeListener, hour, minute, true).apply {
+            setOnCancelListener { updateReminderSpinner() }
+        }.show()
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.edt.ut3.backend.database
 
 import androidx.room.TypeConverter
+import com.edt.ut3.backend.note.Note
 import com.edt.ut3.backend.note.Picture
 import com.edt.ut3.misc.map
 import com.edt.ut3.misc.toList
@@ -56,4 +57,10 @@ class Converter {
             longitude = getDouble("lon")
         }.toString()
     }
+
+    @TypeConverter
+    fun serializeReminder(reminder: Note.Reminder) = reminder.toJSON().toString()
+
+    @TypeConverter
+    fun deserializeReminder(str: String) = Note.Reminder.fromJSON(str)
 }

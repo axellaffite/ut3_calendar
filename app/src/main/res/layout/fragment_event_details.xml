@@ -62,6 +62,20 @@
             app:layout_constraintTop_toBottomOf="@+id/from_to"
             tools:text="A brief description that\ncan contains multiple\nlines." />
 
+        <TextView
+            android:id="@+id/note_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="16dp"
+            android:text="@string/note"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/reminder_icon"
+            app:layout_constraintTop_toBottomOf="@+id/description" />
+
         <ImageView
             android:id="@+id/notes_icon"
             android:layout_width="24dp"
@@ -91,11 +105,11 @@
             android:layout_height="wrap_content"
 
             android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:orientation="vertical"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/pictures_icon"
-            app:layout_constraintTop_toBottomOf="@+id/description">
+            app:layout_constraintTop_toBottomOf="@+id/reminder_spinner">
 
             <com.edt.ut3.ui.custom_views.image_preview.ImagePreviewLayout
                 android:id="@+id/pictures"
@@ -111,16 +125,16 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
             android:hint="@string/note"
             app:boxStrokeColor="@color/textColor"
-            app:hintTextColor="@color/textColor"
             app:helperTextTextColor="@color/textColor"
+            app:hintTextColor="@color/textColor"
+            app:layout_constrainedHeight="true"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constrainedHeight="true"
             app:layout_constraintStart_toEndOf="@+id/notes_icon"
             app:layout_constraintTop_toBottomOf="@+id/linearLayout3"
             app:layout_constraintVertical_bias="0.0">
@@ -133,7 +147,7 @@
                 android:ems="10"
                 android:gravity="start|top"
                 android:inputType="textMultiLine"
-                android:lines="4"
+                android:minLines="4"
                 android:textColor="@color/textColor" />
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -151,6 +165,27 @@
             app:layout_constraintStart_toEndOf="@+id/title_container"
             app:layout_constraintTop_toBottomOf="@+id/title"
             tools:text="04/09/2020 · 10h00 - 12h00" />
+
+        <ImageView
+            android:id="@+id/reminder_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            app:layout_constraintBottom_toBottomOf="@+id/reminder_spinner"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/reminder_spinner"
+            app:srcCompat="@drawable/ic_alarm" />
+
+        <Spinner
+            android:id="@+id/reminder_spinner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/reminder_icon"
+            app:layout_constraintTop_toBottomOf="@+id/note_label"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -72,14 +72,22 @@ fun Date.cleanTime() = clean(
 )
 
 fun Date.set(year: Int, month: Int, day: Int): Date = this.apply {
-    time = Calendar.getInstance().run {
+    time = Calendar.getInstance().apply {
         set(Calendar.YEAR, year)
         set(Calendar.MONTH, month)
         set(Calendar.DAY_OF_MONTH, day)
-        time.time
-    }
+    }.time.time
 
     cleanTime()
+}
+
+fun Date.setTime(hour: Int, minute: Int, second: Int = 0, milliSecond: Int = 0) = this.apply {
+    time = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, hour)
+        set(Calendar.MINUTE, minute)
+        set(Calendar.SECOND, second)
+        set(Calendar.MILLISECOND, milliSecond)
+    }.time.time
 }
 
 fun Date.toFormattedTime(format: String) = SimpleDateFormat(format).format(this)
