@@ -1,4 +1,4 @@
-package com.edt.ut3.ui.calendar
+package com.edt.ut3.backend.calendar
 
 import org.json.JSONException
 import org.json.JSONObject

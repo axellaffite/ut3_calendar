@@ -12,14 +12,14 @@
         tools:layout="@layout/fragment_calendar" >
         <action
             android:id="@+id/action_navigation_calendar_to_preferencesFragment"
-            app:destination="@id/preferencesFragment" />
-        <action
-            android:id="@+id/action_navigation_calendar_to_fragmentEventDetails"
-            app:destination="@id/fragmentEventDetails"
+            app:destination="@id/preferencesFragment"
             app:enterAnim="@anim/slide_in"
             app:exitAnim="@anim/fade_out"
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/slide_out" />
+        <action
+            android:id="@+id/action_navigation_calendar_to_fragmentImageViewPager"
+            app:destination="@id/fragmentImageViewPager" />
     </fragment>
 
     <fragment
@@ -41,7 +41,15 @@
     <fragment
         android:id="@+id/preferencesFragment"
         android:name="com.edt.ut3.ui.preferences.PreferencesFragment"
-        android:label="PreferencesFragment" />
+        android:label="PreferencesFragment" >
+        <action
+            android:id="@+id/action_preferencesFragment_to_aboutUsFragment"
+            app:destination="@id/aboutUsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_room_finder"
@@ -53,11 +61,7 @@
         android:id="@+id/fragmentEventDetails"
         android:name="com.edt.ut3.ui.calendar.event_details.FragmentEventDetails"
         android:label="FragmentEventDetails"
-        tools:layout="@layout/fragment_event_details">
-        <action
-            android:id="@+id/action_fragmentEventDetails_to_fragmentImageViewPager"
-            app:destination="@id/fragmentImageViewPager" />
-    </fragment>
+        tools:layout="@layout/fragment_event_details"/>
     <fragment
         android:id="@+id/fragmentNoteDetails"
         android:name="com.edt.ut3.ui.notes.FragmentNoteDetails"
@@ -65,7 +69,11 @@
         tools:layout="@layout/fragment_note_details">
         <action
             android:id="@+id/action_fragmentNoteDetails_to_fragmentEventDetails"
-            app:destination="@id/fragmentEventDetails" />
+            app:destination="@id/fragmentEventDetails"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/action_fragmentNoteDetails_to_fragmentImageViewPager"
             app:destination="@id/fragmentImageViewPager" />
@@ -75,5 +83,10 @@
         android:name="com.edt.ut3.ui.calendar.event_details.image_view.FragmentImageViewPager"
         android:label="FragmentImageViewPager"
         tools:layout="@layout/fragment_image_view_pager"/>
+    <fragment
+        android:id="@+id/aboutUsFragment"
+        android:name="com.edt.ut3.ui.about_us.AboutUsFragment"
+        android:label="fragment_about_us"
+        tools:layout="@layout/fragment_about_us" />
 
 </navigation>

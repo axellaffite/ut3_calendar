@@ -3,13 +3,11 @@ package com.edt.ut3.ui.map
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -29,6 +27,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.observe
 import com.edt.ut3.R
+import com.edt.ut3.backend.maps.MapsUtils
 import com.edt.ut3.backend.maps.Place
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.misc.hideKeyboard
@@ -597,7 +596,13 @@ class MapsFragment : Fragment() {
             place_info.picture = selected.photo
             place_info.go_to.setOnClickListener {
                 val me = map.overlays.find { it is LocationMarker } as LocationMarker?
-                routeFromTo(me?.position, GeoPoint(selected.geolocalisation), selected.title)
+                activity?.let {
+                    MapsUtils.routeFromTo(it, me?.position, GeoPoint(selected.geolocalisation), selected.title) {
+                        maps_main?.let {
+                            Snackbar.make(it, R.string.unable_to_launch_googlemaps, Snackbar.LENGTH_LONG).show()
+                        }
+                    }
+                }
             }
 
             map.overlays.removeAll { marker -> marker is PlaceMarker }
@@ -624,30 +629,5 @@ class MapsFragment : Fragment() {
      */
     private fun smoothMoveTo(position: GeoPoint, zoom: Double = 17.0, ms: Long = 1000L) {
         map.controller.animateTo(position, zoom, ms)
-    }
-
-    private fun routeFromTo(from: GeoPoint?, to: GeoPoint, toTitle: String) {
-        var requestLink = ("https://www.google.com/maps/dir/?api=1" +
-                "&destination=${to.latitude.toFloat()},${to.longitude.toFloat()}" +
-                "&destination_place_id=$toTitle" +
-                "&travelmode=walking")
-
-        from?.run {
-            requestLink += "&origin=${latitude.toFloat()},${longitude.toFloat()}"
-        }
-
-        // Create a Uri from an intent string. Use the result to create an Intent.
-        val gmmIntentUri = Uri.parse(requestLink)
-
-        // Create an Intent from gmmIntentUri. Set the action to ACTION_VIEW
-        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
-
-        // Make the Intent explicit by setting the Google Maps package
-        mapIntent.setPackage("com.google.android.apps.maps")
-
-        // Attempt to start an activity that can handle the Intent
-        mapIntent.resolveActivity(requireContext().packageManager)?.let {
-            startActivity(mapIntent)
-        } ?: Snackbar.make(maps_main, R.string.unable_to_launch_googlemaps, Snackbar.LENGTH_LONG)
     }
 }

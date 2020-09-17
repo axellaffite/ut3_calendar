@@ -55,4 +55,28 @@
     <string name="no_reminder_set">"No reminder set "</string>
     <string name="empty_day">Nothing to report for this day ! %s</string>
     <string name="data_update">Updating data..</string>
+    <string name="reminder_none">No reminder</string>
+    <string name="reminder_fifteen">15 minutes before</string>
+    <string name="reminder_thirty">30 minutes before</string>
+    <string name="reminder_hour">1 hour before</string>
+    <string name="reminder_custom">Custom</string>
+    <string name="about_us_text">
+        Developed by\n
+        Axel Laffite: axel.laffite@univ-tlse3.fr\n
+        Antony Dalmière: antony.dalmiere@univ-tlse3.fr\n
+        \n
+        A question ? Any suggestion ?\n
+        axel.dev.andr@gmail.com\n
+        or\n
+        Via our Discord (see below) !\n
+        \n\n
+        You wish to be involved in the project by becoming a beta tester,
+        a developer or simply by helping with translation, documentation or
+        anything else ? Join the app\'s Discord !\n
+        https://discord.gg/6KPZmQa\n
+        \n
+        Source code\n
+        https://github.com/axellaffite/ut3_calendar
+    </string>
+    <string name="no_location_found">No place found or theirs locations are unknown</string>
 </resources>

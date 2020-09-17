@@ -14,7 +14,7 @@ import java.util.*
 
 class CalendarViewModel : ViewModel() {
 
-    var selectedEvent: Event? = null
+    var selectedEvent = MutableLiveData<Event>(null)
     var selectedEventNote: Note? = null
     var selectedDate = MutableLiveData(Date().timeCleaned())
     var lastPosition = MutableLiveData(Int.MAX_VALUE / 2)

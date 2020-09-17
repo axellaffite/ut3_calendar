@@ -8,8 +8,13 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.DatePicker
+import android.widget.TimePicker
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -18,12 +23,15 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.whenCreated
+import androidx.lifecycle.whenResumed
 import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.AppDatabase
 import com.edt.ut3.backend.database.viewmodels.NotesViewModel
+import com.edt.ut3.backend.maps.MapsUtils
+import com.edt.ut3.backend.maps.Place
 import com.edt.ut3.backend.note.Note
 import com.edt.ut3.backend.note.Note.Reminder.ReminderType
 import com.edt.ut3.backend.note.Picture
@@ -32,12 +40,17 @@ import com.edt.ut3.misc.set
 import com.edt.ut3.misc.setTime
 import com.edt.ut3.ui.calendar.CalendarViewModel
 import com.edt.ut3.ui.custom_views.image_preview.ImagePreviewAdapter
+import com.edt.ut3.ui.map.MapsViewModel
 import com.edt.ut3.ui.preferences.Theme
 import com.elzozor.yoda.utils.DateExtensions.get
-import com.squareup.picasso.Picasso
-import com.stfalcon.imageviewer.StfalconImageViewer
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipDrawable
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_event_details.*
+import kotlinx.android.synthetic.main.fragment_event_details.view.*
+import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -46,9 +59,11 @@ import java.util.*
 
 class FragmentEventDetails : Fragment() {
 
+    private var updateLocationJob: Job? = null
     private lateinit var event: Event
 
-    private val viewModel: CalendarViewModel by activityViewModels()
+    private val calendarViewModel: CalendarViewModel by activityViewModels()
+    private val mapsViewModel: MapsViewModel by activityViewModels()
 
     private lateinit var note: Note
 
@@ -85,33 +100,49 @@ class FragmentEventDetails : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_event_details, container, false).also {
-            event = viewModel.selectedEvent!!
-
+        return inflater.inflate(R.layout.fragment_event_details, container, false).also { root ->
             // Load asynchronously the attached note.
             // Once it's done, the contents
             lifecycleScope.launch {
-                whenCreated {
-                    val date = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(event.start)
-                    note = Note.generateEmptyNote("$date - ${event.courseName}", event.id)
-
-                    AppDatabase.getInstance(requireContext()).noteDao().run {
-                        val result = selectByEventIDs(event.id)
-
-                        if (result.size == 1) {
-                            note = result[0]
-                        }
-
-                        view?.post {
-                            setupContent()
-                            setupListeners()
-                        }
-
-                    }
+                if (mapsViewModel.getPlaces(root.context).value.isNullOrEmpty()) {
+                    mapsViewModel.launchDataUpdate(root.context)
                 }
             }
         }
     }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        calendarViewModel.selectedEvent.observe(viewLifecycleOwner) {
+            it?.let { event ->
+                setupNewEvent(event)
+            }
+        }
+    }
+
+    private fun setupNewEvent(event: Event) {
+        this.event = event
+        lifecycleScope.launchWhenCreated {
+            val date = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(event.start)
+            note = Note.generateEmptyNote("$date - ${event.courseName}", event.id)
+
+            AppDatabase.getInstance(requireContext()).noteDao().run {
+                val result = selectByEventIDs(event.id)
+
+                if (result.size == 1) {
+                    note = result[0]
+                }
+
+                whenResumed {
+                    setupContent()
+                    setupListeners()
+                }
+            }
+        }
+    }
+
+
 
     /**
      * Setup the view contents.
@@ -156,43 +187,6 @@ class FragmentEventDetails : Fragment() {
         // Use the StfalconImageViewer library to display a fullscreen
         // image.
         pictures.adapter = ImagePreviewAdapter(note.pictures).apply {
-            onItemClickListener = { v: View, p: Picture, dataSet: List<Picture> ->
-                val overlayLayout = ImageOverlayLayout(requireContext())
-
-                // This image builder is in charge to load images from
-                // the memory into the ImageView of the image viewer.
-                val imageBuilder = { view: ImageView, picture: Picture ->
-                    Picasso.get().load(File(picture.picture)).fit().centerInside().into(view)
-
-                    // On click we show or hide the overlay layout
-                    // to allow the user to perform actions like
-                    // deleting pictures.
-                    view.setOnClickListener {
-                        overlayLayout.showHideOverlay()
-                    }
-                }
-
-                // This is the view that will display the images
-                val imageViewer = StfalconImageViewer.Builder(context, dataSet, imageBuilder)
-                    .withStartPosition(dataSet.indexOf(p))
-                    .withTransitionFrom(v as ImageView)
-                    .withOverlayView(overlayLayout)
-                    .build()
-
-                // We set the onDeleteRequest after creating the imageViewer
-                // to hold a reference on it and make possible
-                // to get the current position of the viewer in
-                // order to delete the proper file.
-                overlayLayout.apply {
-                    onDeleteRequest = {
-
-                    }
-                }
-
-                // Finally we display the image viewer.
-                imageViewer.show()
-            }
-
             onItemClickListener = { imgView, picture, pictures ->
                 val extras = FragmentNavigatorExtras(
                     imgView to "end_transition"
@@ -202,7 +196,7 @@ class FragmentEventDetails : Fragment() {
 
                 findNavController()
                     .navigate(
-                        R.id.action_fragmentEventDetails_to_fragmentImageViewPager,
+                        R.id.action_navigation_calendar_to_fragmentImageViewPager,
                         Bundle().apply { putInt("position", pictures.indexOf(picture)) },
                         null,
                         extras
@@ -220,7 +214,7 @@ class FragmentEventDetails : Fragment() {
         // Add all the note event picture to the view model variable
         // It is used into several cases to add and delete pictures
         // to the current note.
-        viewModel.selectedEventNote = note
+        calendarViewModel.selectedEventNote = note
         pictures.notifyDataSetChanged()
 
         // The adapter is an extension of the ArrayAdapter class.
@@ -235,6 +229,7 @@ class FragmentEventDetails : Fragment() {
                 }
             }
         }
+
         updateReminderSpinner()
     }
 
@@ -257,6 +252,50 @@ class FragmentEventDetails : Fragment() {
     private fun updateReminderSpinner() {
         val typeIndex = ReminderType.values().indexOf(note.reminder.getReminderType())
         reminder_spinner?.setSelection(typeIndex)
+    }
+
+    private fun refreshLocations(places: List<Place>) {
+        updateLocationJob?.cancel()
+        updateLocationJob = lifecycleScope.launch {
+            whenCreated {
+                val matchingPlaces = withContext(Default) {
+                    val parsedPlaces = places.map { it.apply { title = title.toLowerCase(Locale.FRENCH) } }
+
+                    computeMatchingLocations(parsedPlaces)
+                }
+
+                whenResumed {
+                    refreshLocations(requireContext(), matchingPlaces)
+                }
+            }
+        }
+    }
+
+    private fun refreshLocations(context: Context, places: List<Place>) {
+        if (places.isNotEmpty()) {
+            locations_container.removeAllViews()
+
+            places.forEach {
+                locations_container.addView(PlaceChip(context, it))
+            }
+
+            locations_container.visibility = VISIBLE
+            locations_not_found_label.visibility = GONE
+        }
+    }
+
+    private suspend fun computeMatchingLocations(places: List<Place>) = withContext(Default) {
+        val matchingPlaces =
+            event.locations.map { location ->
+                val lowerCaseLocation = location.toLowerCase(Locale.FRENCH)
+                val correspondingPlace = places.find { place ->
+                    lowerCaseLocation.contains(place.title)
+                }
+
+                correspondingPlace
+            }
+
+        matchingPlaces.filterNotNull()
     }
 
     private fun setupListeners() {
@@ -306,6 +345,10 @@ class FragmentEventDetails : Fragment() {
                 // Nothing to do here
             }
 
+        }
+
+        mapsViewModel.getPlaces(requireContext()).observe(viewLifecycleOwner) {
+            refreshLocations(it)
         }
     }
 
@@ -468,5 +511,33 @@ class FragmentEventDetails : Fragment() {
         }
 
         callback?.invoke(note)
+    }
+
+
+    private inner class PlaceChip(context: Context, val place: Place) : Chip(context) {
+        init {
+            setChipDrawable(
+                ChipDrawable.createFromAttributes(
+                    context,
+                    null,
+                    0,
+                    R.style.Widget_MaterialComponents_Chip_Action
+                )
+            )
+
+            setOnClickListener {
+                activity?.let {
+                    MapsUtils.routeFromTo(it, null, place.geolocalisation, place.title) {
+                        view?.event_details_main?.let { mainView ->
+                            Snackbar.make(mainView, R.string.unable_to_launch_googlemaps, Snackbar.LENGTH_LONG).show()
+                        }
+                    }
+                }
+            }
+
+            setChipBackgroundColorResource(R.color.foregroundColor)
+
+            text = place.title.toUpperCase(Locale.FRENCH)
+        }
     }
 }

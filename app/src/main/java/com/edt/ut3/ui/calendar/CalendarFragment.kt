@@ -10,36 +10,41 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.LinearLayout
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import androidx.work.WorkInfo
 import com.edt.ut3.R
 import com.edt.ut3.backend.background_services.Updater
+import com.edt.ut3.backend.calendar.CalendarMode
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.preferences.PreferencesManager.Preference
 import com.edt.ut3.misc.add
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.timeCleaned
+import com.edt.ut3.ui.map.MapsViewModel
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
-import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_calendar.*
 import kotlinx.android.synthetic.main.fragment_calendar.view.*
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
 
-class CalendarFragment : Fragment(),
+class CalendarFragment : BottomSheetFragment(),
     androidx.appcompat.widget.Toolbar.OnMenuItemClickListener {
 
     enum class Status { IDLE, UPDATING }
 
     private val calendarViewModel: CalendarViewModel by activityViewModels()
+    private val mapsViewModel: MapsViewModel by activityViewModels()
 
     private var status = Status.IDLE
 
@@ -98,10 +103,49 @@ class CalendarFragment : Fragment(),
         updateCalendarMode()
 
         setupViewPager()
+        setupBottomSheetManager()
+        setupBackButtonListener()
         setupListeners()
+        startPlacesDownload()
 
         view.action_view?.menu?.findItem(R.id.change_view)?.let {
             updateViewIcon(it)
+        }
+    }
+
+    private fun setupBottomSheetManager() {
+        bottomSheetManager.add(options_container, event_details_container)
+    }
+
+    /**
+     * Setup a listener that's in charge to
+     * handle the back button press depending
+     * on the current view state.
+     *
+     * If a BottomSheet is expanded, we must close it.
+     * Otherwise, we disable the listener and call the
+     * activity onBackPressedFunction().
+     */
+    private fun setupBackButtonListener() {
+        activity?.onBackPressedDispatcher?.addCallback(viewLifecycleOwner) {
+            if (bottomSheetManager.hasVisibleSheet()) {
+                bottomSheetManager.setVisibleSheet(null)
+            } else {
+                activity?.let {
+                    isEnabled = false
+                    it.onBackPressed()
+                }
+            }
+        }
+    }
+
+    private fun startPlacesDownload() {
+        context?.let {
+            if (mapsViewModel.getPlaces(it).value.isNullOrEmpty()) {
+                lifecycleScope.launch {
+                    mapsViewModel.launchDataUpdate(it)
+                }
+            }
         }
     }
 
@@ -277,9 +321,14 @@ class CalendarFragment : Fragment(),
     private fun onVisibilityClick(): Boolean {
         return view?.let { root ->
             BottomSheetBehavior.from(root.options_container).apply {
-                state = when (state) {
-                    STATE_COLLAPSED -> STATE_EXPANDED
-                    else -> STATE_COLLAPSED
+                when (state) {
+                    STATE_COLLAPSED -> {
+                        bottomSheetManager.setVisibleSheet(root.options_container)
+                    }
+
+                    else -> {
+                        state = STATE_COLLAPSED
+                    }
                 }
             }
 

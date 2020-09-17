@@ -16,8 +16,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import com.edt.ut3.R
+import com.edt.ut3.backend.calendar.CalendarMode
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.preferences.PreferencesManager.Preference
@@ -25,9 +25,12 @@ import com.edt.ut3.misc.Emoji
 import com.edt.ut3.misc.add
 import com.edt.ut3.misc.timeCleaned
 import com.edt.ut3.misc.toDp
+import com.edt.ut3.ui.calendar.view_builders.EventView
+import com.edt.ut3.ui.calendar.view_builders.LayoutAllDay
 import com.elzozor.yoda.Day
 import com.elzozor.yoda.Week
 import com.elzozor.yoda.events.EventWrapper
+import kotlinx.android.synthetic.main.fragment_calendar.*
 import kotlinx.android.synthetic.main.fragment_calendar_viewer.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -312,8 +315,12 @@ class CalendarViewerFragment: Fragment() {
     }
 
     private fun openEventDetailsView(event: Event) {
-        viewModel.selectedEvent = event
-        findNavController().navigate(R.id.action_navigation_calendar_to_fragmentEventDetails)
+        viewModel.selectedEvent.value = event
+        with (parentFragment as CalendarFragment) {
+            event_details_container?.also {
+                bottomSheetManager.setVisibleSheet(event_details_container)
+            }
+        }
     }
 
     private fun buildAllDayView(events: List<EventWrapper>): View {

@@ -1,4 +1,4 @@
-package com.edt.ut3.ui.calendar
+package com.edt.ut3.ui.calendar.view_builders
 
 import android.content.Context
 import android.graphics.Color

@@ -6,7 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/backgroundColor"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:id="@+id/event_details_main">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -62,6 +63,44 @@
             app:layout_constraintTop_toBottomOf="@+id/from_to"
             tools:text="A brief description that\ncan contains multiple\nlines." />
 
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:src="@drawable/ic_location"
+            app:layout_constraintBottom_toBottomOf="@+id/locations_frame"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/locations_frame" />
+
+        <FrameLayout
+            android:id="@+id/locations_frame"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/imageView"
+            app:layout_constraintTop_toBottomOf="@+id/description">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/locations_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                app:singleLine="false" />
+
+            <TextView
+                android:id="@+id/locations_not_found_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/no_location_found"/>
+
+        </FrameLayout>
+
         <TextView
             android:id="@+id/note_label"
             android:layout_width="0dp"
@@ -74,7 +113,7 @@
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/reminder_icon"
-            app:layout_constraintTop_toBottomOf="@+id/description" />
+            app:layout_constraintTop_toBottomOf="@+id/locations_frame" />
 
         <ImageView
             android:id="@+id/notes_icon"

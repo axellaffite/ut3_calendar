@@ -32,6 +32,15 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory
+        app:title="Autre">
+
+        <Preference
+            android:title="@string/about"
+            android:key="about_us"/>
+
+    </PreferenceCategory>
+
 
 
 </PreferenceScreen>

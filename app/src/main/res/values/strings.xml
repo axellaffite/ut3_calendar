@@ -61,4 +61,23 @@
     <string name="reminder_thirty">30 minutes avant</string>
     <string name="reminder_hour">1 heure avant</string>
     <string name="reminder_custom">Personnalisé</string>
+    <string name="about_us_text">
+        Développé par\n
+        Axel Laffite: axel.laffite@univ-tlse3.fr\n
+        Antony Dalmière: antony.dalmiere@univ-tlse3.fr\n
+        \n
+        Une question ? Une suggestion ?\n
+        axel.dev.andr@gmail.com\n
+        ou\n
+        via notre Discord (voir plus bas) !\n
+        \n
+        Vous souhaitez participer au projet en devenant bêta testeur,
+        en devenant développeur ou simplement en aidant pour de la traduction, documentation ou
+        tout autre chose ? Rejoingez le Discord de l\'application !\n
+        https://discord.gg/6KPZmQa\n
+        \n
+        Code source\n
+        https://github.com/axellaffite/ut3_calendar
+    </string>
+    <string name="no_location_found">Pas de lieu trouvé ou leurs localisations ne sont pas connues</string>
 </resources>

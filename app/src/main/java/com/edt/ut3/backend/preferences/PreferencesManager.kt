@@ -6,7 +6,7 @@ import android.content.res.Configuration
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate.*
 import androidx.preference.PreferenceManager
-import com.edt.ut3.ui.calendar.CalendarMode
+import com.edt.ut3.backend.calendar.CalendarMode
 import com.edt.ut3.ui.preferences.Theme
 import com.edt.ut3.ui.preferences.ThemePreference
 import org.json.JSONArray
