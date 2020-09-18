@@ -8,7 +8,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
-import fr.anto.notificationscheduler.NotificationScheduler
+import com.edt.ut3.backend.note.Note
 import java.util.*
 
 
@@ -23,16 +23,15 @@ class NotificationManager private constructor(val context: Context) {
             if (INSTANCE == null) {
                 INSTANCE = NotificationManager(context)
             }
+
             return INSTANCE!!
         }
     }
 
-    private fun createUpdateNotificationChannel()
-    {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-        {
+    private fun createUpdateNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "Changement de cours"
-            val descriptionChannel = "Notification de changement dan l'emploi du temps"
+            val descriptionChannel = "Notification de changement dans l'emploi du temps"
             val channel : NotificationChannel = NotificationChannel(
                 "UPDATE_EDT",
                 name,
@@ -47,62 +46,63 @@ class NotificationManager private constructor(val context: Context) {
         }
     }
 
-    fun createNewEventsNotification(events: List<Event>)
-    {
+    fun create(events: List<Event>, type: EventChange.Type) {
         createUpdateNotificationChannel()
-        events.map {
+
+        events.forEach { event ->
             val notification: Notification = NotificationCompat.Builder(context, "UPDATE_EDT")
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle(context.getString(R.string.new_event_added, it.courseName))
-                .setContentText(   context.getString(
-                    R.string.new_event_added_full, android.text.format.DateFormat.format(
-                        "EEE dd MMM",
-                        it.start
-                    ), android.text.format.DateFormat.format("hh:mm", it.start)
-                ))
-                .setGroup("added_course")
+                .setContentTitle(generateEventNotificationTitle(event, type))
+                .setContentText(generateEventNotificationText(event, type))
+                .setGroup(type.toString())
                 .build()
             val notificationManager = NotificationManagerCompat.from(context)
             notificationManager.notify(Random().nextInt(), notification)
         }
     }
-    fun createDeletedEventsNotification(events: List<Event>)
-    {
-        createUpdateNotificationChannel()
-        events.map {
-            val notification: Notification = NotificationCompat.Builder(context, "UPDATE_EDT")
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle(context.getString(R.string.event_deleted, it.courseName))
-                .setContentText( context.getString(
-                    R.string.new_event_added_full, android.text.format.DateFormat.format(
-                        "EEE dd MMM",
-                        it.start
-                    ), android.text.format.DateFormat.format("hh:mm", it.start)
-                ))
-                .setGroup("removed_course")
-                .build()
-            val notificationManager = NotificationManagerCompat.from(context)
-            notificationManager.notify(Random().nextInt(), notification)
-        }
+
+    private fun generateEventNotificationTitle(event: Event, type: EventChange.Type) = when (type) {
+        EventChange.Type.ADDED -> context.getString(R.string.new_event_added, event.courseName)
+        EventChange.Type.REMOVED -> context.getString(R.string.event_deleted, event.courseName)
+        EventChange.Type.UPDATED -> context.getString(R.string.event_updated, event.courseName)
     }
-    fun createUpdatedEventsNotification(events: List<Event>)
-    {
-        createUpdateNotificationChannel()
-        events.map {
-            val notification: Notification = NotificationCompat.Builder(context, "UPDATE_EDT")
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle(context.getString(R.string.event_updated, it.courseName))
-                .setContentText( context.getString(
-                    R.string.event_updated_full, android.text.format.DateFormat.format(
-                        "EEE dd MMM hh:mm",
-                        it.start
-                    )
-                ))
-                .setGroup("updated_course")
-                .build()
-            val notificationManager = NotificationManagerCompat.from(context)
-            notificationManager.notify(Random().nextInt(), notification)
+
+    private fun generateEventNotificationText(event: Event, type: EventChange.Type) = when(type) {
+        EventChange.Type.ADDED -> context.getString(
+            R.string.new_event_added_full, android.text.format.DateFormat.format(
+                "EEE dd MMM",
+                event.start
+            ), android.text.format.DateFormat.format("hh:mm", event.start)
+        )
+
+        EventChange.Type.REMOVED -> context.getString(
+            R.string.new_event_added_full, android.text.format.DateFormat.format(
+                "EEE dd MMM",
+                event.start
+            ), android.text.format.DateFormat.format("hh:mm", event.start)
+        )
+
+        EventChange.Type.UPDATED -> context.getString(
+            R.string.event_updated_full, android.text.format.DateFormat.format(
+                "EEE dd MMM hh:mm",
+                event.start
+            )
+        )
+    }
+
+    fun remove(note: Note) {
+        if (note.reminder.isActive()) {
+            return
         }
 
+        NotificationManagerCompat.from(context).cancel(note.id.toInt())
+    }
+
+    fun create(note: Note) {
+        if (!note.reminder.isActive()) {
+            return
+        }
+
+        // TODO Schedule the note reminder
     }
 }

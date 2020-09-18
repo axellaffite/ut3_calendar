@@ -7,7 +7,7 @@ import com.edt.ut3.backend.notification.EventChange
 interface EdtChangeDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(ev: EventChange): List<Long>
+    suspend fun insert(vararg ev: EventChange): List<Long>
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun update(ev: EventChange)
@@ -18,7 +18,7 @@ interface EdtChangeDao {
     @Query("DELETE FROM note")
     suspend fun wipe()
 
-    @Query("SELECT * FROM note ORDER BY DATE ASC")
+    @Query("SELECT * FROM event_change ORDER BY DATE ASC")
     suspend fun selectAll(): List<EventChange>
 
 

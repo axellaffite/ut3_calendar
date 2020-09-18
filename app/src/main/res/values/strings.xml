@@ -86,4 +86,5 @@
     <string name="event_updated">%s mis à jour.</string>
     <string name="event_updated_full">Déplacé au %s</string>
     <string name="cours">cours</string>
+    <string name="no_title_note">Note sans titre</string>
 </resources>

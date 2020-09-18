@@ -124,8 +124,7 @@ class FragmentEventDetails : Fragment() {
     private fun setupNewEvent(event: Event) {
         this.event = event
         lifecycleScope.launchWhenCreated {
-            val date = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(event.start)
-            note = Note.generateEmptyNote("$date - ${event.courseName}", event.id)
+            note = Note.generateEmptyNote(event)
 
             AppDatabase.getInstance(requireContext()).noteDao().run {
                 val result = selectByEventIDs(event.id)

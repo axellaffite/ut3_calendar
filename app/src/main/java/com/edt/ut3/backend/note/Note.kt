@@ -1,21 +1,21 @@
 package com.edt.ut3.backend.note
 
-import androidx.room.*
+import android.content.Context
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.Converter
+import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.misc.minus
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.*
 
-@Entity(tableName = "note",
-    foreignKeys = [
-        ForeignKey(entity = Event::class,
-            parentColumns = ["id"],
-            childColumns = ["event_id"]
-        )
-    ], indices = [Index("event_id")])
+@Entity(tableName = "note")
 data class Note(
     @PrimaryKey(autoGenerate = true) var id: Long,
     @ColumnInfo(name = "event_id") var eventID: String?,
@@ -45,8 +45,23 @@ data class Note(
     }
 
     companion object {
-        fun generateEmptyNote(title: String? = null, eventID: String? = null) = Note(0L, eventID, title, "", Date(), null, null, Reminder(Date()))
+        fun generateEmptyNote(event: Event?): Note {
+            var date = Date()
+            var title: String? = null
+
+            event?.let {
+                date = it.start
+
+                val dateTitle = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(event.start)
+                title = "$dateTitle - ${title}"
+            }
+
+            return Note(0L, event?.id, title, "", date, null, null)
+        }
     }
+
+    fun isEmpty() =
+        !reminder.isActive() && title.isNullOrBlank() && contents.isBlank() && pictures.isEmpty()
 
     fun clearPictures() {
         while (pictures.isNotEmpty()) {
@@ -70,6 +85,10 @@ data class Note(
     private fun cleanPictureData(picture: Picture) {
         File(picture.picture).delete()
         File(picture.thumbnail).delete()
+    }
+
+    fun clearNotifications(context: Context) {
+        NotificationManager.getInstance(context).remove(this)
     }
 
     /**

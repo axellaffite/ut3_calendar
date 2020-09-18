@@ -6,12 +6,12 @@ import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.work.*
-import androidx.work.impl.utils.PreferenceUtils
 import com.edt.ut3.backend.celcat.Course
 import com.edt.ut3.backend.celcat.Event
-import com.edt.ut3.backend.database.AppDatabase
-import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.backend.database.viewmodels.CoursesViewModel
+import com.edt.ut3.backend.database.viewmodels.EventViewModel
+import com.edt.ut3.backend.notification.EventChange
+import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.CelcatService
 import com.edt.ut3.misc.fromHTML
@@ -123,48 +123,47 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
             setProgress(workDataOf(Progress to 80))
 
 
-            AppDatabase.getInstance(applicationContext).run {
+            EventViewModel(applicationContext).run {
                 /* get all the event and their id before the update */
-                val oldEvent: List<Event> = eventDao().selectAll()
-                val oldEventID : List<String> = oldEvent.map { it -> it.id }
+                val oldEvent: List<Event> = getEvents()
+                val oldEventID = oldEvent.map { it.id }.toHashSet()
+                val oldEventMap = oldEvent.map { it.id to it }.toMap()
+
                 /* get id of received events */
-                val receivedEventID : List<String> = receivedEvent.map { it -> it.id }
+                val receivedEventID = receivedEvent.map { it.id }.toHashSet()
 
                 /*  Compute all events ID changes since last update */
-                val newEventsID = receivedEventID.toList().toHashSet().apply{ removeAll(oldEventID) }
-                val removedEventsID = oldEventID.toList().toHashSet().apply{ removeAll(
-                    receivedEventID
-                )}
-                val updatedEventsID = receivedEventID.toList().toHashSet().apply { retainAll(
-                    oldEventID
-                ) }
+                val newEventsID = receivedEventID - oldEventID
+                val removedEventsID = oldEventID - receivedEventID
+                val updatedEventsID = receivedEventID - newEventsID
 
                 /* retrieve corresponding events from their id */
                 val newEvents = receivedEvent.filter { newEventsID.contains(it.id) }
-                val removedEvent = oldEvent.filter {removedEventsID.contains(it.id)}
-                val updatedEvent = receivedEvent.filter { updatedEventsID.contains(it.id) }.toHashSet().apply{
-                    removeAll(oldEvent)
-                }.toList()
+                val removedEvent = oldEvent.filter { removedEventsID.contains(it.id) }
+                val updatedEvent = receivedEvent.filter {
+                    updatedEventsID.contains(it.id)
+                    && it != oldEventMap[it.id]
+                }
 
                 /* write changes to database */
-                eventDao().insert(*newEvents.toTypedArray())
-                eventDao().delete(*removedEvent.toTypedArray())
-                eventDao().update(*updatedEvent.toTypedArray())
+                insert(*newEvents.toTypedArray())
+                delete(*removedEvent.toTypedArray())
+                update(*updatedEvent.toTypedArray())
 
-                //TODO Also check if this is the first update
-                if (PreferencesManager(applicationContext).isNotificationEnabled()) {
+                if (!firstUpdate && PreferencesManager(applicationContext).isNotificationEnabled()) {
                     if(removedEvent.isNotEmpty()) {
-                        NotificationManager.getInstance(applicationContext).createDeletedEventsNotification(removedEvent)
+                        NotificationManager.getInstance(applicationContext).create(removedEvent, EventChange.Type.REMOVED)
                     }
+
                     if(newEvents.isNotEmpty()) {
-                        NotificationManager.getInstance(applicationContext).createNewEventsNotification(newEvents)
+                        NotificationManager.getInstance(applicationContext).create(newEvents, EventChange.Type.ADDED)
                     }
+
                     if(updatedEvent.isNotEmpty()) {
-                        NotificationManager.getInstance(applicationContext).createUpdatedEventsNotification(updatedEvent)
+                        NotificationManager.getInstance(applicationContext).create(updatedEvent, EventChange.Type.UPDATED)
                     }
                 }
 
-                //TODO Mark the first update as made
                 insertCoursesVisibility(receivedEvent)
             }
         } catch (e: Exception) {

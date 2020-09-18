@@ -2,9 +2,11 @@ package com.edt.ut3.backend.celcat
 
 import android.content.Context
 import android.os.Parcelable
-import androidx.room.*
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
 import com.edt.ut3.backend.database.Converter
-import com.edt.ut3.backend.note.Note
 import com.edt.ut3.misc.*
 import com.elzozor.yoda.events.EventWrapper
 import kotlinx.android.parcel.Parcelize
@@ -13,14 +15,7 @@ import org.json.JSONObject
 import java.io.IOException
 import java.util.*
 
-@Entity(tableName = "event",
-    foreignKeys = [
-        ForeignKey(entity = Note::class,
-            parentColumns = ["id"],
-            childColumns = ["note_id"]
-        )
-    ], indices = [Index("note_id")]
-)
+@Entity(tableName = "event")
 @Parcelize
 data class Event(
     @PrimaryKey var id: String,
