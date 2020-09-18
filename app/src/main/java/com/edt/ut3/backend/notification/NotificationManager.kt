@@ -95,7 +95,7 @@ class NotificationManager private constructor(val context: Context) {
             return
         }
 
-        NotificationManagerCompat.from(context).cancel(note.id.toInt())
+        // TODO remove the note schedule
     }
 
     fun create(note: Note) {
