@@ -112,4 +112,11 @@ class PreferencesManager(private val context: Context) {
         }
     }
 
+    /**
+     * Return if the user allow notifications
+     */
+    fun isNotificationEnabled() : Boolean {
+        return preferences.getBoolean("notification",true)
+    }
+
 }

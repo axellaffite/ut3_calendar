@@ -80,4 +80,10 @@
         https://github.com/axellaffite/ut3_calendar
     </string>
     <string name="no_location_found">Pas de lieu trouvé ou leurs localisations ne sont pas connues</string>
+    <string name="new_event_added">%s ajouté.</string>
+    <string name="new_event_added_full">Le %s à %s.</string>
+    <string name="event_deleted">%s supprimé.</string>
+    <string name="event_updated">%s mis à jour.</string>
+    <string name="event_updated_full">Déplacé au %s</string>
+    <string name="cours">cours</string>
 </resources>
