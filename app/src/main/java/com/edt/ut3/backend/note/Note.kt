@@ -53,15 +53,20 @@ data class Note(
                 date = it.start
 
                 val dateTitle = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(event.start)
-                title = "$dateTitle - ${title}"
+                title = "$dateTitle - ${it.courseName ?: it.category}"
             }
 
             return Note(0L, event?.id, title, "", date, null, null)
         }
     }
 
-    fun isEmpty() =
-        !reminder.isActive() && title.isNullOrBlank() && contents.isBlank() && pictures.isEmpty()
+    fun isEmpty() : Boolean {
+        return  (!eventID.isNullOrBlank() || title.isNullOrBlank())
+                && !reminder.isActive()
+                && contents.isBlank()
+                && pictures.isEmpty()
+    }
+
 
     fun clearPictures() {
         while (pictures.isNotEmpty()) {

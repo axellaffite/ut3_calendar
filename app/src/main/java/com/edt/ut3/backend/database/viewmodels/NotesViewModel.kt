@@ -1,6 +1,7 @@
 package com.edt.ut3.backend.database.viewmodels
 
 import android.content.Context
+import android.util.Log
 import com.edt.ut3.backend.database.AppDatabase
 import com.edt.ut3.backend.note.Note
 import com.edt.ut3.backend.notification.NotificationManager
@@ -13,8 +14,11 @@ class NotesViewModel(private val context: Context) {
 
     suspend fun save(note: Note) {
         if (note.isEmpty()) {
+            Log.d(this::class.simpleName, "Note is empty")
             delete(note)
         } else {
+            Log.d(this::class.simpleName, "Note isn't empty")
+
             val ids = dao.insert(note)
 
             if (note.id == 0L) {
@@ -23,9 +27,9 @@ class NotesViewModel(private val context: Context) {
 
             NotificationManager.getInstance(context).run {
                 if (note.reminder.isActive()) {
-                    create(note)
+                    this.create(note)
                 } else {
-                    delete(note)
+                    this.remove(note)
                 }
             }
         }

@@ -13,6 +13,7 @@ import com.edt.ut3.backend.database.viewmodels.EventViewModel
 import com.edt.ut3.backend.notification.EventChange
 import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.backend.preferences.PreferencesManager.Preference
 import com.edt.ut3.backend.requests.CelcatService
 import com.edt.ut3.misc.fromHTML
 import com.edt.ut3.misc.map
@@ -34,6 +35,7 @@ import java.util.concurrent.TimeUnit
  * @param appContext The application context
  * @param workerParams The worker's parameters
  */
+@Suppress("BlockingMethodInNonBlockingContext")
 class Updater(appContext: Context, workerParams: WorkerParameters):
     CoroutineWorker(appContext, workerParams) {
 
@@ -87,11 +89,11 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
 
         var result = Result.success()
         try {
-            val groupsPreference = prefManager.get(PreferencesManager.Preference.GROUPS) as JSONArray
+            val groupsPreference = prefManager.get(Preference.GROUPS, JSONArray())
             val groups = groupsPreference.toList<String>()
             Log.d("UPDATER", "Downloading events for theses groups: $groups")
 
-            val link = PreferencesManager(applicationContext).get(PreferencesManager.Preference.LINK) as String?
+            val link = prefManager.get<String?>(Preference.LINK, null)
                 ?: throw IllegalStateException("Link must be set")
 
             val classes = getClasses(link).toHashSet()
@@ -150,17 +152,21 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                 delete(*removedEvent.toTypedArray())
                 update(*updatedEvent.toTypedArray())
 
-                if (!firstUpdate && PreferencesManager(applicationContext).isNotificationEnabled()) {
+                val notificationEnabled = prefManager.get(Preference.NOTIFICATION, true)
+                val shouldDisplayNotifications = notificationEnabled && !firstUpdate
+                if (shouldDisplayNotifications) {
+                    val notificationManager = NotificationManager.getInstance(applicationContext)
+
                     if(removedEvent.isNotEmpty()) {
-                        NotificationManager.getInstance(applicationContext).create(removedEvent, EventChange.Type.REMOVED)
+                        notificationManager.create(removedEvent, EventChange.Type.REMOVED)
                     }
 
                     if(newEvents.isNotEmpty()) {
-                        NotificationManager.getInstance(applicationContext).create(newEvents, EventChange.Type.ADDED)
+                        notificationManager.create(newEvents, EventChange.Type.ADDED)
                     }
 
                     if(updatedEvent.isNotEmpty()) {
-                        NotificationManager.getInstance(applicationContext).create(updatedEvent, EventChange.Type.UPDATED)
+                        notificationManager.create(updatedEvent, EventChange.Type.UPDATED)
                     }
                 }
 

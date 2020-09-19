@@ -30,7 +30,6 @@ import com.edt.ut3.ui.calendar.view_builders.LayoutAllDay
 import com.elzozor.yoda.Day
 import com.elzozor.yoda.Week
 import com.elzozor.yoda.events.EventWrapper
-import kotlinx.android.synthetic.main.fragment_calendar.*
 import kotlinx.android.synthetic.main.fragment_calendar_viewer.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -58,7 +57,7 @@ class CalendarViewerFragment: Fragment() {
         SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
             if (key == Preference.CALENDAR.value) {
                 context?.let {
-                    val newMode = preferences.get(Preference.CALENDAR) as CalendarMode
+                    val newMode = preferences.get(Preference.CALENDAR, CalendarMode.default())
 
                     if (mode != newMode) {
                         mode = newMode
@@ -89,7 +88,7 @@ class CalendarViewerFragment: Fragment() {
         super.onCreate(savedInstanceState)
 
         preferences = PreferencesManager(requireContext())
-        mode = preferences.get(Preference.CALENDAR) as CalendarMode
+        mode = preferences.get(Preference.CALENDAR, CalendarMode.default())
 
         savedInstanceState?.run {
             position = getInt("position")
@@ -134,7 +133,7 @@ class CalendarViewerFragment: Fragment() {
     }
 
     private fun refreshDate(up: Date, refresh: Boolean = true) {
-        val coeff = when (preferences.get(Preference.CALENDAR)) {
+        val coeff = when (preferences.get(Preference.CALENDAR, CalendarMode.default())) {
             CalendarMode.default() -> 1
             else -> 7
         }
@@ -168,7 +167,7 @@ class CalendarViewerFragment: Fragment() {
                 job?.cancel()
                 job = lifecycleScope.launchWhenCreated {
                     val height = (parentFragment as Fragment).view?.findViewById<NestedScrollView>(R.id.scroll_view)?.height ?: 0
-                    when (preferences.get(Preference.CALENDAR)) {
+                    when (preferences.get(Preference.CALENDAR, CalendarMode.default())) {
                         CalendarMode.default() ->
                             buildDayView(calendar_container, eventList, height, requireView().width)
                         else ->
@@ -310,17 +309,12 @@ class CalendarViewerFragment: Fragment() {
                 topMargin = positionAdder(y)
             }
 
-            setOnClickListener { openEventDetailsView(event) }
+            setOnClickListener { setSelectedEvent(event) }
         })
     }
 
-    private fun openEventDetailsView(event: Event) {
+    private fun setSelectedEvent(event: Event) {
         viewModel.selectedEvent.value = event
-        with (parentFragment as CalendarFragment) {
-            event_details_container?.also {
-                bottomSheetManager.setVisibleSheet(event_details_container)
-            }
-        }
     }
 
     private fun buildAllDayView(events: List<EventWrapper>): View {

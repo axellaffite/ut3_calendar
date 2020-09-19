@@ -10,6 +10,7 @@ import com.edt.ut3.backend.calendar.CalendarMode
 import com.edt.ut3.ui.preferences.Theme
 import com.edt.ut3.ui.preferences.ThemePreference
 import org.json.JSONArray
+import java.io.IOException
 
 class PreferencesManager(private val context: Context) {
 
@@ -23,22 +24,27 @@ class PreferencesManager(private val context: Context) {
 
     private val preferences = PreferenceManager.getDefaultSharedPreferences(context)
 
+    @Throws(PreferenceCastException::class)
     private fun serialize(pref: Preference, value: Any): String {
-        val serialized = when (pref) {
-            Preference.GROUPS ->
-                with (value as List<*>) { JSONArray(this).toString() }
+        val serialized = try {
+            when (pref) {
+                Preference.GROUPS ->
+                    with (value as List<*>) { JSONArray(this).toString() }
 
-            Preference.CALENDAR ->
-                with(value as CalendarMode) { toJSON() }
+                Preference.CALENDAR ->
+                    with(value as CalendarMode) { toJSON() }
 
-            Preference.THEME ->
-                with (value as ThemePreference) { toString() }
+                Preference.THEME ->
+                    with (value as ThemePreference) { toString() }
 
-            Preference.NOTIFICATION ->
-                with (value as Boolean) { toString() }
+                Preference.NOTIFICATION ->
+                    with (value as Boolean) { toString() }
 
-            Preference.LINK ->
-                with (value as String) { this }
+                Preference.LINK ->
+                    with (value as String) { this }
+            }
+        } catch (e: Exception) {
+            throw PreferenceCastException("Unable to serialize $value to $pref preference !")
         }
 
         Log.d(this::class.simpleName, "Serializing $value into $serialized")
@@ -46,31 +52,45 @@ class PreferencesManager(private val context: Context) {
         return serialized
     }
 
+    @Suppress("UNCHECKED_CAST")
+    @Throws(PreferenceCastException::class)
     private fun deserialize(pref: Preference, value: String?): Any? {
-        return when (pref) {
-            Preference.GROUPS ->
-                value ?.let { JSONArray(value) }
+        return try {
+            when (pref) {
+                Preference.GROUPS ->
+                    value ?.let { JSONArray(value) }
 
-            Preference.CALENDAR ->
-                value?.let { CalendarMode.fromJson(it) } ?: CalendarMode.default()
+                Preference.CALENDAR ->
+                    value?.let { CalendarMode.fromJson(it) } ?: CalendarMode.default()
 
-            Preference.THEME -> {
-                value?.let { ThemePreference.valueOf(it) } ?: ThemePreference.SMARTPHONE
+                Preference.THEME -> {
+                    value?.let { ThemePreference.valueOf(it) } ?: ThemePreference.SMARTPHONE
+                }
+
+                Preference.NOTIFICATION ->
+                    value?.let { it.toBoolean() } ?: true
+
+                Preference.LINK -> value
             }
-
-            Preference.NOTIFICATION ->
-                value?.let { it.toBoolean() } ?: true
-
-            Preference.LINK -> value
+        } catch (e: Exception) {
+            throw PreferenceCastException("Unable to deserialize $value to $pref preference !")
         }
     }
 
+
+    @Throws(PreferenceCastException::class)
     fun set(pref: Preference, value: Any) {
         preferences.edit().putString(pref.value, serialize(pref, value)).apply()
     }
 
-    fun get(pref: Preference) =
-        deserialize(pref, preferences.getString(pref.value, null))
+    @Suppress("UNCHECKED_CAST")
+    fun<T> get(pref: Preference, default: T): T {
+        return try {
+            deserialize(pref, preferences.getString(pref.value, null)) as T
+        } catch (e: Exception) {
+            default
+        }
+    }
 
     fun observe(observer: SharedPreferences.OnSharedPreferenceChangeListener) {
         observer.let {
@@ -79,7 +99,7 @@ class PreferencesManager(private val context: Context) {
     }
 
     fun setupTheme() {
-        val preference = get(Preference.THEME)
+        val preference = get(Preference.THEME, ThemePreference.SMARTPHONE)
 
         Log.d(this::class.simpleName, "Setting up $preference theme")
 
@@ -91,7 +111,7 @@ class PreferencesManager(private val context: Context) {
     }
 
     fun currentTheme() : Theme {
-        val themePreference = get(Preference.THEME) as ThemePreference
+        val themePreference = get(Preference.THEME, ThemePreference.SMARTPHONE)
         return guessTheme(themePreference)
     }
 
@@ -112,11 +132,7 @@ class PreferencesManager(private val context: Context) {
         }
     }
 
-    /**
-     * Return if the user allow notifications
-     */
-    fun isNotificationEnabled() : Boolean {
-        return preferences.getBoolean("notification",true)
-    }
+
+    class PreferenceCastException(reason: String): IOException(reason)
 
 }

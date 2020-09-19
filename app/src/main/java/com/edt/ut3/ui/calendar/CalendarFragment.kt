@@ -13,7 +13,6 @@ import android.widget.LinearLayout
 import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
@@ -26,14 +25,12 @@ import com.edt.ut3.backend.preferences.PreferencesManager.Preference
 import com.edt.ut3.misc.add
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.timeCleaned
-import com.edt.ut3.ui.map.MapsViewModel
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_calendar.*
 import kotlinx.android.synthetic.main.fragment_calendar.view.*
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -44,17 +41,16 @@ class CalendarFragment : BottomSheetFragment(),
     enum class Status { IDLE, UPDATING }
 
     private val calendarViewModel: CalendarViewModel by activityViewModels()
-    private val mapsViewModel: MapsViewModel by activityViewModels()
 
     private var status = Status.IDLE
 
     private lateinit var preferences: PreferencesManager
 
     private val preferenceChangeListener =
-        SharedPreferences.OnSharedPreferenceChangeListener { sharedPreference: SharedPreferences, key: String ->
+        SharedPreferences.OnSharedPreferenceChangeListener { _: SharedPreferences, key: String ->
             when (key) {
                 Preference.CALENDAR.value -> {
-                    val newPreference = preferences.get(Preference.CALENDAR) as CalendarMode
+                    val newPreference = preferences.get(Preference.CALENDAR, CalendarMode.default())
                     updateBarText(calendarViewModel.selectedDate.value!!, newPreference)
                 }
             }
@@ -81,7 +77,7 @@ class CalendarFragment : BottomSheetFragment(),
      * which is sets in the ViewModel.
      */
     private fun updateCalendarMode() {
-        val lastValue = preferences.get(Preference.CALENDAR) as CalendarMode
+        val lastValue = preferences.get(Preference.CALENDAR, CalendarMode.default())
         val newPreference = when (context?.resources?.configuration?.orientation) {
             ORIENTATION_PORTRAIT ->
                 lastValue.withAgendaMode()
@@ -106,7 +102,6 @@ class CalendarFragment : BottomSheetFragment(),
         setupBottomSheetManager()
         setupBackButtonListener()
         setupListeners()
-        startPlacesDownload()
 
         view.action_view?.menu?.findItem(R.id.change_view)?.let {
             updateViewIcon(it)
@@ -134,16 +129,6 @@ class CalendarFragment : BottomSheetFragment(),
                 activity?.let {
                     isEnabled = false
                     it.onBackPressed()
-                }
-            }
-        }
-    }
-
-    private fun startPlacesDownload() {
-        context?.let {
-            if (mapsViewModel.getPlaces(it).value.isNullOrEmpty()) {
-                lifecycleScope.launch {
-                    mapsViewModel.launchDataUpdate(it)
                 }
             }
         }
@@ -225,7 +210,7 @@ class CalendarFragment : BottomSheetFragment(),
         // Update the action bar text when the selected date
         // is updated in the ViewModel.
         calendarViewModel.selectedDate.observe(viewLifecycleOwner) {
-            updateBarText(it, preferences.get(Preference.CALENDAR) as CalendarMode)
+            updateBarText(it, preferences.get(Preference.CALENDAR, CalendarMode.default()))
             calendarView.date = it.time
         }
 
@@ -240,6 +225,28 @@ class CalendarFragment : BottomSheetFragment(),
         }
 
         view?.action_view?.setOnMenuItemClickListener(this)
+
+        view?.event_details_container?.let {
+            BottomSheetBehavior.from(it).addBottomSheetCallback(object:
+                BottomSheetBehavior.BottomSheetCallback() {
+                override fun onStateChanged(bottomSheet: View, newState: Int) {
+                    if (newState == STATE_COLLAPSED) {
+                        calendarViewModel.selectedEvent.value = null
+                    }
+                }
+
+                override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                    // DO NOTHING
+                }
+
+            })
+        }
+    }
+
+    fun displayEventDetails() {
+        event_details_container?.let {
+            bottomSheetManager.setVisibleSheet(it)
+        }
     }
 
 
@@ -337,7 +344,7 @@ class CalendarFragment : BottomSheetFragment(),
     }
 
     private fun onChangeViewClick(item: MenuItem): Boolean {
-        val mode = preferences.get(Preference.CALENDAR) as CalendarMode
+        val mode = preferences.get(Preference.CALENDAR, CalendarMode.default())
         val newMode = mode.invertForceWeek()
         Log.d(this::class.simpleName, "Mode: $mode | NewMode: $newMode")
         preferences.set(Preference.CALENDAR, newMode)
@@ -348,7 +355,7 @@ class CalendarFragment : BottomSheetFragment(),
     }
 
     private fun updateViewIcon(item: MenuItem) {
-        val mode = preferences.get(Preference.CALENDAR) as CalendarMode
+        val mode = preferences.get(Preference.CALENDAR, CalendarMode.default())
         val icon = when (mode) {
             CalendarMode.default() -> R.drawable.ic_week_view
             else -> R.drawable.ic_agenda_view
@@ -399,9 +406,7 @@ class CalendarFragment : BottomSheetFragment(),
         override fun getItemCount() = Int.MAX_VALUE
 
         override fun createFragment(position: Int) =
-            CalendarViewerFragment.newInstance(
-                thisIndex = position
-            ).apply {
+            CalendarViewerFragment.newInstance(position).apply {
                 getHeight = { view?.scroll_view?.measuredHeight ?: 0 }
             }
     }

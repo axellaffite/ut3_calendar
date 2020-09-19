@@ -6,6 +6,7 @@ import android.app.TimePickerDialog
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
@@ -38,6 +39,7 @@ import com.edt.ut3.backend.note.Picture
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.setTime
+import com.edt.ut3.ui.calendar.CalendarFragment
 import com.edt.ut3.ui.calendar.CalendarViewModel
 import com.edt.ut3.ui.custom_views.image_preview.ImagePreviewAdapter
 import com.edt.ut3.ui.map.MapsViewModel
@@ -69,7 +71,6 @@ class FragmentEventDetails : Fragment() {
 
     private var pictureFile: File? = null
     private var pictureName: String? = null
-
 
     /**
      * Used to launch an Intent that will take
@@ -128,6 +129,7 @@ class FragmentEventDetails : Fragment() {
 
             AppDatabase.getInstance(requireContext()).noteDao().run {
                 val result = selectByEventIDs(event.id)
+                println(result)
 
                 if (result.size == 1) {
                     note = result[0]
@@ -230,6 +232,11 @@ class FragmentEventDetails : Fragment() {
         }
 
         updateReminderSpinner()
+
+        val prtFrag = parentFragment
+        if (prtFrag is CalendarFragment) {
+            prtFrag.displayEventDetails()
+        }
     }
 
     /**
@@ -481,12 +488,16 @@ class FragmentEventDetails : Fragment() {
     private fun addPictureToNote(name: String, file: File) {
         lifecycleScope.launch {
             saveNote(note) {
+                Log.d(this@FragmentEventDetails::class.simpleName, "Note saved")
                 lifecycleScope.launch {
                     val generated = Picture.generateFromPictureUri(requireContext(), name, file.absolutePath)
                     note.pictures.add(generated)
 
+                    Log.d(this@FragmentEventDetails::class.simpleName, "picture added")
+
                     saveNote(note) {
                         pictures.notifyDataSetChanged()
+                        Log.d(this@FragmentEventDetails::class.simpleName, "Note saved with picture")
                     }
                 }
             }
