@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.addCallback
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,6 +14,8 @@ import com.edt.ut3.backend.database.viewmodels.EventViewModel
 import com.edt.ut3.backend.note.Note
 import com.edt.ut3.ui.calendar.BottomSheetFragment
 import com.edt.ut3.ui.calendar.event_details.FragmentEventDetails
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import kotlinx.android.synthetic.main.fragment_notes.*
 
 class NotesFragment : BottomSheetFragment() {
@@ -54,6 +57,34 @@ class NotesFragment : BottomSheetFragment() {
             }
 
             childFragment.listenTo = notesViewModel.selectedEvent
+        }
+
+        event_details_notes_container?.let {
+            BottomSheetBehavior.from(it).addBottomSheetCallback(object: BottomSheetBehavior.BottomSheetCallback() {
+                override fun onStateChanged(bottomSheet: View, newState: Int) {
+                    if (newState == STATE_COLLAPSED) {
+                        notesViewModel.selectedEvent.value = null
+                    }
+                }
+
+                override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                    // Do nothing here
+                }
+
+            })
+        }
+
+        setupBackButtonClickListener()
+    }
+
+    private fun setupBackButtonClickListener() {
+        activity?.onBackPressedDispatcher?.addCallback {
+            if (bottomSheetManager.hasVisibleSheet()) {
+                bottomSheetManager.setVisibleSheet(null)
+            } else {
+                isEnabled = false
+                activity?.onBackPressed()
+            }
         }
     }
 

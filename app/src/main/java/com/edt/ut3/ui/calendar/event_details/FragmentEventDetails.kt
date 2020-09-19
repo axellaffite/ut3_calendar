@@ -47,6 +47,7 @@ import kotlinx.android.synthetic.main.fragment_event_details.*
 import kotlinx.android.synthetic.main.fragment_event_details.view.*
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -273,7 +274,9 @@ class FragmentEventDetails : Fragment() {
                 }
 
                 whenResumed {
-                    refreshLocations(requireContext(), matchingPlaces)
+                    withContext(Main) {
+                        refreshLocations(requireContext(), matchingPlaces)
+                    }
                 }
             }
         }
@@ -289,6 +292,9 @@ class FragmentEventDetails : Fragment() {
 
             locations_container.visibility = VISIBLE
             locations_not_found_label.visibility = GONE
+        } else {
+            locations_container.visibility = GONE
+            locations_not_found_label.visibility = VISIBLE
         }
     }
 

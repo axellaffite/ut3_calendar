@@ -7,6 +7,8 @@
     android:layout_height="match_parent"
     android:background="@color/backgroundColor"
     android:fillViewport="true"
+    android:focusable="true"
+    android:clickable="true"
     android:id="@+id/event_details_main">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -187,7 +189,8 @@
                 android:gravity="start|top"
                 android:inputType="textMultiLine"
                 android:minLines="4"
-                android:textColor="@color/textColor" />
+                android:textColor="@color/textColor"
+                android:textCursorDrawable="@null"/>
 
         </com.google.android.material.textfield.TextInputLayout>
 

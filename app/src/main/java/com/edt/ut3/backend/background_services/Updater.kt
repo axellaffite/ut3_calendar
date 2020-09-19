@@ -144,7 +144,10 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
 
                 /* retrieve corresponding events from their id */
                 val newEvents = receivedEvent.filter { newEventsID.contains(it.id) }
-                val removedEvent = oldEvent.filter { removedEventsID.contains(it.id) && it.start > today }
+                val removedEvent = oldEvent.filter {
+                    removedEventsID.contains(it.id)
+                    && (firstUpdate || it.start > today)
+                }
                 val updatedEvent = receivedEvent.filter {
                     updatedEventsID.contains(it.id)
                     && it != oldEventMap[it.id]
