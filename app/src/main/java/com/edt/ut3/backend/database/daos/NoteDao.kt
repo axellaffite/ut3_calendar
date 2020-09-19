@@ -30,7 +30,7 @@ interface NoteDao {
     suspend fun selectByIDs(vararg ids: Long): List<Note>
 
     @Query("SELECT * FROM note WHERE event_id in (:eventIDs)")
-    suspend fun selectByEventIDs(eventIDs: String): List<Note>
+    suspend fun selectByEventIDs(vararg eventIDs: String): List<Note>
 
     @Query("SELECT * FROM note WHERE date BETWEEN :begin AND :end")
     suspend fun getFromTo(begin: Long, end: Long): List<Note>

@@ -22,14 +22,11 @@ import androidx.core.content.FileProvider
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.whenCreated
-import androidx.lifecycle.whenResumed
+import androidx.lifecycle.*
 import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
-import com.edt.ut3.backend.database.AppDatabase
 import com.edt.ut3.backend.database.viewmodels.NotesViewModel
 import com.edt.ut3.backend.maps.MapsUtils
 import com.edt.ut3.backend.maps.Place
@@ -39,8 +36,6 @@ import com.edt.ut3.backend.note.Picture
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.setTime
-import com.edt.ut3.ui.calendar.CalendarFragment
-import com.edt.ut3.ui.calendar.CalendarViewModel
 import com.edt.ut3.ui.custom_views.image_preview.ImagePreviewAdapter
 import com.edt.ut3.ui.map.MapsViewModel
 import com.edt.ut3.ui.preferences.Theme
@@ -64,13 +59,25 @@ class FragmentEventDetails : Fragment() {
     private var updateLocationJob: Job? = null
     private lateinit var event: Event
 
-    private val calendarViewModel: CalendarViewModel by activityViewModels()
     private val mapsViewModel: MapsViewModel by activityViewModels()
 
     private lateinit var note: Note
 
     private var pictureFile: File? = null
     private var pictureName: String? = null
+
+    var onReady : (() -> Unit)? = null
+    var listenTo = MutableLiveData<Event>(null)
+        set(value) {
+            value.observe(viewLifecycleOwner) {
+                it?.let { event ->
+                    setupNewEvent(event)
+                }
+            }
+
+            field = value
+        }
+
 
     /**
      * Used to launch an Intent that will take
@@ -115,7 +122,7 @@ class FragmentEventDetails : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        calendarViewModel.selectedEvent.observe(viewLifecycleOwner) {
+        listenTo.observe(viewLifecycleOwner) {
             it?.let { event ->
                 setupNewEvent(event)
             }
@@ -127,8 +134,8 @@ class FragmentEventDetails : Fragment() {
         lifecycleScope.launchWhenCreated {
             note = Note.generateEmptyNote(event)
 
-            AppDatabase.getInstance(requireContext()).noteDao().run {
-                val result = selectByEventIDs(event.id)
+            NotesViewModel(requireContext()).run {
+                val result = getNotesByEventIDs(event.id)
 
                 if (result.size == 1) {
                     note = result[0]
@@ -138,6 +145,8 @@ class FragmentEventDetails : Fragment() {
                     setupContent()
                     setupListeners()
                 }
+
+                onReady?.invoke()
             }
         }
     }
@@ -214,7 +223,6 @@ class FragmentEventDetails : Fragment() {
         // Add all the note event picture to the view model variable
         // It is used into several cases to add and delete pictures
         // to the current note.
-        calendarViewModel.selectedEventNote = note
         pictures.notifyDataSetChanged()
 
         // The adapter is an extension of the ArrayAdapter class.
@@ -231,11 +239,6 @@ class FragmentEventDetails : Fragment() {
         }
 
         updateReminderSpinner()
-
-        val prtFrag = parentFragment
-        if (prtFrag is CalendarFragment) {
-            prtFrag.displayEventDetails()
-        }
     }
 
     /**

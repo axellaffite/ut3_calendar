@@ -1,18 +1,21 @@
 package com.edt.ut3.ui.notes
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.edt.ut3.R
+import com.edt.ut3.backend.database.viewmodels.EventViewModel
 import com.edt.ut3.backend.note.Note
+import com.edt.ut3.ui.calendar.BottomSheetFragment
+import com.edt.ut3.ui.calendar.event_details.FragmentEventDetails
 import kotlinx.android.synthetic.main.fragment_notes.*
 
-class NotesFragment : Fragment() {
+class NotesFragment : BottomSheetFragment() {
 
     private val notesViewModel: FragmentNotesViewModel by activityViewModels()
 
@@ -28,11 +31,29 @@ class NotesFragment : Fragment() {
         notes_container.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         notes_container.addItemDecoration(NoteAdapter.NoteSeparator())
 
+        setupBottomSheetManager()
+        setupListeners()
+    }
+
+    private fun setupBottomSheetManager() {
+        bottomSheetManager.add(event_details_notes_container)
+    }
+
+    private fun setupListeners() {
         val notesLD = notesViewModel.getNotes(requireContext())
         notesLD.observe(viewLifecycleOwner) { newNotes ->
             notes.clear()
             notes.addAll(newNotes)
             updateRecyclerAdapter()
+        }
+
+        val childFragment = childFragmentManager.findFragmentById(R.id.event_details_notes)
+        if (childFragment is FragmentEventDetails) {
+            childFragment.onReady = {
+                bottomSheetManager.setVisibleSheet(event_details_notes_container)
+            }
+
+            childFragment.listenTo = notesViewModel.selectedEvent
         }
     }
 
@@ -40,7 +61,15 @@ class NotesFragment : Fragment() {
         if (notes_container.adapter == null) {
             notes_container.adapter = NoteAdapter(notes).apply {
                 onItemClickListener = { note ->
-                    findNavController().navigate(R.id.action_navigation_notes_to_fragmentNoteDetails)
+                    val eventID = note.eventID
+                    val ctx = context
+
+                    if (eventID is String && ctx is Context) {
+                        lifecycleScope.launchWhenResumed {
+                            val event = EventViewModel(ctx).getEventsByIDs(eventID).firstOrNull()
+                            notesViewModel.selectedEvent.value = event
+                        }
+                    }
                 }
             }
         }

@@ -25,6 +25,7 @@ import com.edt.ut3.backend.preferences.PreferencesManager.Preference
 import com.edt.ut3.misc.add
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.timeCleaned
+import com.edt.ut3.ui.calendar.event_details.FragmentEventDetails
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import com.google.android.material.snackbar.BaseTransientBottomBar
@@ -101,11 +102,15 @@ class CalendarFragment : BottomSheetFragment(),
         setupViewPager()
         setupBottomSheetManager()
         setupBackButtonListener()
-        setupListeners()
 
         view.action_view?.menu?.findItem(R.id.change_view)?.let {
             updateViewIcon(it)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        setupListeners()
     }
 
     private fun setupBottomSheetManager() {
@@ -241,14 +246,16 @@ class CalendarFragment : BottomSheetFragment(),
 
             })
         }
-    }
 
-    fun displayEventDetails() {
-        event_details_container?.let {
-            bottomSheetManager.setVisibleSheet(it)
+        val childFragment = childFragmentManager.findFragmentById(R.id.event_details)
+        if (childFragment is FragmentEventDetails) {
+            childFragment.onReady = {
+                bottomSheetManager.setVisibleSheet(event_details_container)
+            }
+
+            childFragment.listenTo = calendarViewModel.selectedEvent
         }
     }
-
 
     /**
      * This function performs an update

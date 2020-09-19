@@ -12,6 +12,8 @@ class NotesViewModel(private val context: Context) {
 
     fun getNotesLD() = dao.selectAllLD()
 
+    suspend fun getNotesByEventIDs(vararg eventIDs: String) = dao.selectByEventIDs(*eventIDs)
+
     suspend fun save(note: Note) {
         if (note.isEmpty()) {
             Log.d(this::class.simpleName, "Note is empty")
