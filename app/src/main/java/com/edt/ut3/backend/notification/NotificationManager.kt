@@ -62,9 +62,9 @@ class NotificationManager private constructor(val context: Context) {
     }
 
     private fun generateEventNotificationTitle(event: Event, type: EventChange.Type) = when (type) {
-        EventChange.Type.ADDED -> context.getString(R.string.new_event_added, event.courseName)
-        EventChange.Type.REMOVED -> context.getString(R.string.event_deleted, event.courseName)
-        EventChange.Type.UPDATED -> context.getString(R.string.event_updated, event.courseName)
+        EventChange.Type.ADDED -> context.getString(R.string.new_event_added, event.courseOrCategory(context))
+        EventChange.Type.REMOVED -> context.getString(R.string.event_deleted, event.courseOrCategory(context))
+        EventChange.Type.UPDATED -> context.getString(R.string.event_updated, event.courseOrCategory(context))
     }
 
     private fun generateEventNotificationText(event: Event, type: EventChange.Type) = when(type) {

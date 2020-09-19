@@ -6,6 +6,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
+import com.edt.ut3.R
 import com.edt.ut3.backend.database.Converter
 import com.edt.ut3.misc.*
 import com.elzozor.yoda.events.EventWrapper
@@ -58,7 +59,6 @@ data class Event(
 
     }
 
-
     fun categoryWithEmotions(): String? {
         return category?.let {
             when {
@@ -69,6 +69,10 @@ data class Event(
             }
         }
     }
+
+    fun courseOrCategory(context: Context) = courseName ?: category ?: defaultName(context)
+
+    fun defaultName(context: Context) = context.getString(R.string.default_event_name)
 
     /**
      * Convert the background color into a darker color.

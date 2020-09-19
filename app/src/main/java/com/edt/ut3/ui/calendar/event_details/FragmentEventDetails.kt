@@ -129,7 +129,6 @@ class FragmentEventDetails : Fragment() {
 
             AppDatabase.getInstance(requireContext()).noteDao().run {
                 val result = selectByEventIDs(event.id)
-                println(result)
 
                 if (result.size == 1) {
                     note = result[0]
@@ -165,12 +164,12 @@ class FragmentEventDetails : Fragment() {
             }
         }
 
-        title.text = event.courseName ?: event.category
+        title.text = event.courseOrCategory(requireContext())
         from_to.text = generateDateText()
         event_note.setText(note.contents)
 
         val descriptionBuilder = StringBuilder()
-        event.category?.let { descriptionBuilder.append(it).append("\n") }
+        event.categoryWithEmotions()?.let { descriptionBuilder.append(it).append("\n") }
 
         val locations = event.locations.joinToString(", ")
         if (locations.isNotBlank()) {

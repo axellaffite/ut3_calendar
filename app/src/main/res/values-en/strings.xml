@@ -81,9 +81,9 @@
     <string name="no_location_found">No place found or theirs locations are unknown</string>
     <string name="new_event_added">%s added.</string>
     <string name="new_event_added_full">The %s at %s.</string>
-    <string name="event_deleted">% deleted.</string>
-    <string name="event_updated">% updated.</string>
+    <string name="event_deleted">%s deleted.</string>
+    <string name="event_updated">%s updated.</string>
     <string name="event_updated_full">Moved to %s</string>
     <string name="cours">course</string>
-    <string name="no_title_note">"Untitled Note "</string>
+    <string name="no_title_note">"Untitled Note"</string>
 </resources>

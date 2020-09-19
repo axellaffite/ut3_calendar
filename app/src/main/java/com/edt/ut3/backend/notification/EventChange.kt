@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
-import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.Converter
 import com.edt.ut3.backend.database.viewmodels.EdtChangeViewModel
@@ -34,9 +33,7 @@ data class EventChange(
 
 
         private suspend fun buildEventChange(context : Context, event : Event, type: Type) {
-            val courseName =
-                if (! event.courseName.isNullOrEmpty()) { event.courseName!! }
-                else { context.getString(R.string.cours) }
+            val courseName = event.courseOrCategory(context)
 
             val newEventChange = EventChange(0L, type.value, courseName, event.id, event.start, Date())
             EdtChangeViewModel(context).insert(newEventChange)

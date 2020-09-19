@@ -72,11 +72,7 @@ class EventView(context: Context, private var ev: Event.Wrapper): CardView(conte
             description.append(event.locations.first()).append("\n")
         }
 
-        event.courseName?.let {
-            description.append(it).append("\n")
-        } ?: event.category ?.let {
-            description.append(it).append("\n")
-        }
+        description.append(event.courseOrCategory(context)).append("\n")
 
         if (description.isEmpty()) {
             description.append(event.description)
