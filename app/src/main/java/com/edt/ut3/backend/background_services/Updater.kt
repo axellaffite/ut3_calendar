@@ -17,6 +17,7 @@ import com.edt.ut3.backend.preferences.PreferencesManager.Preference
 import com.edt.ut3.backend.requests.CelcatService
 import com.edt.ut3.misc.fromHTML
 import com.edt.ut3.misc.map
+import com.edt.ut3.misc.timeCleaned
 import com.edt.ut3.misc.toList
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
@@ -26,6 +27,7 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 
@@ -86,6 +88,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
         setProgress(workDataOf(Progress to 0))
 
         val firstUpdate = inputData.getBoolean("firstUpdate", false)
+        val today = Date().timeCleaned()
 
         var result = Result.success()
         try {
@@ -141,7 +144,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
 
                 /* retrieve corresponding events from their id */
                 val newEvents = receivedEvent.filter { newEventsID.contains(it.id) }
-                val removedEvent = oldEvent.filter { removedEventsID.contains(it.id) }
+                val removedEvent = oldEvent.filter { removedEventsID.contains(it.id) && it.start > today }
                 val updatedEvent = receivedEvent.filter {
                     updatedEventsID.contains(it.id)
                     && it != oldEventMap[it.id]
