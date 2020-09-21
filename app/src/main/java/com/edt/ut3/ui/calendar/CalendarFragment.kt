@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.adapter.FragmentViewHolder
 import androidx.viewpager2.widget.ViewPager2
 import androidx.work.WorkInfo
 import com.edt.ut3.R
@@ -162,7 +163,7 @@ class CalendarFragment : BottomSheetFragment(),
 
             // We reset the current item to the last registered
             // position.
-            pager.setCurrentItem(calendarViewModel.lastPosition.value!!, false)
+            setCurrentItem(calendarViewModel.lastPosition.value!!, false)
         }
     }
 
@@ -181,7 +182,7 @@ class CalendarFragment : BottomSheetFragment(),
         // This is done to give information to the
         // CalendarViewerFragments in order to keep
         // them up to date.
-        view?.pager?.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+        view?.pager?.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
 
@@ -255,6 +256,8 @@ class CalendarFragment : BottomSheetFragment(),
             childFragment.listenTo = calendarViewModel.selectedEvent
         }
     }
+
+
 
     /**
      * This function performs an update
@@ -415,5 +418,14 @@ class CalendarFragment : BottomSheetFragment(),
             CalendarViewerFragment.newInstance(position).apply {
                 getHeight = { view?.scroll_view?.measuredHeight ?: 0 }
             }
+
+        override fun onBindViewHolder(
+            holder: FragmentViewHolder,
+            position: Int,
+            payloads: MutableList<Any>
+        ) {
+            holder.setIsRecyclable(false)
+            super.onBindViewHolder(holder, position, payloads)
+        }
     }
 }

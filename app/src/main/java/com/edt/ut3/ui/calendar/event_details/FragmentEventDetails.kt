@@ -587,8 +587,8 @@ class FragmentEventDetails : Fragment() {
                     }
                 }
 
-                add.unlock()
                 save.unlock()
+                add.unlock()
             }
         }
     }
