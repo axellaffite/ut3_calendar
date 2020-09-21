@@ -10,11 +10,13 @@ import androidx.core.net.toUri
 import androidx.core.widget.doOnTextChanged
 import androidx.navigation.fragment.findNavController
 import androidx.preference.EditTextPreference
+import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.edt.ut3.R
 import com.edt.ut3.backend.background_services.Updater
 import com.edt.ut3.backend.preferences.PreferencesManager
+import org.json.JSONArray
 
 class PreferencesFragment: PreferenceFragmentCompat() {
 
@@ -46,6 +48,19 @@ class PreferencesFragment: PreferenceFragmentCompat() {
     }
 
     private fun setupListeners() {
+        findPreference<ListPreference>("theme")?.run {
+            onPreferenceChangeListener = Preference.OnPreferenceChangeListener { preference: Preference, any: Any ->
+                try {
+                    val pref = PreferencesManager.getInstance(context)
+                    pref.theme = any as String
+
+                    true
+                } catch (e: Exception) {
+                    false
+                }
+            }
+        }
+
         findPreference<EditTextPreference>("section")?.let { editText ->
             editText.setOnBindEditTextListener(EditTextListener(requireContext()))
             editText.setOnPreferenceChangeListener { _, link -> setSections(link as String) }
@@ -67,9 +82,9 @@ class PreferencesFragment: PreferenceFragmentCompat() {
 
         val fids = extractFids(link.toUri())
 
-        PreferencesManager(requireContext()).run {
-            set(PreferencesManager.Preference.GROUPS, fids)
-            set(PreferencesManager.Preference.LINK, baseLink)
+        PreferencesManager.getInstance(requireContext()).apply {
+            this.groups = JSONArray(fids).toString()
+            this.link = baseLink
         }
 
         Updater.forceUpdate(requireContext(), true)

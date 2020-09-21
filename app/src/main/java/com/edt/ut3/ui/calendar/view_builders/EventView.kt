@@ -35,7 +35,7 @@ class EventView(context: Context, private var ev: Event.Wrapper): CardView(conte
         addView(
             TextView(context).apply {
                 text = generateCardContents(ev.event)
-                when (PreferencesManager(context).currentTheme()) {
+                when (PreferencesManager.getInstance(context).currentTheme()) {
                     Theme.LIGHT -> {
                         setBackgroundColor(ev.event.lightBackgroundColor(context))
                         setTextColor(Color.parseColor("#FF" + ev.event.textColor?.substring(1)))

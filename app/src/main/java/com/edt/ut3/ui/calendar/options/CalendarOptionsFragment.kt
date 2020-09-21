@@ -72,7 +72,7 @@ class CalendarOptionsFragment: Fragment() {
         } else R.drawable.ic_checked_round_empty
 
         ContextCompat.getDrawable(requireContext(), icon)?.apply {
-            val color = when (PreferencesManager(requireContext()).currentTheme()) {
+            val color = when (PreferencesManager.getInstance(requireContext()).currentTheme()) {
                 Theme.LIGHT -> Color.BLACK
                 else -> Color.WHITE
             }

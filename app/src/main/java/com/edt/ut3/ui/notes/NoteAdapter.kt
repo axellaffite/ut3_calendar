@@ -48,11 +48,14 @@ class NoteAdapter(val dataset: MutableList<Note>) : RecyclerView.Adapter<NoteAda
 
             short_desc.text = currentNote.contents
 
-            reminder.text = if (currentNote.reminder.isActive()) {
+            val reminderText = if (currentNote.reminder.isActive()) {
                 SimpleDateFormat("yyyy/MM/dd - HH:mm ").format(currentNote.date)
             } else {
                 context.getString(R.string.no_reminder_set)
             }
+
+            reminder.text = context.getString(R.string.note_reminder_pictures)
+                .format(reminderText, currentNote.pictures.size)
         }
     }
 

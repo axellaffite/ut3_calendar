@@ -1,8 +1,10 @@
 package com.edt.ut3.backend.calendar
 
+import kotlinx.serialization.Serializable
 import org.json.JSONException
 import org.json.JSONObject
 
+@Serializable
 data class CalendarMode(
     var mode: Mode = Mode.AGENDA,
     var forceWeek: Boolean = false)

@@ -86,4 +86,8 @@
     <string name="event_updated_full">Moved to %s</string>
     <string name="cours">course</string>
     <string name="no_title_note">"Untitled Note"</string>
+    <string name="misc">Misc</string>
+    <string name="default_event_name">Event</string>
+    <string name="about_us">About us</string>
+    <string name="note_reminder_pictures">"%s, %d picture(s) "</string>
 </resources>

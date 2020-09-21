@@ -2,6 +2,9 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlinx-serialization'
+
+
 
 
 android {
@@ -83,7 +86,8 @@ dependencies {
     // Summary : A useful library that allows us to display
     //           schedules on a given view.
     // Github : https://github.com/ElZozor/yoda
-    implementation 'com.github.axellaffite:yoda:master-SNAPSHOT'
+    implementation 'com.github.axellaffite:yoda:2b965999f2'
+
 
     // Name: Picasso
     // Summary : A library that allows us to download and
@@ -132,5 +136,11 @@ dependencies {
     // Summary : A customizable and easy to use bottom bar view with sleek animations.
     // Documentation : https://github.com/Droppers/AnimatedBottomBar
     implementation 'nl.joery.animatedbottombar:library:1.0.8'
+
+    implementation 'com.github.liip:SweetPreferences:1.0.3'
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version" // or "kotlin-stdlib-jdk8"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0-RC" // JVM dependency
+
 
 }

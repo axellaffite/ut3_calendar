@@ -179,7 +179,7 @@ class MapsFragment : Fragment() {
 
             setupLocationListener()
 
-            when (PreferencesManager(requireContext()).currentTheme()) {
+            when (PreferencesManager.getInstance(requireContext()).currentTheme()) {
                 Theme.LIGHT -> overlayManager.tilesOverlay.setColorFilter(null)
                 Theme.DARK -> overlayManager.tilesOverlay.setColorFilter(TilesOverlay.INVERT_COLORS)
             }

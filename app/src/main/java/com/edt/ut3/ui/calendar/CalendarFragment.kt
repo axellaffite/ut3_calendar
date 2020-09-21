@@ -21,7 +21,6 @@ import com.edt.ut3.R
 import com.edt.ut3.backend.background_services.Updater
 import com.edt.ut3.backend.calendar.CalendarMode
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.backend.preferences.PreferencesManager.Preference
 import com.edt.ut3.misc.add
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.timeCleaned
@@ -50,8 +49,8 @@ class CalendarFragment : BottomSheetFragment(),
     private val preferenceChangeListener =
         SharedPreferences.OnSharedPreferenceChangeListener { _: SharedPreferences, key: String ->
             when (key) {
-                Preference.CALENDAR.value -> {
-                    val newPreference = preferences.get(Preference.CALENDAR, CalendarMode.default())
+                PreferencesManager.PreferenceKeys.CALENDAR_MODE.key -> {
+                    val newPreference = CalendarMode.fromJson(preferences.calendarMode)
                     updateBarText(calendarViewModel.selectedDate.value!!, newPreference)
                 }
             }
@@ -64,7 +63,7 @@ class CalendarFragment : BottomSheetFragment(),
         savedInstanceState: Bundle?
     ): View?
     {
-        preferences = PreferencesManager(requireContext())
+        preferences = PreferencesManager.getInstance(requireContext())
 
         // Schedule the periodic update in order to
         // keep the Calendar up to date.
@@ -78,7 +77,7 @@ class CalendarFragment : BottomSheetFragment(),
      * which is sets in the ViewModel.
      */
     private fun updateCalendarMode() {
-        val lastValue = preferences.get(Preference.CALENDAR, CalendarMode.default())
+        val lastValue = CalendarMode.fromJson(preferences.calendarMode)
         val newPreference = when (context?.resources?.configuration?.orientation) {
             ORIENTATION_PORTRAIT ->
                 lastValue.withAgendaMode()
@@ -86,7 +85,7 @@ class CalendarFragment : BottomSheetFragment(),
                 lastValue.withWeekMode()
         }
 
-        preferences.set(Preference.CALENDAR, newPreference)
+        preferences.calendarMode = newPreference.toJSON()
 
         view?.action_view?.menu?.findItem(R.id.change_view)?.let {
             it.isEnabled = newPreference.mode == CalendarMode.Mode.AGENDA
@@ -215,7 +214,7 @@ class CalendarFragment : BottomSheetFragment(),
         // Update the action bar text when the selected date
         // is updated in the ViewModel.
         calendarViewModel.selectedDate.observe(viewLifecycleOwner) {
-            updateBarText(it, preferences.get(Preference.CALENDAR, CalendarMode.default()))
+            updateBarText(it, CalendarMode.fromJson(preferences.calendarMode))
             calendarView.date = it.time
         }
 
@@ -351,10 +350,10 @@ class CalendarFragment : BottomSheetFragment(),
     }
 
     private fun onChangeViewClick(item: MenuItem): Boolean {
-        val mode = preferences.get(Preference.CALENDAR, CalendarMode.default())
+        val mode = CalendarMode.fromJson(preferences.calendarMode)
         val newMode = mode.invertForceWeek()
         Log.d(this::class.simpleName, "Mode: $mode | NewMode: $newMode")
-        preferences.set(Preference.CALENDAR, newMode)
+        preferences.calendarMode = newMode.toJSON()
 
         updateViewIcon(item)
 
@@ -362,7 +361,7 @@ class CalendarFragment : BottomSheetFragment(),
     }
 
     private fun updateViewIcon(item: MenuItem) {
-        val mode = preferences.get(Preference.CALENDAR, CalendarMode.default())
+        val mode = CalendarMode.fromJson(preferences.calendarMode)
         val icon = when (mode) {
             CalendarMode.default() -> R.drawable.ic_week_view
             else -> R.drawable.ic_agenda_view

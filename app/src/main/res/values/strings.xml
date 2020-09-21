@@ -88,4 +88,8 @@
     <string name="cours">cours</string>
     <string name="no_title_note">Note sans titre</string>
     <string name="default_event_name">Événement</string>
+    <string name="about_us">A propos de nous</string>
+    <string name="misc">Divers</string>
+    <string name="note_reminder_pictures">"%s, %d photo(s) "</string>
+    <string name="unable_take_while_saving">L\'image précédente n\'est pas encore sauvegardée</string>
 </resources>

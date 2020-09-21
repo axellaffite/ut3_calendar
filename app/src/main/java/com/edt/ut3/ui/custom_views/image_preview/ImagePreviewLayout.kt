@@ -23,10 +23,6 @@ class ImagePreviewLayout(context: Context, attributeSet: AttributeSet): Recycler
         override fun getItemOffsets(outRect: Rect, view: View,
                                     parent: RecyclerView, state: State) {
             with(outRect) {
-//                if (parent.getChildAdapterPosition(view) == 0) {
-//                    left =  spaceHeight
-//                }
-
                 top = spaceHeight
                 right = spaceHeight
                 bottom = spaceHeight

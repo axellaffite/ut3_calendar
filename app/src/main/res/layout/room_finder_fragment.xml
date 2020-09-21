@@ -130,12 +130,12 @@
 
             <com.github.ybq.android.spinkit.SpinKitView
                 android:id="@+id/loading_animation"
-                style="@style/SpinKitView.Large.CubeGrid"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_margin="8dp"
-                app:SpinKit_Color="@color/iconTint" />
+                app:SpinKit_Color="@color/iconTint"
+                style="@style/SpinKitView.Large.CubeGrid" />
 
             <TextView
                 android:id="@+id/loading_label"

@@ -58,22 +58,10 @@
         tools:layout="@layout/room_finder_fragment" />
 
     <fragment
-        android:id="@+id/fragmentEventDetails"
-        android:name="com.edt.ut3.ui.calendar.event_details.FragmentEventDetails"
-        android:label="FragmentEventDetails"
-        tools:layout="@layout/fragment_event_details"/>
-    <fragment
         android:id="@+id/fragmentNoteDetails"
         android:name="com.edt.ut3.ui.notes.FragmentNoteDetails"
         android:label="FragmentNoteDetails"
         tools:layout="@layout/fragment_note_details">
-        <action
-            android:id="@+id/action_fragmentNoteDetails_to_fragmentEventDetails"
-            app:destination="@id/fragmentEventDetails"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/fade_out"
-            app:popEnterAnim="@anim/fade_in"
-            app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/action_fragmentNoteDetails_to_fragmentImageViewPager"
             app:destination="@id/fragmentImageViewPager" />

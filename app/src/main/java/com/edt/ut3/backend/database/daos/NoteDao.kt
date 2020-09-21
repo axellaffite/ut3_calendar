@@ -35,4 +35,7 @@ interface NoteDao {
     @Query("SELECT * FROM note WHERE date BETWEEN :begin AND :end")
     suspend fun getFromTo(begin: Long, end: Long): List<Note>
 
+    @Query("SELECT * FROM note WHERE event_id = :eventID LIMIT 1")
+    fun selectByEventID(eventID: String): LiveData<Note>
+
 }

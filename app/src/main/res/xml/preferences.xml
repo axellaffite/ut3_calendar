@@ -16,8 +16,7 @@
             android:key="notification"
             android:title="@string/enable_update_notifications"
             android:summary="@string/summary_notifications"
-            android:icon="@drawable/ic_notifications"
-            android:defaultValue="true" />
+            android:icon="@drawable/ic_notifications" />
 
     </PreferenceCategory>
 
@@ -33,10 +32,10 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        app:title="Autre">
+        app:title="@string/misc">
 
         <Preference
-            android:title="@string/about"
+            android:title="@string/about_us"
             android:key="about_us"/>
 
     </PreferenceCategory>

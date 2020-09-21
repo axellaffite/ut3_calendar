@@ -13,7 +13,6 @@ import com.edt.ut3.backend.database.viewmodels.EventViewModel
 import com.edt.ut3.backend.notification.EventChange
 import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.backend.preferences.PreferencesManager.Preference
 import com.edt.ut3.backend.requests.CelcatService
 import com.edt.ut3.misc.fromHTML
 import com.edt.ut3.misc.map
@@ -81,7 +80,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
         }
     }
 
-    private val prefManager = PreferencesManager(applicationContext)
+    private val prefManager = PreferencesManager.getInstance(applicationContext)
 
 
     override suspend fun doWork(): Result = coroutineScope {
@@ -92,11 +91,10 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
 
         var result = Result.success()
         try {
-            val groupsPreference = prefManager.get(Preference.GROUPS, JSONArray())
-            val groups = groupsPreference.toList<String>()
+            val groups = JSONArray(prefManager.groups).toList<String>()
             Log.d("UPDATER", "Downloading events for theses groups: $groups")
 
-            val link = prefManager.get<String?>(Preference.LINK, null)
+            val link = prefManager.link
                 ?: throw IllegalStateException("Link must be set")
 
             val classes = getClasses(link).toHashSet()
@@ -158,7 +156,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                 delete(*removedEvent.toTypedArray())
                 update(*updatedEvent.toTypedArray())
 
-                val notificationEnabled = prefManager.get(Preference.NOTIFICATION, true)
+                val notificationEnabled = prefManager.notification
                 val shouldDisplayNotifications = notificationEnabled && !firstUpdate
                 if (shouldDisplayNotifications) {
                     val notificationManager = NotificationManager.getInstance(applicationContext)

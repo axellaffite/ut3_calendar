@@ -6,91 +6,46 @@ import android.content.res.Configuration
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate.*
 import androidx.preference.PreferenceManager
+import ch.liip.sweetpreferences.SweetPreferences
 import com.edt.ut3.backend.calendar.CalendarMode
 import com.edt.ut3.ui.preferences.Theme
 import com.edt.ut3.ui.preferences.ThemePreference
-import org.json.JSONArray
-import java.io.IOException
 
-class PreferencesManager(private val context: Context) {
 
-    enum class Preference(val value : String) {
-        GROUPS("groups"),
-        LINK("link"),
+class PreferencesManager private constructor(private val context: Context, sweetPreferences: SweetPreferences) {
+
+    enum class PreferenceKeys(val key: String) {
         THEME("theme"),
-        CALENDAR("calendar_mode"),
+        LINK("link"),
+        GROUPS("groups"),
+        CALENDAR_MODE("calendar_mode"),
         NOTIFICATION("notification"),
+        FIRST_LAUNCH("first_launch")
+    }
+
+    var theme : String by sweetPreferences.delegate(ThemePreference.SMARTPHONE.toString(), PreferenceKeys.THEME.key)
+    var link : String? by sweetPreferences.delegate(null, PreferenceKeys.LINK.key)
+    var groups : String? by sweetPreferences.delegate(null, PreferenceKeys.GROUPS.key)
+    var calendarMode : String by sweetPreferences.delegate(CalendarMode.default().toJSON(), PreferenceKeys.CALENDAR_MODE.key)
+    var notification : Boolean by sweetPreferences.delegate(true, PreferenceKeys.NOTIFICATION.key)
+    var firstLaunch : Boolean by sweetPreferences.delegate(true, PreferenceKeys.FIRST_LAUNCH.key)
+
+    companion object {
+        private var instance: PreferencesManager? = null
+
+        @Synchronized
+        fun getInstance(context: Context): PreferencesManager {
+            if (instance == null) {
+                val sweetPreferences = SweetPreferences.Builder().withDefaultSharedPreferences(context).build()
+
+                instance = PreferencesManager(context, sweetPreferences)
+            }
+
+            return instance!!
+        }
     }
 
     private val preferences = PreferenceManager.getDefaultSharedPreferences(context)
-
-    @Throws(PreferenceCastException::class)
-    private fun serialize(pref: Preference, value: Any): String {
-        val serialized = try {
-            when (pref) {
-                Preference.GROUPS ->
-                    with (value as List<*>) { JSONArray(this).toString() }
-
-                Preference.CALENDAR ->
-                    with(value as CalendarMode) { toJSON() }
-
-                Preference.THEME ->
-                    with (value as ThemePreference) { toString() }
-
-                Preference.NOTIFICATION ->
-                    with (value as Boolean) { toString() }
-
-                Preference.LINK ->
-                    with (value as String) { this }
-            }
-        } catch (e: Exception) {
-            throw PreferenceCastException("Unable to serialize $value to $pref preference !")
-        }
-
-        Log.d(this::class.simpleName, "Serializing $value into $serialized")
-
-        return serialized
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    @Throws(PreferenceCastException::class)
-    private fun deserialize(pref: Preference, value: String?): Any? {
-        return try {
-            when (pref) {
-                Preference.GROUPS ->
-                    value ?.let { JSONArray(value) }
-
-                Preference.CALENDAR ->
-                    value?.let { CalendarMode.fromJson(it) } ?: CalendarMode.default()
-
-                Preference.THEME -> {
-                    value?.let { ThemePreference.valueOf(it) } ?: ThemePreference.SMARTPHONE
-                }
-
-                Preference.NOTIFICATION ->
-                    value?.let { it.toBoolean() } ?: true
-
-                Preference.LINK -> value
-            }
-        } catch (e: Exception) {
-            throw PreferenceCastException("Unable to deserialize $value to $pref preference !")
-        }
-    }
-
-
-    @Throws(PreferenceCastException::class)
-    fun set(pref: Preference, value: Any) {
-        preferences.edit().putString(pref.value, serialize(pref, value)).apply()
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    fun<T> get(pref: Preference, default: T): T {
-        return try {
-            deserialize(pref, preferences.getString(pref.value, null)) as T
-        } catch (e: Exception) {
-            default
-        }
-    }
 
     fun observe(observer: SharedPreferences.OnSharedPreferenceChangeListener) {
         observer.let {
@@ -99,11 +54,10 @@ class PreferencesManager(private val context: Context) {
     }
 
     fun setupTheme() {
-        val preference = get(Preference.THEME, ThemePreference.SMARTPHONE)
+        val themePreference = ThemePreference.valueOf(theme)
+        Log.d(this::class.simpleName, "Setting up $themePreference theme")
 
-        Log.d(this::class.simpleName, "Setting up $preference theme")
-
-        when (preference) {
+        when (themePreference) {
             ThemePreference.SMARTPHONE -> setDefaultNightMode(MODE_NIGHT_FOLLOW_SYSTEM)
             ThemePreference.DARK -> setDefaultNightMode(MODE_NIGHT_YES)
             ThemePreference.LIGHT -> setDefaultNightMode(MODE_NIGHT_NO)
@@ -111,7 +65,7 @@ class PreferencesManager(private val context: Context) {
     }
 
     fun currentTheme() : Theme {
-        val themePreference = get(Preference.THEME, ThemePreference.SMARTPHONE)
+        val themePreference = ThemePreference.valueOf(theme)
         return guessTheme(themePreference)
     }
 
@@ -132,7 +86,19 @@ class PreferencesManager(private val context: Context) {
         }
     }
 
+    @Suppress("IMPLICIT_CAST_TO_ANY")
+    fun setupDefaultPreferences(): Boolean {
+        return if (firstLaunch) {
+            groups = null
+            link = null
+            theme = ThemePreference.SMARTPHONE.toString()
+            calendarMode = CalendarMode.default().toJSON()
+            notification = true
+            firstLaunch = false
 
-    class PreferenceCastException(reason: String): IOException(reason)
-
+            true
+        } else {
+            false
+        }
+    }
 }

@@ -9,8 +9,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.GONE
-import android.view.View.VISIBLE
+import android.view.View.*
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -23,8 +22,6 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.*
-import androidx.navigation.fragment.FragmentNavigatorExtras
-import androidx.navigation.fragment.findNavController
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.viewmodels.NotesViewModel
@@ -36,6 +33,7 @@ import com.edt.ut3.backend.note.Picture
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.setTime
+import com.edt.ut3.ui.calendar.event_details.image_view.FragmentImageViewPager
 import com.edt.ut3.ui.custom_views.image_preview.ImagePreviewAdapter
 import com.edt.ut3.ui.map.MapsViewModel
 import com.edt.ut3.ui.preferences.Theme
@@ -50,6 +48,7 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
@@ -62,12 +61,17 @@ class FragmentEventDetails : Fragment() {
 
     private val mapsViewModel: MapsViewModel by activityViewModels()
 
-    private lateinit var note: Note
+    private var eventNoteLD : LiveData<Note>? = null
+    private var firstNoteUpdate = true
+    private var canTakePicture = true
+
+    private lateinit var currentNote: Note
 
     private var pictureFile: File? = null
     private var pictureName: String? = null
 
     var onReady : (() -> Unit)? = null
+
     var listenTo = MutableLiveData<Event>(null)
         set(value) {
             value.observe(viewLifecycleOwner) {
@@ -108,6 +112,7 @@ class FragmentEventDetails : Fragment() {
         }
     }
 
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_event_details, container, false).also { root ->
             // Load asynchronously the attached note.
@@ -132,35 +137,37 @@ class FragmentEventDetails : Fragment() {
 
     private fun setupNewEvent(event: Event) {
         this.event = event
+        currentNote = Note.generateEmptyNote(event)
         lifecycleScope.launchWhenCreated {
-            note = Note.generateEmptyNote(event)
 
             NotesViewModel(requireContext()).run {
-                val result = getNotesByEventIDs(event.id)
-
-                if (result.size == 1) {
-                    note = result[0]
-                }
-
                 whenResumed {
                     setupContent()
                     setupListeners()
-                }
 
-                onReady?.invoke()
+                    onReady?.invoke()
+
+                    eventNoteLD?.removeObservers(viewLifecycleOwner)
+                    eventNoteLD = getNoteByEventID(event.id)
+                    firstNoteUpdate = true
+
+                    eventNoteLD?.observe(viewLifecycleOwner) {
+                        updateNoteContents(it)
+                    }
+                }
             }
         }
     }
 
 
-
     /**
      * Setup the view contents.
-     * Called once the event's note is loaded
-     *
      */
     private fun setupContent() {
-        when (PreferencesManager(requireContext()).currentTheme()) {
+        note_container.visibility = INVISIBLE
+        note_loading.visibility = VISIBLE
+
+        when (PreferencesManager.getInstance(requireContext()).currentTheme()) {
             Theme.LIGHT -> {
                 event.lightBackgroundColor(requireContext()).let {
                     title_container.setCardBackgroundColor(it)
@@ -176,7 +183,6 @@ class FragmentEventDetails : Fragment() {
 
         title.text = event.courseOrCategory(requireContext())
         from_to.text = generateDateText()
-        event_note.setText(note.contents)
 
         val descriptionBuilder = StringBuilder()
         event.categoryWithEmotions()?.let { descriptionBuilder.append(it).append("\n") }
@@ -191,26 +197,45 @@ class FragmentEventDetails : Fragment() {
 
         event.description?.let { descriptionBuilder.append(it) }
         description.text = descriptionBuilder.toString()
+    }
+
+
+    private fun updateNoteContents(newNote: Note?) {
+        if (!firstNoteUpdate) {
+            println("Note updated")
+            newNote?.let {
+                if (currentNote.pictures != it.pictures) {
+                    println("setting pictures to: ${it.pictures}")
+                    currentNote.pictures.clear()
+                    currentNote.pictures.addAll(it.pictures)
+
+                    pictures.adapter?.notifyDataSetChanged()
+                }
+            }
+
+            return
+        }
+
+        currentNote = newNote ?: Note.generateEmptyNote(event)
+
+        if (event_note.text.toString() != newNote?.contents) {
+            event_note.setText(newNote?.contents)
+        }
 
 
         // Setup the adapter contents and the item "onclick" callbacks.
         // Use the StfalconImageViewer library to display a fullscreen
         // image.
-        pictures.adapter = ImagePreviewAdapter(note.pictures).apply {
+        pictures.adapter = ImagePreviewAdapter(currentNote.pictures).apply {
             onItemClickListener = { imgView, picture, pictures ->
-                val extras = FragmentNavigatorExtras(
-                    imgView to "end_transition"
-                )
-
                 imgView.transitionName = "start_transition"
 
-                findNavController()
-                    .navigate(
-                        R.id.action_navigation_calendar_to_fragmentImageViewPager,
-                        Bundle().apply { putInt("position", pictures.indexOf(picture)) },
-                        null,
-                        extras
-                    )
+                FragmentImageViewPager().apply {
+                    noteLD = eventNoteLD!!
+                    arguments = Bundle().apply {
+                        putInt("position", pictures.indexOf(picture))
+                    }
+                }.show(parentFragmentManager, "image")
             }
 
 
@@ -219,7 +244,6 @@ class FragmentEventDetails : Fragment() {
                 takePicture()
             }
         }
-
 
         // Add all the note event picture to the view model variable
         // It is used into several cases to add and delete pictures
@@ -239,8 +263,14 @@ class FragmentEventDetails : Fragment() {
             }
         }
 
-        updateReminderSpinner()
+
+        updateReminderSpinner(currentNote)
+
+        firstNoteUpdate = false
+        note_loading.visibility = INVISIBLE
+        note_container.visibility = VISIBLE
     }
+
 
     /**
      * Returns the textual representation
@@ -258,9 +288,13 @@ class FragmentEventDetails : Fragment() {
         ReminderType.CUSTOM -> R.string.reminder_custom
     }
 
-    private fun updateReminderSpinner() {
-        val typeIndex = ReminderType.values().indexOf(note.reminder.getReminderType())
-        reminder_spinner?.setSelection(typeIndex)
+    private fun updateReminderSpinner(newNote: Note?) {
+        newNote?.let {
+            val typeIndex = ReminderType.values().indexOf(newNote.reminder.getReminderType())
+            reminder_spinner?.setSelection(typeIndex)
+        } ?: run {
+            reminder_spinner?.setSelection(0)
+        }
     }
 
     private fun refreshLocations(places: List<Place>) {
@@ -319,30 +353,27 @@ class FragmentEventDetails : Fragment() {
 
         // Save the current note at each modification.
         event_note.doOnTextChanged { text, _, _, _ ->
-            note.contents = text.toString()
-            lifecycleScope.launch {
-                saveNote(note)
+            if (currentNote.contents != text) {
+                currentNote.contents = text.toString()
+                lifecycleScope.launch { saveNote() }
             }
         }
 
         reminder_spinner.onItemSelectedListener = object: AdapterView.OnItemSelectedListener {
-            var isFirstTrigger = true
-
             override fun onItemSelected(adapter: AdapterView<*>?, view: View?, index: Int, id: Long) {
-                if (isFirstTrigger) {
-                    isFirstTrigger = false
+                if (firstNoteUpdate) {
                     return
                 }
 
                 val type = ReminderType.values()[index]
                 when (type) {
-                    ReminderType.NONE -> note.reminder.disable()
-                    ReminderType.FIFTEEN_MINUTES -> note.reminder.setFifteenMinutesBefore()
-                    ReminderType.THIRTY_MINUTES -> note.reminder.setThirtyMinutesBefore()
-                    ReminderType.ONE_HOUR -> note.reminder.setOneHourBefore()
-                    ReminderType.CUSTOM -> askUserForDateTime(note.date) { date: Date ->
-                        note.reminder.setCustomReminder(date)
-                        lifecycleScope.launch { saveNote(note) }
+                    ReminderType.NONE -> currentNote.reminder.disable()
+                    ReminderType.FIFTEEN_MINUTES -> currentNote.reminder.setFifteenMinutesBefore()
+                    ReminderType.THIRTY_MINUTES -> currentNote.reminder.setThirtyMinutesBefore()
+                    ReminderType.ONE_HOUR -> currentNote.reminder.setOneHourBefore()
+                    ReminderType.CUSTOM -> askUserForDateTime(currentNote.date) { date: Date ->
+                        currentNote.reminder.setCustomReminder(date)
+                        lifecycleScope.launch { saveNote() }
                     }
                 }
 
@@ -351,8 +382,10 @@ class FragmentEventDetails : Fragment() {
                 // actually shown which is almost always the
                 // case at this point.
                 if (type != ReminderType.CUSTOM) {
-                    lifecycleScope.launch { saveNote(note) }
+                    lifecycleScope.launch { saveNote() }
                 }
+
+                println("save should have been called")
             }
 
             override fun onNothingSelected(adapter: AdapterView<*>?) {
@@ -383,7 +416,7 @@ class FragmentEventDetails : Fragment() {
         }
 
         DatePickerDialog(context, dateListener, year, month, day).apply {
-            setOnCancelListener { updateReminderSpinner() }
+            setOnCancelListener { updateReminderSpinner(currentNote) }
         }.show()
     }
 
@@ -397,7 +430,7 @@ class FragmentEventDetails : Fragment() {
         }
 
         TimePickerDialog(context, timeListener, hour, minute, true).apply {
-            setOnCancelListener { updateReminderSpinner() }
+            setOnCancelListener { updateReminderSpinner(currentNote) }
         }.show()
     }
 
@@ -435,6 +468,14 @@ class FragmentEventDetails : Fragment() {
      * grandCameraPermission one.
      */
     private fun takePicture() {
+        if (!canTakePicture) {
+            event_details_snackbar?.let { snackbarContainer ->
+                Snackbar.make(snackbarContainer, R.string.unable_take_while_saving, Snackbar.LENGTH_SHORT).show()
+            }
+
+            return
+        }
+
         generateOutputFile { name, file ->
             pictureName = name
             pictureFile = file
@@ -469,7 +510,9 @@ class FragmentEventDetails : Fragment() {
      */
     private fun generateOutputFile(callback: ((name: String, file: File) -> Unit)) {
         lifecycleScope.launch {
-            saveNote(note) {
+            saveNote {
+                println("Save from outputFile")
+
                 val name = Picture.generateFilename(it.id.toString())
                 val file = Picture.prepareImageFile(
                     requireContext(),
@@ -495,40 +538,59 @@ class FragmentEventDetails : Fragment() {
      */
     private fun addPictureToNote(name: String, file: File) {
         lifecycleScope.launch {
-            saveNote(note) {
-                Log.d(this@FragmentEventDetails::class.simpleName, "Note saved")
-                lifecycleScope.launch {
-                    val generated = Picture.generateFromPictureUri(requireContext(), name, file.absolutePath)
-                    note.pictures.add(generated)
+            canTakePicture = false
+            Log.d(this@FragmentEventDetails::class.simpleName, "Note saved")
 
-                    Log.d(this@FragmentEventDetails::class.simpleName, "picture added")
+            val generated = Picture.generateFromPictureUri(requireContext(), name, file.absolutePath)
+            currentNote.pictures.add(generated)
 
-                    saveNote(note) {
-                        pictures.notifyDataSetChanged()
-                        Log.d(this@FragmentEventDetails::class.simpleName, "Note saved with picture")
-                    }
-                }
+            saveNote {
+                pictures.notifyDataSetChanged()
+                canTakePicture = true
             }
+
+            Log.d(this@FragmentEventDetails::class.simpleName, "picture added")
         }
     }
 
 
+
+    private val save = Mutex()
+    private val add = Mutex()
+    private val callbackStack = Stack<(Note) -> Unit>()
     /**
      * Save the provided note into the database
      * and assign the old one to the result.
      * Call the callback once done if it's defined.
      *
-     * @param newNote The note to save
      * @param callback The action to execute once done
      */
-    private suspend fun saveNote(newNote: Note, callback: ((Note) -> Unit)? = null) {
-        withContext(IO) {
-            NotesViewModel(requireContext()).run {
-                save(newNote)
+    private suspend fun saveNote(callback: ((Note) -> Unit)? = null) {
+        withContext(Default) {
+            add.lock()
+            callback?.let { callbackStack.add(it) }
+            add.unlock()
+
+            if (save.tryLock()) {
+
+                withContext(IO) {
+                    NotesViewModel(requireContext()).run {
+                        save(currentNote)
+                    }
+                }
+
+                add.lock()
+
+                while (callbackStack.isNotEmpty()) {
+                    withContext(Main) {
+                        callbackStack.pop().invoke(currentNote)
+                    }
+                }
+
+                add.unlock()
+                save.unlock()
             }
         }
-
-        callback?.invoke(note)
     }
 
 

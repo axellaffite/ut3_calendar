@@ -45,7 +45,7 @@ that cannot be longer than 3 lines.\n
             android:id="@+id/reminder"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="end"
+            android:gravity="end|center_vertical"
             android:maxLines="1"
             android:textColor="@color/textSecondary"
             android:textSize="12sp"
@@ -53,7 +53,7 @@ that cannot be longer than 3 lines.\n
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            tools:text="07/09/2020 - 10:20 " />
+            tools:text="07/09/2020 - 10:20, 0 picture(s) " />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
