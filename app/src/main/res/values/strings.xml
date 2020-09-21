@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Calendrier UT3</string>
+    <string name="app_name" translatable="false">EDT UT3</string>
     <string name="title_calendar">Calendrier</string>
     <string name="title_notes">Notes</string>
     <string name="title_map">Carte</string>
