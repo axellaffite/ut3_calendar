@@ -79,7 +79,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
 
-                <com.google.android.material.chip.Chip
+                <com.edt.ut3.ui.room_finder.RoomFilterChip
                     android:id="@+id/filter_from_now"
                     style="@style/Widget.MaterialComponents.Chip.Filter"
                     android:layout_width="wrap_content"

@@ -17,6 +17,7 @@ class PlaceInfoView(context: Context, attrs: AttributeSet?): NestedScrollView(co
             redraw()
             field = value
         }
+
     var descriptionText: String = ""
         set(value) {
             description.text = value

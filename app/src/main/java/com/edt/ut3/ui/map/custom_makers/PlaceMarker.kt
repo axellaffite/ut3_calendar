@@ -8,7 +8,7 @@ import org.osmdroid.views.overlay.Marker
 
 class PlaceMarker(map: MapView, val place: Place): Marker(map) {
     var onLongClickListener : (() -> Boolean)? = null
-    var onReClickListener : (() -> Boolean)? = null
+    var onClickListener : (() -> Boolean)? = null
 
     init {
         icon = ContextCompat.getDrawable(map.context, place.getIcon())
@@ -17,6 +17,9 @@ class PlaceMarker(map: MapView, val place: Place): Marker(map) {
     }
 
     override fun onSingleTapConfirmed(event: MotionEvent?, mapView: MapView?): Boolean {
+        if (hitTest(event, mapView)) {
+            return onClickListener?.invoke() ?: super.onSingleTapConfirmed(event, mapView)
+        }
 
         return super.onSingleTapConfirmed(event, mapView)
     }
@@ -25,6 +28,7 @@ class PlaceMarker(map: MapView, val place: Place): Marker(map) {
         if (hitTest(event, mapView)) {
             return onLongClickListener?.invoke() ?: super.onLongPress(event, mapView)
         }
+
         return super.onLongPress(event, mapView)
     }
 }

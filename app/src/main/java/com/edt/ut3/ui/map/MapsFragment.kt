@@ -38,7 +38,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior.*
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipDrawable
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_maps.*
 import kotlinx.android.synthetic.main.fragment_maps.view.*
 import kotlinx.android.synthetic.main.place_info.view.*
@@ -62,7 +61,7 @@ import kotlin.collections.HashSet
 
 class MapsFragment : Fragment() {
 
-    enum class State { MAP, SEARCHING, PLACE }
+    enum class State { MAP, SEARCHING }
     private var selectedPlace: Place? = null
     private var selectedPlaceMarker: PlaceMarker? = null
     private var state = MutableLiveData(State.MAP)
@@ -254,6 +253,7 @@ class MapsFragment : Fragment() {
                 state.value = State.SEARCHING
             }
         }
+
         search_bar.setOnClickListener {
             refreshPlaces()
             handleTextChanged(search_bar.text.toString())
@@ -351,7 +351,7 @@ class MapsFragment : Fragment() {
                     if (pos != -1) {
                         val place = search_result.getItemAtPosition(pos) as Place
                         selectedPlace = place
-                        state.value = State.PLACE
+                        displayPlaceInfo()
                     }
                 }
             }
@@ -370,7 +370,7 @@ class MapsFragment : Fragment() {
         val activity = requireActivity()
         activity.onBackPressedDispatcher.addCallback(this) {
             when (state.value) {
-                State.SEARCHING, State.PLACE -> state.value = State.MAP
+                State.SEARCHING -> state.value = State.MAP
                 else -> {
                     isEnabled = false
                     activity.onBackPressed()
@@ -535,9 +535,9 @@ class MapsFragment : Fragment() {
         places.forEach { curr ->
             map.overlays.add(
                 PlaceMarker(map, curr.copy()).apply {
-                    onLongClickListener = {
+                    onClickListener = {
                         selectedPlace = place
-                        state.value = State.PLACE
+                        displayPlaceInfo()
                         true
                     }
                 }
@@ -554,8 +554,6 @@ class MapsFragment : Fragment() {
             }
 
             State.SEARCHING -> unfoldSearchTools()
-
-            State.PLACE -> displayPlaceInfo()
         }
     }
 
@@ -563,7 +561,6 @@ class MapsFragment : Fragment() {
         filters_container.visibility = GONE
         search_result.visibility = GONE
         from(place_info_container).state = STATE_HIDDEN
-        requireActivity().nav_view.visibility = VISIBLE
 
         search_bar.clearFocus()
         map.requestFocus()
@@ -576,14 +573,12 @@ class MapsFragment : Fragment() {
         filters_container.visibility = VISIBLE
         from(place_info_container).state = STATE_HIDDEN
 
-        requireActivity().nav_view.visibility = GONE
     }
 
     private fun displayPlaceInfo() {
         selectedPlace?.let { selected ->
             search_result.visibility = GONE
             filters_container.visibility = GONE
-            requireActivity().nav_view.visibility = GONE
             hideKeyboard()
 
             lifecycleScope.launchWhenStarted {
@@ -605,14 +600,9 @@ class MapsFragment : Fragment() {
                 }
             }
 
-            map.overlays.removeAll { marker -> marker is PlaceMarker }
-            map.overlays.add(
-                PlaceMarker(map, selected).also { marker ->
-                    marker.showInfoWindow()
-                }.also {
-                    selectedPlaceMarker = it
-                }
-            )
+//            map.overlays.add(
+//                selectedPlaceMarker = PlaceMarker(map, selected)
+//            )
 
 
             smoothMoveTo(selected.geolocalisation)

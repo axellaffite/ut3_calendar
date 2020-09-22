@@ -18,7 +18,6 @@ import com.edt.ut3.R
 import com.edt.ut3.backend.goulin_room_finder.Room
 import com.edt.ut3.misc.hideKeyboard
 import com.edt.ut3.misc.toDp
-import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.room_finder_fragment.*
 import kotlinx.coroutines.Dispatchers.Main
@@ -41,7 +40,7 @@ class RoomFinderFragment : Fragment() {
 
     private val viewModel: RoomFinderViewModel by viewModels()
 
-    private val activatedFilters = hashSetOf<Int>()
+    private val activatedFilters = hashSetOf<(List<Room>) -> List<Room>>()
 
     private var downloadSortJob : Job? = null
 
@@ -59,13 +58,14 @@ class RoomFinderFragment : Fragment() {
         result.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         result.addItemDecoration(RoomAdapter.RoomSeparator())
 
+        setupFilters()
         launchBuildingsDownload()
     }
 
     private fun setupListeners() {
         hints.setOnItemClickListener { parent: AdapterView<*>, view: View, position: Int, id: Long ->
             with (view as TextView) {
-                val building = view.text.toString()
+                val building = text.toString()
                 search_bar.text = building
                 getFreeRooms(building, true)
             }
@@ -98,12 +98,12 @@ class RoomFinderFragment : Fragment() {
         }
 
         filters_chipgroup.children.forEach { child ->
-            if (child is Chip) {
+            if (child is RoomFilterChip) {
                 child.setOnClickListener {
                     if (child.isChecked) {
-                        activatedFilters.add(id)
+                        activatedFilters.add(child.filter)
                     } else {
-                        activatedFilters.remove(id)
+                        activatedFilters.remove(child.filter)
                     }
 
                     val selectedBuilding = search_bar.text
@@ -113,9 +113,17 @@ class RoomFinderFragment : Fragment() {
                 }
 
                 if (child.isChecked) {
-                    activatedFilters.add(id)
+                    activatedFilters.add(child.filter)
                 }
             }
+        }
+    }
+
+    private fun setupFilters() {
+        filter_from_now?.filter = { room ->
+            val now = Date()
+            room.map { it.withoutPastSchedules(now) }
+                .filter { it.freeSchedules.isNotEmpty() }
         }
     }
 
@@ -158,25 +166,8 @@ class RoomFinderFragment : Fragment() {
     }
 
     private fun filterResult(result: List<Room>) =
-        activatedFilters.fold(result) { acc, id ->
-            when (id) {
-                R.id.filter_from_now -> run {
-                    val now = Date()
-                    acc.map { room ->
-                        Room (
-                            room.building,
-                            room.freeSchedules.filter { schedule ->
-                                schedule.end > now
-                            },
-                            room.room
-                        )
-                    }.filter { room ->
-                        room.freeSchedules.isNotEmpty()
-                    }
-                }
-
-                else -> acc
-            }
+        activatedFilters.fold(result) { acc, roomFilter ->
+            roomFilter(acc)
         }
 
     private fun displayInternetError(onError: () -> Unit) {
