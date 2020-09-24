@@ -468,6 +468,7 @@ class MapsFragment : Fragment() {
         places.addAll(incomingPlaces)
         filters_group.post {
             filters_group.run {
+                removeAllViews()
                 val categories = places.map { it.type }.toHashSet()
                 categories.forEach { category ->
                     addView(
