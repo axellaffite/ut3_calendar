@@ -5,6 +5,7 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -22,6 +23,8 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.*
+import com.axellaffite.fastgallery.FastGallery
+import com.axellaffite.fastgallery.slider_animations.SlideAnimations
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.viewmodels.NotesViewModel
@@ -33,7 +36,6 @@ import com.edt.ut3.backend.note.Picture
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.misc.set
 import com.edt.ut3.misc.setTime
-import com.edt.ut3.ui.calendar.event_details.image_view.FragmentImageViewPager
 import com.edt.ut3.ui.custom_views.image_preview.ImagePreviewAdapter
 import com.edt.ut3.ui.map.MapsViewModel
 import com.edt.ut3.ui.preferences.Theme
@@ -51,6 +53,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -66,6 +69,7 @@ class FragmentEventDetails : Fragment() {
     private var canTakePicture = true
 
     private lateinit var currentNote: Note
+    private var galleryDialog = WeakReference<Fragment>(null)
 
     private var pictureFile: File? = null
     private var pictureName: String? = null
@@ -227,15 +231,33 @@ class FragmentEventDetails : Fragment() {
         // Use the StfalconImageViewer library to display a fullscreen
         // image.
         pictures.adapter = ImagePreviewAdapter(currentNote.pictures).apply {
-            onItemClickListener = { imgView, picture, pictures ->
-                imgView.transitionName = "start_transition"
+            onItemClickListener = { _, picture, pictures ->
+                val overlayLayout = ImageOverlayLayout(requireContext())
 
-                FragmentImageViewPager().apply {
-                    noteLD = eventNoteLD!!
-                    arguments = Bundle().apply {
-                        putInt("position", pictures.indexOf(picture))
+                val fragment = FastGallery.Builder<Picture>()
+                    .withBackgroundResource(R.color.backgroundColor)
+                    .withImages(currentNote.pictures)
+                    .withInitialPosition(pictures.indexOf(picture))
+                    .withOffscreenLimit(2)
+                    .withSlideAnimation(SlideAnimations.zoomOutAnimation())
+                    .withOverlay(overlayLayout)
+                    .withConverter {
+                        Uri.fromFile(File(it.picture))
+                    }.build()
+
+                overlayLayout.onDeleteRequest = {
+                    currentNote.removePictureAt(0)
+                    lifecycleScope.launchWhenResumed { saveNote() }
+
+                    this@FragmentEventDetails.pictures.notifyDataSetChanged()
+                    if (currentNote.isEmpty()) {
+                        fragment.dismiss()
+                    } else {
+                        fragment.notifyItemRemoved(0)
                     }
-                }.show(parentFragmentManager, "image")
+                }
+
+                fragment.show(parentFragmentManager, "eventDetailsGallery")
             }
 
 

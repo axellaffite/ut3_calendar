@@ -88,6 +88,11 @@ dependencies {
     // Github : https://github.com/ElZozor/yoda
     implementation 'com.github.axellaffite:yoda:2b965999f2'
 
+    // Name : Fast Gallery
+    // Summary : A library that allows to display images at their full resolutions
+    // Github : https://github.com/ElZozor/Fast-Gallery
+    implementation ("com.github.axellaffite:Fast-Gallery:ae9004ef0e")
+
 
     // Name: Picasso
     // Summary : A library that allows us to download and
@@ -110,7 +115,7 @@ dependencies {
     // Documentation : https://github.com/stfalcon-studio/StfalconImageViewer
     implementation 'com.github.stfalcon:stfalcon-imageviewer:1.0.1'
 
-    implementation 'com.davemorrissey.labs:subsampling-scale-image-view:3.10.0'
+//    implementation 'com.davemorrissey.labs:subsampling-scale-image-view:3.10.0'
 
     // Name : Retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.7.0'

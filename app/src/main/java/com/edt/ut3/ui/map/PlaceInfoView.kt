@@ -27,7 +27,11 @@ class PlaceInfoView(context: Context, attrs: AttributeSet?): NestedScrollView(co
 
     var picture: String? = null
         set(value) {
-            Picasso.get().load(value).into(image)
+            if (value != null) {
+                Picasso.get().load(value).into(image)
+            } else {
+                Picasso.get().load(R.drawable.no_image_placeholder).into(image)
+            }
             field = value
         }
 
