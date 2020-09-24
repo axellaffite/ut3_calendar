@@ -92,4 +92,5 @@
     <string name="misc">Divers</string>
     <string name="note_reminder_pictures">"%s, %d photo(s) "</string>
     <string name="unable_take_while_saving">L\'image précédente n\'est pas encore sauvegardée</string>
+    <string name="action_cancel">Annuler</string>
 </resources>

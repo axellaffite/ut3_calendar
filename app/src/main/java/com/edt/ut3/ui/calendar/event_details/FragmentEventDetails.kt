@@ -1,6 +1,7 @@
 package com.edt.ut3.ui.calendar.event_details
 
 import android.Manifest
+import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
@@ -246,15 +247,30 @@ class FragmentEventDetails : Fragment() {
                     }.build()
 
                 overlayLayout.onDeleteRequest = {
-                    currentNote.removePictureAt(0)
-                    lifecycleScope.launchWhenResumed { saveNote() }
+                    AlertDialog.Builder(requireContext())
+                        .setTitle(R.string.delete_image)
+                        .setPositiveButton(R.string.action_ok) { _,_ ->
+                            val viewPager = fragment.getViewPager()
+                            viewPager?.run {
+                                val itemPosition = currentItem
+                                currentNote.removePictureAt(itemPosition)
 
-                    this@FragmentEventDetails.pictures.notifyDataSetChanged()
-                    if (currentNote.isEmpty()) {
-                        fragment.dismiss()
-                    } else {
-                        fragment.notifyItemRemoved(0)
-                    }
+                                lifecycleScope.launchWhenResumed {
+                                    saveNote {
+                                        this@FragmentEventDetails.pictures.notifyDataSetChanged()
+                                        if (currentNote.pictures.isEmpty()) {
+                                            fragment.dismiss()
+                                        } else {
+                                            adapter?.notifyItemRemoved(itemPosition)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        .setNegativeButton(R.string.action_cancel) { _,_ -> }
+                        .also {
+                            it.show()
+                        }
                 }
 
                 fragment.show(parentFragmentManager, "eventDetailsGallery")
