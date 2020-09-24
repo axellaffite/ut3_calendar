@@ -86,7 +86,7 @@ dependencies {
     // Summary : A useful library that allows us to display
     //           schedules on a given view.
     // Github : https://github.com/ElZozor/yoda
-    implementation 'com.github.axellaffite:yoda:2b965999f2'
+    implementation 'com.github.axellaffite:Fast-Gallery:cba88613c6'
 
     // Name : Fast Gallery
     // Summary : A library that allows to display images at their full resolutions
