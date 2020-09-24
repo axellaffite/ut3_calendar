@@ -55,6 +55,7 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Overlay
 import org.osmdroid.views.overlay.TilesOverlay
+import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
 import java.io.File
 import java.util.*
 import kotlin.collections.HashSet
@@ -119,9 +120,8 @@ class MapsFragment : Fragment() {
         val configuration = Configuration.getInstance()
         configuration.apply {
             userAgentValue = requireActivity().packageName
-//            osmdroidBasePath = osmdroidBasePathNew
-//            osmdroidTileCache = osmdroidTileCacheNew
         }
+
 
         map.apply {
             // Which tile source will gives
@@ -143,6 +143,10 @@ class MapsFragment : Fragment() {
 
             // Allows the user to zoom with its fingers.
             setMultiTouchControls(true)
+
+            overlays.add(RotationGestureOverlay(this).apply {
+                isEnabled = true
+            })
 
             // Disable the awful zoom buttons as the
             // user can now zoom with its fingers
@@ -490,8 +494,14 @@ class MapsFragment : Fragment() {
                                 intArrayOf(-android.R.attr.state_checked), // unchecked
                                 intArrayOf(-android.R.attr.state_pressed)  // unpressed
                             )
-                            chipBackgroundColor = ColorStateList(states, (0..3).map { bgColor }.toIntArray())
-                            checkedIconTint = ColorStateList(states, (0..3).map { iconTint }.toIntArray())
+                            chipBackgroundColor = ColorStateList(
+                                states,
+                                (0..3).map { bgColor }.toIntArray()
+                            )
+                            checkedIconTint = ColorStateList(
+                                states,
+                                (0..3).map { iconTint }.toIntArray()
+                            )
                             text = category
                             isClickable = true
 
@@ -593,9 +603,18 @@ class MapsFragment : Fragment() {
             place_info.go_to.setOnClickListener {
                 val me = map.overlays.find { it is LocationMarker } as LocationMarker?
                 activity?.let {
-                    MapsUtils.routeFromTo(it, me?.position, GeoPoint(selected.geolocalisation), selected.title) {
+                    MapsUtils.routeFromTo(
+                        it,
+                        me?.position,
+                        GeoPoint(selected.geolocalisation),
+                        selected.title
+                    ) {
                         maps_main?.let {
-                            Snackbar.make(it, R.string.unable_to_launch_googlemaps, Snackbar.LENGTH_LONG).show()
+                            Snackbar.make(
+                                it,
+                                R.string.unable_to_launch_googlemaps,
+                                Snackbar.LENGTH_LONG
+                            ).show()
                         }
                     }
                 }
