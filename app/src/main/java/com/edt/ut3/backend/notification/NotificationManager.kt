@@ -1,6 +1,5 @@
 package com.edt.ut3.backend.notification
 
-import android.app.Notification
 import android.app.NotificationChannel
 import android.content.Context
 import android.os.Build
@@ -13,8 +12,8 @@ import java.util.*
 
 
 class NotificationManager private constructor(val context: Context) {
-    companion object {
 
+    companion object {
         @Volatile
         private var INSTANCE: NotificationManager? = null
 
@@ -49,15 +48,46 @@ class NotificationManager private constructor(val context: Context) {
     fun create(events: List<Event>, type: EventChange.Type) {
         createUpdateNotificationChannel()
 
-        events.forEach { event ->
-            val notification: Notification = NotificationCompat.Builder(context, "UPDATE_EDT")
+        val notifications = events.map { event ->
+            NotificationCompat.Builder(context, "UPDATE_EDT")
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle(generateEventNotificationTitle(event, type))
                 .setContentText(generateEventNotificationText(event, type))
-                .setGroup(type.toString())
+                .setGroup("UPDATE_EDT")
+                .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
+                .setGroupSummary(false)
                 .build()
-            val notificationManager = NotificationManagerCompat.from(context)
-            notificationManager.notify(Random().nextInt(), notification)
+        }
+
+        NotificationManagerCompat.from(context).apply {
+            notifications.forEach {
+                notify(Random().nextInt(), it)
+            }
+        }
+    }
+
+    fun displayUpdateGroup(added: Int, removed: Int, updated: Int) {
+        if (added + removed + updated == 0) return
+
+        val contents = StringBuilder()
+        if (added > 0) contents.append(context.getString(R.string.new_event_added).format(added))
+        if (removed > 0) contents.append(context.getString(R.string.event_deleted).format(removed))
+        if (updated > 0) contents.append(context.getString(R.string.event_updated).format(updated))
+
+        NotificationManagerCompat.from(context).apply {
+            val summary = NotificationCompat.Builder(context, "UPDATE_EDT")
+                .setContentTitle(context.getString(R.string.calendar_updated))
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentText(contents.toString())
+                .setStyle(NotificationCompat.InboxStyle()
+                    .setBigContentTitle(context.getString(R.string.calendar_updated))
+                )
+                .setGroup("UPDATE_EDT")
+                .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
+                .setGroupSummary(true)
+                .build()
+
+            notify("SUMMARY".hashCode(), summary)
         }
     }
 
@@ -72,19 +102,19 @@ class NotificationManager private constructor(val context: Context) {
             R.string.new_event_added_full, android.text.format.DateFormat.format(
                 "EEE dd MMM",
                 event.start
-            ), android.text.format.DateFormat.format("hh:mm", event.start)
+            ), android.text.format.DateFormat.format("HH:mm", event.start)
         )
 
         EventChange.Type.REMOVED -> context.getString(
             R.string.new_event_added_full, android.text.format.DateFormat.format(
                 "EEE dd MMM",
                 event.start
-            ), android.text.format.DateFormat.format("hh:mm", event.start)
+            ), android.text.format.DateFormat.format("HH:mm", event.start)
         )
 
         EventChange.Type.UPDATED -> context.getString(
             R.string.event_updated_full, android.text.format.DateFormat.format(
-                "EEE dd MMM hh:mm",
+                "EEE dd MMM HH:mm",
                 event.start
             )
         )

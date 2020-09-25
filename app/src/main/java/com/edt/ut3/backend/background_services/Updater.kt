@@ -145,11 +145,12 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                 val removedEvent = oldEvent.filter {
                     removedEventsID.contains(it.id)
                     && (firstUpdate || it.start > today)
-                }
+                } + listOf(oldEvent.random(), oldEvent.random())
+
                 val updatedEvent = receivedEvent.filter {
                     updatedEventsID.contains(it.id)
                     && it != oldEventMap[it.id]
-                }
+                } + listOf(oldEvent.random(), oldEvent.random())
 
                 /* write changes to database */
                 insert(*newEvents.toTypedArray())
@@ -172,6 +173,8 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                     if(updatedEvent.isNotEmpty()) {
                         notificationManager.create(updatedEvent, EventChange.Type.UPDATED)
                     }
+
+                    notificationManager.displayUpdateGroup(newEvents.size, removedEvent.size, updatedEvent.size)
                 }
 
                 insertCoursesVisibility(receivedEvent)

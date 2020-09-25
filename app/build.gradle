@@ -15,8 +15,8 @@ android {
         applicationId "com.edt.ut3"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 14
-        versionName "alpha-2.01"
+        versionCode 15
+        versionName "alpha-2.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -91,7 +91,7 @@ dependencies {
     // Name : Fast Gallery
     // Summary : A library that allows to display images at their full resolutions
     // Github : https://github.com/ElZozor/Fast-Gallery
-    implementation ("com.github.axellaffite:Fast-Gallery:cba88613c6")
+    implementation ("com.github.axellaffite:Fast-Gallery:1.2")
 
 
     // Name: Picasso
