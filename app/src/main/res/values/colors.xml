@@ -16,6 +16,8 @@
     <color name="textColor">@android:color/black</color>
     <color name="iconTint">@android:color/black</color>
 
+    <color name="mapLabelBackground">@android:color/transparent</color>
+
     <color name="textSecondary">@android:color/secondary_text_light</color>
 
     <color name="maps_cards">@android:color/white</color>

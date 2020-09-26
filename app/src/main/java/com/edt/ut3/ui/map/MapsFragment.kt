@@ -26,6 +26,8 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.observe
+import com.axellaffite.fastgallery.FastGallery
+import com.axellaffite.fastgallery.ImageLoader
 import com.edt.ut3.R
 import com.edt.ut3.backend.maps.MapsUtils
 import com.edt.ut3.backend.maps.Place
@@ -48,6 +50,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONException
 import org.osmdroid.config.Configuration
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.tileprovider.tilesource.XYTileSource
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.CustomZoomButtonsController
@@ -67,7 +70,7 @@ class MapsFragment : Fragment() {
     private var selectedPlaceMarker: PlaceMarker? = null
     private var state = MutableLiveData(State.MAP)
 
-    private val viewModel: MapsViewModel by viewModels { defaultViewModelProviderFactory }
+    private val viewModel: MapsViewModel by viewModels()
 
     private var searchJob : Job? = null
     private var downloadJob : Job? = null
@@ -124,18 +127,21 @@ class MapsFragment : Fragment() {
 
 
         map.apply {
+            tileProvider.clearTileCache()
+
             // Which tile source will gives
             // us the map resources, otherwise
             // it cannot display the map.
+            val providers = context.resources.getStringArray(R.array.tile_provider)
+            val providerName = getString(R.string.provider_name)
+            Log.d(this@MapsFragment::class.simpleName, "Providers: ${providers.toList()}")
             val tileSource = XYTileSource(
-                "HOT", 1, 20, 256, ".png", arrayOf(
-                    "http://a.tile.openstreetmap.fr/hot/",
-                    "http://b.tile.openstreetmap.fr/hot/",
-                    "http://c.tile.openstreetmap.fr/hot/"
-                ), "© OpenStreetMap contributors"
-            )
+                providerName, 1, 20, 256, ".png", providers)
 
-            setTileSource(tileSource)
+            TileSourceFactory.addTileSource(tileSource)
+
+            setTileSource(TileSourceFactory.getTileSource(providerName))
+
 
             // This setting allows us to correctly see
             // the text on the screen ( adapt to the screen's dpi )
@@ -202,9 +208,9 @@ class MapsFragment : Fragment() {
     private fun setupLocationListener() {
         val listener = object: LocationListener {
             override fun onLocationChanged(p0: Location) {
-                view?.let {
-                    it.map.overlays.removeAll { it is LocationMarker }
-                    it.map.overlays.add(LocationMarker(it.map).apply {
+                view?.run {
+                    map.overlays.removeAll { it is LocationMarker }
+                    map.overlays.add(LocationMarker(map).apply {
                         title = "position"
                         position = GeoPoint(p0)
                     })
@@ -620,10 +626,22 @@ class MapsFragment : Fragment() {
                 }
             }
 
-//            map.overlays.add(
-//                selectedPlaceMarker = PlaceMarker(map, selected)
-//            )
-
+            val image = Pair(selected.photo, R.drawable.no_image_placeholder)
+            place_info.image?.setOnClickListener {
+                FastGallery.Builder<Pair<String?, Int>>()
+                    .withImages(listOf(image))
+                    .withConverter { pair: Pair<String?, Int>, loader: ImageLoader<Pair<String?, Int>> ->
+                        lifecycleScope.launchWhenResumed {
+                            pair.first?.let {
+                                loader.fromURL(it, true)
+                            } ?: run {
+                                loader.fromResource(pair.second)
+                            }
+                        }
+                    }
+                    .build()
+                    .show(parentFragmentManager, "detailsImage")
+            }
 
             smoothMoveTo(selected.geolocalisation)
         }

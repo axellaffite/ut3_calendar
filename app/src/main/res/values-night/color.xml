@@ -19,6 +19,8 @@
 
     <color name="textSecondary">@android:color/secondary_text_dark</color>
 
+    <color name="mapLabelBackground">@android:color/black</color>
+
     <color name="maps_cards">@color/colorPrimaryDark</color>
 
 </resources>

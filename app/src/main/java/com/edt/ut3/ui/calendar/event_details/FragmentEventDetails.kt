@@ -6,7 +6,6 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -20,6 +19,7 @@ import android.widget.TimePicker
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -242,8 +242,10 @@ class FragmentEventDetails : Fragment() {
                     .withOffscreenLimit(2)
                     .withSlideAnimation(SlideAnimations.zoomOutAnimation())
                     .withOverlay(overlayLayout)
-                    .withConverter {
-                        Uri.fromFile(File(it.picture))
+                    .withConverter { picture, imageLoader ->
+                        lifecycleScope.launchWhenResumed {
+                            imageLoader.fromFile(File(picture.picture).toUri())
+                        }
                     }.build()
 
                 overlayLayout.onDeleteRequest = {

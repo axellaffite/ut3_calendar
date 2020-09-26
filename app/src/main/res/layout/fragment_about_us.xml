@@ -6,10 +6,11 @@
     tools:context=".ui.about_us.AboutUsFragment">
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/about_us_text"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
         android:text="@string/about_us_text"
-        android:padding="16dp" />
+        android:padding="16dp"
+        android:autoLink="email|web"/>
 </FrameLayout>

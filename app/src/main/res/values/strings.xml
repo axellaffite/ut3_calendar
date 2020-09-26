@@ -76,7 +76,7 @@
         tout autre chose ? Rejoingez le Discord de l\'application !\n
         https://discord.gg/6KPZmQa\n
         \n
-        Code source\n
+        Le code source est disponible sur notre Github : \n
         https://github.com/axellaffite/ut3_calendar
     </string>
     <string name="no_location_found">Pas de lieu trouvé ou leurs localisations ne sont pas connues</string>
@@ -94,4 +94,5 @@
     <string name="unable_take_while_saving">L\'image précédente n\'est pas encore sauvegardée</string>
     <string name="action_cancel">Annuler</string>
     <string name="calendar_updated">Emploi du temps mis à jour !</string>
+    <string name="provider_name" translatable="false">light_theme_provider</string>
 </resources>

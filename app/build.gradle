@@ -15,8 +15,8 @@ android {
         applicationId "com.edt.ut3"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 15
-        versionName "alpha-2.1"
+        versionCode 16
+        versionName "alpha-2.2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -91,7 +91,7 @@ dependencies {
     // Name : Fast Gallery
     // Summary : A library that allows to display images at their full resolutions
     // Github : https://github.com/ElZozor/Fast-Gallery
-    implementation ("com.github.axellaffite:Fast-Gallery:1.2")
+    implementation "com.github.axellaffite:Fast-Gallery:1.3"
 
 
     // Name: Picasso
@@ -135,7 +135,7 @@ dependencies {
     implementation 'com.github.AntonyDalmiere:NotificationScheduler:0.1'
 
     // Name : OKHttp
-    implementation "com.squareup.okhttp3:okhttp:4.8.1"
+    implementation "com.squareup.okhttp3:okhttp:4.9.0"
 
     // Name : AnimatedBottomBar
     // Summary : A customizable and easy to use bottom bar view with sleek animations.

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="tile_provider">
+        <item>https://tiles.wmflabs.org/osm-no-labels/</item>
+    </string-array>
+</resources>
