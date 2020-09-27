@@ -54,7 +54,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -70,7 +69,6 @@ class FragmentEventDetails : Fragment() {
     private var canTakePicture = true
 
     private lateinit var currentNote: Note
-    private var galleryDialog = WeakReference<Fragment>(null)
 
     private var pictureFile: File? = null
     private var pictureName: String? = null
@@ -132,6 +130,10 @@ class FragmentEventDetails : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        if (listenTo.value == null && isVisible) {
+            activity?.onBackPressed()
+        }
 
         listenTo.observe(viewLifecycleOwner) {
             it?.let { event ->
