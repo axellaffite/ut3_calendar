@@ -280,12 +280,6 @@ class MapsFragment : Fragment() {
      * Setup all the listeners to handle user's actions.
      */
     private fun setupListeners() {
-        //text, start, before, count
-        // TODO
-//        search_bar.doOnTextChanged { text, _, _, _ ->
-//            handleTextChanged(text.toString())
-//        }
-//
         theSearchBar?.searchBar?.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 refreshPlaces()
@@ -507,7 +501,6 @@ class MapsFragment : Fragment() {
         places.addAll(incomingPlaces)
 
 
-        // TODO
         theSearchBar?.post {
             theSearchBar?.run {
                 search()
@@ -590,7 +583,6 @@ class MapsFragment : Fragment() {
         }
     }
 
-    //TODO
     private fun foldEverything() {
         theSearchBar?.filters?.visibility = GONE
         theSearchBar?.results?.visibility = GONE
