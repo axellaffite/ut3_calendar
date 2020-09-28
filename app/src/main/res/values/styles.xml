@@ -1,4 +1,9 @@
 <resources>
+    <declare-styleable name="SearchBar">
+        <attr name="backgroundColor" format="color"/>
+        <attr name="placeHolder" format="string"/>
+    </declare-styleable>
+
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your theme here. -->

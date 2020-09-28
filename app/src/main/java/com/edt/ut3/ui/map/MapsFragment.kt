@@ -16,16 +16,16 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
-import android.widget.CompoundButton
 import androidx.activity.addCallback
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.observe
+import androidx.recyclerview.widget.RecyclerView
 import com.axellaffite.fastgallery.FastGallery
 import com.axellaffite.fastgallery.ImageLoader
 import com.edt.ut3.R
@@ -33,16 +33,20 @@ import com.edt.ut3.backend.maps.MapsUtils
 import com.edt.ut3.backend.maps.Place
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.misc.hideKeyboard
+import com.edt.ut3.ui.custom_views.searchbar.FilterChip
+import com.edt.ut3.ui.custom_views.searchbar.SearchBar
+import com.edt.ut3.ui.custom_views.searchbar.SearchBarAdapter
+import com.edt.ut3.ui.custom_views.searchbar.SearchHandler
 import com.edt.ut3.ui.map.custom_makers.LocationMarker
 import com.edt.ut3.ui.map.custom_makers.PlaceMarker
 import com.edt.ut3.ui.preferences.Theme
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
-import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipDrawable
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_maps.*
 import kotlinx.android.synthetic.main.fragment_maps.view.*
+import kotlinx.android.synthetic.main.layout_search_bar.view.*
 import kotlinx.android.synthetic.main.place_info.view.*
+import kotlinx.android.synthetic.main.search_place.view.*
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
@@ -77,6 +81,10 @@ class MapsFragment : Fragment() {
 
     private val selectedCategories = HashSet<String>()
     private val places = mutableListOf<Place>()
+    private val matchingPlaces = mutableListOf<Place>()
+
+    private var theSearchBar: (SearchBar<Place, MapsSearchBarAdapter>)? = null
+
 
     override fun onPause() {
         super.onPause()
@@ -101,11 +109,32 @@ class MapsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        theSearchBar = placeSearchBar as SearchBar<Place, MapsSearchBarAdapter>
+        theSearchBar!!.apply {
+            converter = {
+                it.title
+            }
+
+            setAdapter(MapsSearchBarAdapter().apply {
+                onItemClicked = { _: View, _: Int, place: Place ->
+                    theSearchBar?.clearFocus()
+                    theSearchBar?.searchBar?.setText(place.title)
+                    selectedPlace = place
+                    displayPlaceInfo()
+                }
+            })
+
+            dataSet = places
+            searchHandler = MapsSearchBarHandler()
+        }
+
+
         configureMap()
         setupListeners()
         moveToPaulSabatier()
 
         startDownloadJob()
+        state.value = State.MAP
     }
 
     /**
@@ -252,21 +281,22 @@ class MapsFragment : Fragment() {
      */
     private fun setupListeners() {
         //text, start, before, count
-        search_bar.doOnTextChanged { text, _, _, _ ->
-            handleTextChanged(text.toString())
-        }
-
-        search_bar.setOnFocusChangeListener { _, hasFocus ->
+        // TODO
+//        search_bar.doOnTextChanged { text, _, _, _ ->
+//            handleTextChanged(text.toString())
+//        }
+//
+        theSearchBar?.searchBar?.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 refreshPlaces()
-                handleTextChanged(search_bar.text.toString())
+                theSearchBar?.search()
                 state.value = State.SEARCHING
             }
         }
 
-        search_bar.setOnClickListener {
+        theSearchBar?.results?.setOnClickListener {
             refreshPlaces()
-            handleTextChanged(search_bar.text.toString())
+//            handleTextChanged(search_bar.text.toString())
             state.value = State.SEARCHING
         }
 
@@ -337,7 +367,7 @@ class MapsFragment : Fragment() {
             val lowerCaseText = text.toLowerCase(Locale.getDefault())
 
             // We then filter the result and assign them to a variable
-            val matchingPlaces = withContext(Default) {
+            val newMatchingPlaces = withContext(Default) {
                 // Filtering the places to keep only the ones that matches
                 // the selected categories.
                 // If no category is selected the list is kept as it.
@@ -352,17 +382,15 @@ class MapsFragment : Fragment() {
                     .toTypedArray()
             }
 
+            matchingPlaces.clear()
+            matchingPlaces.addAll(newMatchingPlaces)
+
             // We them add them to the ListView that will contains the search
             // result.
             // As it modify the view I prefer do it on the Main thread to avoid problems.
             withContext(Main) {
-                search_result.adapter = SearchPlaceAdapter(requireContext(), matchingPlaces)
-                search_result.setOnItemClickListener { adapterView, view, pos, id ->
-                    if (pos != -1) {
-                        val place = search_result.getItemAtPosition(pos) as Place
-                        selectedPlace = place
-                        displayPlaceInfo()
-                    }
+                theSearchBar?.results?.adapter?.apply {
+                    notifyDataSetChanged()
                 }
             }
         }
@@ -392,6 +420,7 @@ class MapsFragment : Fragment() {
     private fun moveToPaulSabatier() {
         val paulSabatier = GeoPoint(43.5618994, 1.4678633)
         smoothMoveTo(paulSabatier, 15.0)
+        viewLifecycleOwner.lifecycle
     }
 
     /**
@@ -476,76 +505,63 @@ class MapsFragment : Fragment() {
     private fun setupCategoriesAndPlaces(incomingPlaces: List<Place>) {
         places.clear()
         places.addAll(incomingPlaces)
-        filters_group.post {
-            filters_group.run {
-                removeAllViews()
+
+
+        // TODO
+        theSearchBar?.post {
+            theSearchBar?.run {
+                search()
+
                 val categories = places.map { it.type }.toHashSet()
-                categories.forEach { category ->
-                    addView(
-                        Chip(requireContext()).apply {
-                            setChipDrawable(
-                                ChipDrawable.createFromAttributes(
-                                    requireContext(),
-                                    null,
-                                    0,
-                                    R.style.Widget_MaterialComponents_Chip_Filter
-                                )
-                            )
+                val chips = categories.map { category ->
+                    FilterChip<Place>(requireContext()).apply {
+                        val bgColor = ContextCompat.getColor(context, R.color.foregroundColor)
+                        val iconTint = ContextCompat.getColor(context, R.color.iconTint)
+                        val states = arrayOf(
+                            intArrayOf(-android.R.attr.state_enabled), // disabled
+                            intArrayOf(-android.R.attr.state_enabled), // disabled
+                            intArrayOf(-android.R.attr.state_checked), // unchecked
+                            intArrayOf(-android.R.attr.state_pressed)  // unpressed
+                        )
+                        chipBackgroundColor = ColorStateList(
+                            states,
+                            (0..3).map { bgColor }.toIntArray()
+                        )
+                        checkedIconTint = ColorStateList(
+                            states,
+                            (0..3).map { iconTint }.toIntArray()
+                        )
+                        text = category
+                        isClickable = true
 
-                            val bgColor = ContextCompat.getColor(context, R.color.foregroundColor)
-                            val iconTint = ContextCompat.getColor(context, R.color.iconTint)
-                            val states = arrayOf(
-                                intArrayOf(-android.R.attr.state_enabled), // disabled
-                                intArrayOf(-android.R.attr.state_enabled), // disabled
-                                intArrayOf(-android.R.attr.state_checked), // unchecked
-                                intArrayOf(-android.R.attr.state_pressed)  // unpressed
-                            )
-                            chipBackgroundColor = ColorStateList(
-                                states,
-                                (0..3).map { bgColor }.toIntArray()
-                            )
-                            checkedIconTint = ColorStateList(
-                                states,
-                                (0..3).map { iconTint }.toIntArray()
-                            )
-                            text = category
-                            isClickable = true
-
-                            setOnCheckedChangeListener { compoundButton: CompoundButton?, b: Boolean ->
-                                val cate = text.toString()
-                                if (b) {
-                                    selectedCategories.add(cate)
-                                    Log.d(this::class.simpleName, "Added: $cate")
-                                } else {
-                                    selectedCategories.remove(cate)
-                                    Log.d(this::class.simpleName, "Removed: $cate")
-                                }
-
-
-                                refreshPlaces()
-                                filterResults(requireView().search_bar.text.toString())
-                            }
-
+                        setOnClickListener {
                             refreshPlaces()
                         }
-                    )
+
+                        filter = FilterChip.GlobalFilter {
+                            it.type == text
+                        }
+                    }
                 }
+
+                setFilters(*chips.toTypedArray())
             }
+
+            refreshPlaces()
         }
     }
 
     private fun refreshPlaces() {
-        val placesToShow = if (selectedCategories.isNotEmpty()) {
-            places.filter { it.type in selectedCategories }
-        } else { places }
+        theSearchBar?.search(matchSearchBarText = false) { placesToShow ->
+            map.overlays.forEach { if (it is Marker) { it.closeInfoWindow() } }
+            map.overlays.removeAll { it is PlaceMarker }
+            addPlacesOnMap(placesToShow)
 
+            println("Updated")
 
-        map.overlays.forEach { if (it is Marker) { it.closeInfoWindow() } }
-        map.overlays.removeAll { it is PlaceMarker }
-        addPlacesOnMap(placesToShow)
-
-        map.invalidate()
-        map.requestLayout()
+            map.invalidate()
+            map.requestLayout()
+        }
     }
 
     private fun addPlacesOnMap(places: List<Place>) {
@@ -574,33 +590,37 @@ class MapsFragment : Fragment() {
         }
     }
 
+    //TODO
     private fun foldEverything() {
-        filters_container.visibility = GONE
-        search_result.visibility = GONE
+        theSearchBar?.filters?.visibility = GONE
+        theSearchBar?.results?.visibility = GONE
         from(place_info_container).state = STATE_HIDDEN
 
-        search_bar.clearFocus()
+        theSearchBar?.clearFocus()
         map.requestFocus()
 
         hideKeyboard()
     }
 
     private fun unfoldSearchTools() {
-        search_result.visibility = VISIBLE
-        filters_container.visibility = VISIBLE
+        theSearchBar?.results?.visibility = VISIBLE
+        theSearchBar?.filters?.visibility = VISIBLE
         from(place_info_container).state = STATE_HIDDEN
 
     }
 
     private fun displayPlaceInfo() {
+        theSearchBar?.clearFocus()
         selectedPlace?.let { selected ->
-            search_result.visibility = GONE
-            filters_container.visibility = GONE
+            theSearchBar?.results?.visibility = GONE
+            theSearchBar?.filters?.visibility = GONE
             hideKeyboard()
 
             lifecycleScope.launchWhenStarted {
                 delay(500)
-                from(place_info_container).state = STATE_EXPANDED
+                place_info_container?.let {
+                    from(it).state = STATE_EXPANDED
+                }
             }
 
             place_info.titleText = selected.title
@@ -656,6 +676,46 @@ class MapsFragment : Fragment() {
      * @param ms The time in ms
      */
     private fun smoothMoveTo(position: GeoPoint, zoom: Double = 17.0, ms: Long = 1000L) {
-        map.controller.animateTo(position, zoom, ms)
+        map.controller.animateTo(position, Math.max(zoom, map.zoomLevelDouble), ms)
+    }
+
+
+    private inner class MapsSearchBarHandler: SearchHandler() {
+        override fun searchLauncher(searchFunction: suspend () -> Unit): Job {
+            return viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+                searchFunction.invoke()
+            }
+        }
+    }
+
+    private class MapsSearchBarAdapter : SearchBarAdapter<Place, MapsSearchBarAdapter.ViewHolder>() {
+        private var dataset: List<Place>? = null
+        var onItemClicked : ((item: View, position: Int, place: Place) -> Unit)? = null
+
+        override fun setDataSet(dataSet: List<Place>) {
+            this.dataset = dataSet
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val v = LayoutInflater.from(parent.context).inflate(R.layout.search_place, parent, false)
+
+            return ViewHolder(v as ConstraintLayout)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val item = dataset!![position]
+            holder.v.run {
+                icon.setImageResource(item.getIcon())
+                name.text = item.title
+
+                setOnClickListener {
+                    onItemClicked?.invoke(it, position, item)
+                }
+            }
+        }
+
+        override fun getItemCount() = dataset?.size ?: 0
+
+        class ViewHolder(val v: ConstraintLayout) : RecyclerView.ViewHolder(v)
     }
 }

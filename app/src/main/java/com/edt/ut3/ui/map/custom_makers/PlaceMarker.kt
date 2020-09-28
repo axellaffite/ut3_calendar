@@ -18,7 +18,7 @@ class PlaceMarker(map: MapView, val place: Place): Marker(map) {
         title = place.title
         textLabelBackgroundColor = ContextCompat.getColor(map.context, R.color.mapLabelBackground)
         textLabelForegroundColor = ContextCompat.getColor(map.context, R.color.colorAccent)
-        textLabelFontSize = 14.toDp(map.context).toInt()
+        textLabelFontSize = 16.toDp(map.context).toInt()
         setTextIcon(place.title)
     }
 

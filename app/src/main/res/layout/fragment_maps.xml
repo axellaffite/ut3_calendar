@@ -35,66 +35,26 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:tint="@android:color/white" />
 
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
+        <com.edt.ut3.ui.custom_views.searchbar.SearchBar
+            android:id="@+id/placeSearchBar"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            app:layout_constrainedHeight="true"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
-            android:layout_marginBottom="32dp"
+            android:layout_marginBottom="16dp"
             android:elevation="8dp"
+            app:backgroundColor="@color/maps_cards"
             app:cardCornerRadius="8dp"
             app:cardElevation="8dp"
-            app:cardBackgroundColor="@color/maps_cards"
-            app:layout_constrainedHeight="true"
-            app:layout_constraintBottom_toBottomOf="@+id/map"
+            app:placeHolder="@string/map_search_hint"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0">
+            app:layout_constraintVertical_bias="0.0" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <EditText
-                    android:id="@+id/search_bar"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:ems="10"
-                    android:hint="@string/map_search_hint"
-                    android:inputType="text"
-                    android:backgroundTint="@android:color/transparent"
-                    android:textColor="@color/textColor"
-                    android:textColorHint="@android:color/secondary_text_dark"/>
-
-                <HorizontalScrollView
-                    android:id="@+id/filters_container"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/filters_group"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingStart="8dp"
-                        android:paddingEnd="8dp"
-                        app:singleLine="true" />
-
-                </HorizontalScrollView>
-
-                <ListView
-                    android:id="@+id/search_result"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:divider="#EEEEEE"
-                    android:dividerHeight="1px" />
-
-            </LinearLayout>
-
-        </androidx.cardview.widget.CardView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
