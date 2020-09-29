@@ -1,0 +1,22 @@
+{
+  "entries": [
+    {
+      "name": "Université Paul Sabatier",
+      "links": [
+        "https://edt.iut-tlse3.fr/calendar/cal"
+      ],
+      "groups": "https://edt.iut-tlse3.fr/calendar/Home/ReadResourceListItems?myResources=false&searchTerm=__&pageSize=50&pageNumber=1&resType=103&_=1601408252653",
+      "rooms": "https://edt.iut-tlse3.fr/calendar/Home/ReadResourceListItems?myResources=false&searchTerm=__&pageSize=10000&pageNumber=1&resType=102&_=1601408252652",
+      "courses": "https://edt.iut-tlse3.fr/calendar/Home/ReadResourceListItems?myResources=false&searchTerm=__&pageSize=10000&pageNumber=1&resType=100&_=1601408252651"
+    },
+    {
+      "name": "IUT Paul Sabatier",
+      "links": [
+        "https://edt.univ-tlse3.fr/calendar2/cal"
+      ],
+      "groups": "https://edt.univ-tlse3.fr/calendar2/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=50&pageNumber=1&resType=103&_=1601408259547",
+      "rooms": "https://edt.univ-tlse3.fr/calendar2/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=50&pageNumber=1&resType=102&_=1601408259546",
+      "courses": "https://edt.univ-tlse3.fr/calendar2/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=50&pageNumber=1&resType=100&_=1601408259545"
+    }
+  ]
+}
