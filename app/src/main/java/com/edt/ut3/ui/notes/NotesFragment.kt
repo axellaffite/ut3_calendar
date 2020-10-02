@@ -4,6 +4,8 @@ import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import androidx.activity.addCallback
 import androidx.fragment.app.activityViewModels
@@ -47,6 +49,13 @@ class NotesFragment : BottomSheetFragment() {
         notesLD.observe(viewLifecycleOwner) { newNotes ->
             notes.clear()
             notes.addAll(newNotes)
+
+            if (notes.isEmpty()) {
+                no_notes_layout.visibility = VISIBLE
+            } else {
+                no_notes_layout.visibility = GONE
+            }
+
             updateRecyclerAdapter()
         }
 

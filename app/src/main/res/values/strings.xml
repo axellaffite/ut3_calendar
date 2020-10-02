@@ -101,4 +101,5 @@
     <string name="title_which_formation">Dans quel(s) groupe(s) es-tu ?</string>
     <string name="cannot_access_location">Impossible d\'afficher la localisation</string>
     <string name="event_deleted_full">Supprimé - Le %s à %s</string>
+    <string name="no_notes">Pas de note à afficher</string>
 </resources>

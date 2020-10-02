@@ -98,4 +98,5 @@
     <string name="title_which_link">What is you calendar link ?</string>
     <string name="title_which_formation">In which group(s) are you ?</string>
     <string name="cannot_access_location">Unable to display the location</string>
+    <string name="no_notes">No note to show</string>
 </resources>
