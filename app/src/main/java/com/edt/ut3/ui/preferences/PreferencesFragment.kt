@@ -61,10 +61,16 @@ class PreferencesFragment: PreferenceFragmentCompat() {
             }
         }
 
-        findPreference<EditTextPreference>("section")?.let { editText ->
-            editText.setOnBindEditTextListener(EditTextListener(requireContext()))
-            editText.setOnPreferenceChangeListener { _, link -> setSections(link as String) }
+        findPreference<Preference>("section")?.apply {
+            onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                findNavController().navigate(R.id.action_preferencesFragment_to_fragmentFormationChoice)
+                true
+            }
         }
+//        findPreference<EditTextPreference>("section")?.let { editText ->
+////            editText.setOnBindEditTextListener(EditTextListener(requireContext()))
+////            editText.setOnPreferenceChangeListener { _, link -> setSections(link as String) }
+//        }
 
         findPreference<Preference>("about_us")?.apply {
             onPreferenceClickListener = Preference.OnPreferenceClickListener {

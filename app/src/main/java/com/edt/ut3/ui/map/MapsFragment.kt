@@ -5,9 +5,12 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.location.LocationManager.PASSIVE_PROVIDER
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -20,6 +23,8 @@ import androidx.activity.addCallback
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.doOnAttach
+import androidx.core.view.doOnDetach
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
@@ -42,18 +47,27 @@ import com.edt.ut3.ui.map.custom_makers.PlaceMarker
 import com.edt.ut3.ui.preferences.Theme
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
 import com.google.android.material.snackbar.Snackbar
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.single.PermissionListener
 import kotlinx.android.synthetic.main.fragment_maps.*
 import kotlinx.android.synthetic.main.fragment_maps.view.*
 import kotlinx.android.synthetic.main.layout_search_bar.view.*
 import kotlinx.android.synthetic.main.place_info.view.*
 import kotlinx.android.synthetic.main.search_place.view.*
-import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONException
 import org.osmdroid.config.Configuration
+import org.osmdroid.events.MapListener
+import org.osmdroid.events.ScrollEvent
+import org.osmdroid.events.ZoomEvent
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.tileprovider.tilesource.XYTileSource
 import org.osmdroid.util.GeoPoint
@@ -61,11 +75,8 @@ import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Overlay
-import org.osmdroid.views.overlay.TilesOverlay
 import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
 import java.io.File
-import java.util.*
-import kotlin.collections.HashSet
 
 class MapsFragment : Fragment() {
 
@@ -84,6 +95,9 @@ class MapsFragment : Fragment() {
     private val matchingPlaces = mutableListOf<Place>()
 
     private var theSearchBar: (SearchBar<Place, MapsSearchBarAdapter>)? = null
+
+    private var locationListener: LocationListener? = null
+    private var locationManager: LocationManager? = null
 
 
     override fun onPause() {
@@ -110,23 +124,19 @@ class MapsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         theSearchBar = placeSearchBar as SearchBar<Place, MapsSearchBarAdapter>
-        theSearchBar!!.apply {
-            converter = {
-                it.title
-            }
-
-            setAdapter(MapsSearchBarAdapter().apply {
+        theSearchBar?.configure(
+            dataSet = places,
+            converter = { it.title },
+            searchHandler = MapsSearchBarHandler(),
+            adapter = MapsSearchBarAdapter().apply {
                 onItemClicked = { _: View, _: Int, place: Place ->
                     theSearchBar?.clearFocus()
-                    theSearchBar?.searchBar?.setText(place.title)
+                    theSearchBar?.search_bar?.setText(place.title)
                     selectedPlace = place
                     displayPlaceInfo()
                 }
-            })
-
-            dataSet = places
-            searchHandler = MapsSearchBarHandler()
-        }
+            }
+        )
 
 
         configureMap()
@@ -157,6 +167,12 @@ class MapsFragment : Fragment() {
 
         map.apply {
             tileProvider.clearTileCache()
+            tileProvider.tileCache.clear()
+
+            minZoomLevel = 15.0
+            maxZoomLevel = 18.0
+
+
 
             // Which tile source will gives
             // us the map resources, otherwise
@@ -165,7 +181,8 @@ class MapsFragment : Fragment() {
             val providerName = getString(R.string.provider_name)
             Log.d(this@MapsFragment::class.simpleName, "Providers: ${providers.toList()}")
             val tileSource = XYTileSource(
-                providerName, 1, 20, 256, ".png", providers)
+                providerName, 1, 20, 256, ".png", providers
+            )
 
             TileSourceFactory.addTileSource(tileSource)
 
@@ -188,6 +205,38 @@ class MapsFragment : Fragment() {
             zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
 
 
+            addMapListener(object: MapListener {
+                var shouldHandle = true
+                override fun onScroll(event: ScrollEvent?): Boolean {
+                    if (state.value == State.SEARCHING) {
+                        state.value = State.MAP
+                    }
+
+                    if (!shouldHandle) {
+                        controller.stopAnimation(false)
+                        shouldHandle = true
+                        return true
+                    }
+
+                    val newPos = GeoPoint(
+                        mapCenter.latitude.coerceIn(43.55529003675331, 43.573841249471016),
+                        mapCenter.longitude.coerceIn(1.4533669607980073, 1.47867475237166)
+                    )
+
+                    if (newPos != mapCenter) {
+                        shouldHandle = false
+                        controller.setCenter(newPos)
+                        return false
+                    }
+
+                    return true
+                }
+
+                override fun onZoom(event: ZoomEvent?) = false
+
+            })
+
+
             // As the MapView's setOnClickListener function did nothing
             // I decided to add an overlay to detect click and scroll events.
             val overlay = object: Overlay() {
@@ -197,20 +246,6 @@ class MapsFragment : Fragment() {
 
                     return super.onSingleTapConfirmed(e, mapView)
                 }
-
-                override fun onScroll(
-                    pEvent1: MotionEvent?,
-                    pEvent2: MotionEvent?,
-                    pDistanceX: Float,
-                    pDistanceY: Float,
-                    pMapView: MapView?
-                ): Boolean {
-                    if (state.value == State.SEARCHING) {
-                        state.value = State.MAP
-                    }
-
-                    return super.onScroll(pEvent1, pEvent2, pDistanceX, pDistanceY, pMapView)
-                }
             }
 
             overlays.add(overlay)
@@ -219,7 +254,42 @@ class MapsFragment : Fragment() {
 
             when (PreferencesManager.getInstance(requireContext()).currentTheme()) {
                 Theme.LIGHT -> overlayManager.tilesOverlay.setColorFilter(null)
-                Theme.DARK -> overlayManager.tilesOverlay.setColorFilter(TilesOverlay.INVERT_COLORS)
+                Theme.DARK -> {
+                    val colorMatrix = ColorMatrix()
+
+                    val c = 1.01f
+                    colorMatrix.set(
+                        floatArrayOf(
+                            c, 0f, 0f, 0f,
+                            0f, c, 0f, 0f,
+                            0f, 0f, c, 0f,
+                            0f, 0f, 0f, 1f,
+                            1f, 1f, 1f, 0f
+                        )
+                    )
+
+                    colorMatrix.preConcat(
+                        ColorMatrix(
+                            floatArrayOf(
+                                -1.0f, 0f, 0f, 0f,
+                                255f, 0f, -1.0f, 0f,
+                                0f, 255f, 0f, 0f,
+                                -1.0f, 0f, 255f, 0f,
+                                0f, 0f, 1.0f, 0f
+                            )
+                        )
+                    )
+
+                    overlayManager.tilesOverlay.setColorFilter(ColorMatrixColorFilter(colorMatrix))
+                }
+            }
+
+            doOnAttach {
+                setupLocationListener()
+            }
+
+            doOnDetach {
+                removeLocationListener()
             }
         }
     }
@@ -235,52 +305,71 @@ class MapsFragment : Fragment() {
      */
     @SuppressLint("MissingPermission")
     private fun setupLocationListener() {
-        val listener = object: LocationListener {
-            override fun onLocationChanged(p0: Location) {
-                view?.run {
-                    map.overlays.removeAll { it is LocationMarker }
-                    map.overlays.add(LocationMarker(map).apply {
-                        title = "position"
-                        position = GeoPoint(p0)
-                    })
+        Dexter.withContext(requireContext())
+            .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+            .withListener(object : PermissionListener {
+                override fun onPermissionGranted(response: PermissionGrantedResponse?) {
+                    locationListener = MapsLocationListener()
+
+                    locationManager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                    executeIfLocationPermissionIsGranted {
+                        locationManager?.requestLocationUpdates(
+                            LocationManager.GPS_PROVIDER,
+                            0L,
+                            0f,
+                            locationListener!!
+                        )
+                    }
                 }
-            }
 
-            /**
-             * Unused but necessary to avoid crash
-             * due to function deprecation
-             */
-            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+                override fun onPermissionDenied(response: PermissionDeniedResponse?) { /* ... */
+                    maps_main?.let {
+                        Snackbar.make(it, R.string.cannot_access_location, Snackbar.LENGTH_SHORT).show()
+                    }
+                }
 
-            /**
-             * Unused but necessary to avoid crash
-             * due to function deprecation
-             */
-            override fun onProviderEnabled(provider: String) {}
+                override fun onPermissionRationaleShouldBeShown(
+                    permission: PermissionRequest?,
+                    token: PermissionToken?
+                ) { /* ... */ }
+            }).check()
+    }
 
-            /**
-             * Unused but necessary to avoid crash
-             * due to function deprecation
-             */
-            override fun onProviderDisabled(provider: String) {}
+    private fun removeLocationListener() {
+        locationListener?.let {
+            locationManager?.removeUpdates(it)
         }
+    }
 
-        val manager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        executeIfLocationPermissionIsGranted {
-            manager.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER,
-                0L,
-                0f,
-                listener
-            )
-        }
+    private fun centerOnLocation() {
+        Dexter.withContext(requireContext())
+            .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+            .withListener(object : PermissionListener {
+                @SuppressLint("MissingPermission")
+                override fun onPermissionGranted(response: PermissionGrantedResponse?) {
+                    locationManager?.getLastKnownLocation(PASSIVE_PROVIDER)?.also {
+                        smoothMoveTo(GeoPoint(it))
+                    }
+                }
+
+                override fun onPermissionDenied(response: PermissionDeniedResponse?) { /* ... */
+                    maps_main?.let {
+                        Snackbar.make(it, R.string.cannot_access_location, Snackbar.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onPermissionRationaleShouldBeShown(
+                    permission: PermissionRequest?,
+                    token: PermissionToken?
+                ) { /* ... */ }
+            }).check()
     }
 
     /**
      * Setup all the listeners to handle user's actions.
      */
     private fun setupListeners() {
-        theSearchBar?.searchBar?.setOnFocusChangeListener { _, hasFocus ->
+        theSearchBar?.search_bar?.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 refreshPlaces()
                 theSearchBar?.search()
@@ -299,13 +388,11 @@ class MapsFragment : Fragment() {
         setupBackButtonPressCallback()
 
         my_location.setOnClickListener {
-            val locationMarker = map.overlays.find { it is LocationMarker } as? LocationMarker
-            locationMarker?.let { me ->
-                smoothMoveTo(me.position)
-            }
+            centerOnLocation()
         }
 
         viewModel.getPlaces(requireContext()).observe(viewLifecycleOwner) { newPlaces ->
+            println("new place")
             setupCategoriesAndPlaces(newPlaces)
         }
     }
@@ -338,59 +425,6 @@ class MapsFragment : Fragment() {
     }
 
     /**
-     * Simply redirect to the filterResults function
-     * that will filter the results.
-     *
-     * @param text The search bar text
-     */
-    private fun handleTextChanged(text: String) = filterResults(text)
-
-    /**
-     * Filter the results and assign a job to it.
-     * When the function is called a second time
-     * while the job isn't finished yet, the previous
-     * one is canceled and replaced by the new one.
-     *
-     * @param text The search bar text
-     */
-    private fun filterResults(text: String) {
-        searchJob?.cancel()
-        searchJob = lifecycleScope.launchWhenResumed {
-            // We first set the text to lower case in order
-            // to do a non-sensitive case search.
-            val lowerCaseText = text.toLowerCase(Locale.getDefault())
-
-            // We then filter the result and assign them to a variable
-            val newMatchingPlaces = withContext(Default) {
-                // Filtering the places to keep only the ones that matches
-                // the selected categories.
-                // If no category is selected the list is kept as it.
-                val searchingList = if (selectedCategories.isNotEmpty()) {
-                    places.filter { selectedCategories.contains(it.type) }
-                } else { places }
-
-                // After that, we keep only the ones that contains the
-                // search bar text in their title and return them
-                searchingList
-                    .filter { it.title.toLowerCase(Locale.getDefault()).contains(lowerCaseText) }
-                    .toTypedArray()
-            }
-
-            matchingPlaces.clear()
-            matchingPlaces.addAll(newMatchingPlaces)
-
-            // We them add them to the ListView that will contains the search
-            // result.
-            // As it modify the view I prefer do it on the Main thread to avoid problems.
-            withContext(Main) {
-                theSearchBar?.results?.adapter?.apply {
-                    notifyDataSetChanged()
-                }
-            }
-        }
-    }
-
-    /**
      * This function is in charge to handle
      * when the user press the back button.
      * The behavior depends on what's the current
@@ -413,8 +447,7 @@ class MapsFragment : Fragment() {
 
     private fun moveToPaulSabatier() {
         val paulSabatier = GeoPoint(43.5618994, 1.4678633)
-        smoothMoveTo(paulSabatier, 15.0)
-        viewLifecycleOwner.lifecycle
+        smoothMoveTo(paulSabatier, 15.0, 0)
     }
 
     /**
@@ -426,12 +459,15 @@ class MapsFragment : Fragment() {
     private fun startDownloadJob() {
         // If a download job is pending, we do not
         // launch an another job.
-        if (downloadJob?.isActive == true) {
-            return
-        }
+//        if (downloadJob?.isActive == true) {
+//            return
+//        }
+
+        downloadJob?.cancel()
 
         // Assign the downloadJob to the new operation
-        downloadJob = lifecycleScope.launchWhenResumed {
+        downloadJob = lifecycleScope.launch {
+            println("launched")
             withContext(Main) {
                 Snackbar.make(maps_main, R.string.data_update, Snackbar.LENGTH_SHORT).show()
             }
@@ -492,60 +528,63 @@ class MapsFragment : Fragment() {
 
             // Calling the callback.
             Log.d(this::class.simpleName, downloadResult.toString())
-            maps_main?.post(callback)
+            callback()
+//            maps_main?.post()
         }
+
+        println("or not ?")
     }
 
     private fun setupCategoriesAndPlaces(incomingPlaces: List<Place>) {
         places.clear()
         places.addAll(incomingPlaces)
 
+        println(incomingPlaces)
 
-        theSearchBar?.post {
-            theSearchBar?.run {
-                search()
 
-                val categories = places.map { it.type }.toHashSet()
-                val chips = categories.map { category ->
-                    FilterChip<Place>(requireContext()).apply {
-                        val bgColor = ContextCompat.getColor(context, R.color.foregroundColor)
-                        val iconTint = ContextCompat.getColor(context, R.color.iconTint)
-                        val states = arrayOf(
-                            intArrayOf(-android.R.attr.state_enabled), // disabled
-                            intArrayOf(-android.R.attr.state_enabled), // disabled
-                            intArrayOf(-android.R.attr.state_checked), // unchecked
-                            intArrayOf(-android.R.attr.state_pressed)  // unpressed
-                        )
-                        chipBackgroundColor = ColorStateList(
-                            states,
-                            (0..3).map { bgColor }.toIntArray()
-                        )
-                        checkedIconTint = ColorStateList(
-                            states,
-                            (0..3).map { iconTint }.toIntArray()
-                        )
-                        text = category
-                        isClickable = true
+        theSearchBar!!.run {
+            search()
 
-                        setOnClickListener {
-                            refreshPlaces()
-                        }
+            val categories = places.map { it.type }.toHashSet()
+            val chips = categories.map { category ->
+                FilterChip<Place>(requireContext()).apply {
+                    val bgColor = ContextCompat.getColor(context, R.color.foregroundColor)
+                    val iconTint = ContextCompat.getColor(context, R.color.iconTint)
+                    val states = arrayOf(
+                        intArrayOf(-android.R.attr.state_enabled), // disabled
+                        intArrayOf(-android.R.attr.state_enabled), // disabled
+                        intArrayOf(-android.R.attr.state_checked), // unchecked
+                        intArrayOf(-android.R.attr.state_pressed)  // unpressed
+                    )
+                    chipBackgroundColor = ColorStateList(
+                        states,
+                        (0..3).map { bgColor }.toIntArray()
+                    )
+                    checkedIconTint = ColorStateList(
+                        states,
+                        (0..3).map { iconTint }.toIntArray()
+                    )
+                    text = category
+                    isClickable = true
 
-                        filter = FilterChip.GlobalFilter {
-                            it.type == text
-                        }
+                    setOnClickListener {
+                        refreshPlaces()
+                    }
+
+                    filter = FilterChip.GlobalFilter {
+                        it.type == text
                     }
                 }
-
-                setFilters(*chips.toTypedArray())
             }
 
-            refreshPlaces()
+            setFilters(*chips.toTypedArray())
         }
+
+        refreshPlaces()
     }
 
     private fun refreshPlaces() {
-        theSearchBar?.search(matchSearchBarText = false) { placesToShow ->
+        theSearchBar!!.search(matchSearchBarText = false) { placesToShow ->
             map.overlays.forEach { if (it is Marker) { it.closeInfoWindow() } }
             map.overlays.removeAll { it is PlaceMarker }
             addPlacesOnMap(placesToShow)
@@ -689,7 +728,11 @@ class MapsFragment : Fragment() {
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val v = LayoutInflater.from(parent.context).inflate(R.layout.search_place, parent, false)
+            val v = LayoutInflater.from(parent.context).inflate(
+                R.layout.search_place,
+                parent,
+                false
+            )
 
             return ViewHolder(v as ConstraintLayout)
         }
@@ -709,5 +752,35 @@ class MapsFragment : Fragment() {
         override fun getItemCount() = dataset?.size ?: 0
 
         class ViewHolder(val v: ConstraintLayout) : RecyclerView.ViewHolder(v)
+    }
+
+    private inner class MapsLocationListener : LocationListener {
+        override fun onLocationChanged(p0: Location) {
+            view?.run {
+                map.overlays.removeAll { it is LocationMarker }
+                map.overlays.add(LocationMarker(map).apply {
+                    title = "position"
+                    position = GeoPoint(p0)
+                })
+            }
+        }
+
+        /**
+         * Unused but necessary to avoid crash
+         * due to function deprecation
+         */
+        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+
+        /**
+         * Unused but necessary to avoid crash
+         * due to function deprecation
+         */
+        override fun onProviderEnabled(provider: String) {}
+
+        /**
+         * Unused but necessary to avoid crash
+         * due to function deprecation
+         */
+        override fun onProviderDisabled(provider: String) {}
     }
 }

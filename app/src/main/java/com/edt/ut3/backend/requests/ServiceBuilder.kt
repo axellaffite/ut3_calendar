@@ -14,9 +14,15 @@ object ServiceBuilder {
         .baseUrl("https://rooms-finder.api.goulin.fr/")
         .build()
 
+    private fun formationService(url: String) = baseService
+        .baseUrl(url)
+        .build()
+
     private val mapsService = baseService.build()
 
     fun buildRoomFinderService(): RoomFinderRequest =
         roomFinderService.create(RoomFinderRequest::class.java)
 
+    fun buildFormationService(url: String): FormationRequest =
+        formationService(url).create(FormationRequest::class.java)
 }

@@ -80,11 +80,11 @@
         https://github.com/axellaffite/ut3_calendar
     </string>
     <string name="no_location_found">Pas de lieu trouvé ou leurs localisations ne sont pas connues</string>
-    <string name="new_event_added">%s ajouté.</string>
-    <string name="new_event_added_full">Le %s à %s.</string>
-    <string name="event_deleted">%s supprimé.</string>
-    <string name="event_updated">%s mis à jour.</string>
-    <string name="event_updated_full">Déplacé au %s</string>
+    <string name="new_event_added">%s</string>
+    <string name="new_event_added_full">Ajouté - Le %s à %s.</string>
+    <string name="event_deleted">%s</string>
+    <string name="event_updated">%s</string>
+    <string name="event_updated_full">Mis à jour - %s à %s</string>
     <string name="cours">cours</string>
     <string name="no_title_note">Note sans titre</string>
     <string name="default_event_name">Événement</string>
@@ -95,4 +95,10 @@
     <string name="action_cancel">Annuler</string>
     <string name="calendar_updated">Emploi du temps mis à jour !</string>
     <string name="provider_name" translatable="false">light_theme_provider</string>
+    <string name="next">Suivant</string>
+    <string name="title_which_school">Où étudies-tu ?</string>
+    <string name="title_which_link">Quel est le lien de ton emploi du temps ?</string>
+    <string name="title_which_formation">Dans quel(s) groupe(s) es-tu ?</string>
+    <string name="cannot_access_location">Impossible d\'afficher la localisation</string>
+    <string name="event_deleted_full">Supprimé - Le %s à %s</string>
 </resources>

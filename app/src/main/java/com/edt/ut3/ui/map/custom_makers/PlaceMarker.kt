@@ -1,5 +1,6 @@
 package com.edt.ut3.ui.map.custom_makers
 
+import android.graphics.Color
 import android.view.MotionEvent
 import androidx.core.content.ContextCompat
 import com.edt.ut3.R
@@ -16,7 +17,7 @@ class PlaceMarker(map: MapView, val place: Place): Marker(map) {
 //        icon = ContextCompat.getDrawable(map.context, place.getIcon())
         position = place.geolocalisation
         title = place.title
-        textLabelBackgroundColor = ContextCompat.getColor(map.context, R.color.mapLabelBackground)
+        textLabelBackgroundColor = Color.TRANSPARENT//ContextCompat.getColor(map.context, R.color.mapLabelBackground)
         textLabelForegroundColor = ContextCompat.getColor(map.context, R.color.colorAccent)
         textLabelFontSize = 16.toDp(map.context).toInt()
         setTextIcon(place.title)

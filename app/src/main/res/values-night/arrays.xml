@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="tile_provider">
-        <item>http://a.tile.stamen.com/toner/</item>
+        <item>https://a.basemaps.cartocdn.com/light_all/</item>
+        <item>https://b.basemaps.cartocdn.com/light_all/</item>
+        <item>https://c.basemaps.cartocdn.com/light_all/</item>
+        <item>https://d.basemaps.cartocdn.com/light_all/</item>
     </string-array>
 </resources>

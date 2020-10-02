@@ -28,13 +28,13 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
 
             try {
                 setCardBackgroundColor(getColor(R.styleable.SearchBar_backgroundColor, ContextCompat.getColor(context, R.color.backgroundColor)))
-                searchBar.hint = getString(R.styleable.SearchBar_placeHolder) ?: "..."
+                search_bar.hint = getString(R.styleable.SearchBar_placeHolder) ?: "..."
             } finally {
                 recycle()
             }
         }
 
-        searchBar.doOnTextChanged { text, _, _, _ ->
+        search_bar.doOnTextChanged { text, _, _, _ ->
             if (hasFocus()) {
                 search()
             }
@@ -42,14 +42,22 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
 
     }
 
-    var converter: ((Data) -> String)? = null
-    var dataSet: List<Data>? = null
-        set(value) {
-            field = value
-        }
+    private var mConverter: ((Data) -> String)? = null
+    private var mDataSet: List<Data>? = null
+    private var mSearchHandler: SearchHandler? = null
 
     private var filteredDataSet = mutableListOf<Data>()
-    var searchHandler: SearchHandler? = null
+
+    fun configure(dataSet: List<Data>,
+                  converter: (Data) -> String,
+                  searchHandler: SearchHandler,
+                  adapter: Adapter)
+    {
+        this.mDataSet = dataSet
+        this.mConverter = converter
+        this.mSearchHandler = searchHandler
+        this.setAdapter(adapter)
+    }
 
     fun removeFilters(vararg chips: FilterChip<Data>) {
         chips.forEach {
@@ -76,7 +84,7 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
         }
     }
 
-    fun setAdapter(adapter: Adapter) {
+    private fun setAdapter(adapter: Adapter) {
         results.layoutManager = LinearLayoutManager(context)
         results.adapter = adapter
         adapter.setDataSet(filteredDataSet)
@@ -114,17 +122,17 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
 
     fun search(matchSearchBarText: Boolean = true, callback: ((List<Data>) -> Unit)? = null) {
         val query = if (matchSearchBarText) {
-            searchBar?.text.toString()
+            search_bar?.text.toString()
         } else { String() }
 
-        searchHandler?.searchLauncher {
+        mSearchHandler?.searchLauncher {
             search(query, callback)
         }
     }
 
     private suspend fun search(query: String, callback: ((List<Data>) -> Unit)?) {
-        val dataSetToFilter = dataSet ?: return
-        val dataConverter = converter ?: return
+        val dataSetToFilter = mDataSet ?: return
+        val dataConverter = mConverter ?: return
         val filters = getFilters()
         val globalFilters =
             filters
@@ -150,7 +158,7 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
         filteredDataSet.addAll(filtered)
 
         withContext(Main) {
-            if (query == searchBar?.text.toString()) {
+            if (query == search_bar?.text.toString()) {
                 val res = results?.adapter
                 res?.notifyDataSetChanged()
             }
@@ -159,9 +167,5 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
         }
 
     }
-
-
-
-
 
 }

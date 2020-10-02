@@ -1,16 +1,16 @@
 package com.edt.ut3.backend.requests
 
 import android.util.Log
-import com.edt.ut3.misc.add
-import com.edt.ut3.misc.minus
-import com.edt.ut3.misc.timeCleaned
-import com.edt.ut3.misc.toCelcatDateStr
+import com.edt.ut3.backend.formation_choice.SchoolURL
+import com.edt.ut3.misc.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import org.json.JSONException
+import org.json.JSONObject
 import java.io.IOException
 import java.util.*
 
@@ -76,5 +76,20 @@ class CelcatService {
             .build()
 
         HttpClientProvider.generateNewClient().newCall(request).execute()
+    }
+
+    @Throws(IOException::class, JSONException::class)
+    suspend fun getSchoolsURLs(): List<SchoolURL>? = withContext(IO) {
+        val request = Request.Builder()
+            .url("https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/data/formations/urls.json")
+            .get()
+            .build()
+
+        val response = HttpClientProvider.generateNewClient().newCall(request).execute()
+        response.body?.string()?.let { body ->
+            JSONObject(body).getJSONArray("entries").map {
+                SchoolURL.fromJSON(it as JSONObject)
+            }
+        }
     }
 }

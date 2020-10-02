@@ -162,6 +162,8 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                 if (shouldDisplayNotifications) {
                     val notificationManager = NotificationManager.getInstance(applicationContext)
 
+                    notificationManager.displayUpdateGroup(newEvents.size, removedEvent.size, updatedEvent.size)
+
                     if(removedEvent.isNotEmpty()) {
                         notificationManager.create(removedEvent, EventChange.Type.REMOVED)
                     }
@@ -174,7 +176,6 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                         notificationManager.create(updatedEvent, EventChange.Type.UPDATED)
                     }
 
-                    notificationManager.displayUpdateGroup(newEvents.size, removedEvent.size, updatedEvent.size)
                 }
 
                 insertCoursesVisibility(receivedEvent)

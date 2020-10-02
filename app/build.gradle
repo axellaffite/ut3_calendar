@@ -147,5 +147,10 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version" // or "kotlin-stdlib-jdk8"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0-RC" // JVM dependency
 
+    // Name: Dexter
+    // Summary : Simplified permissions for Android
+    // Documentation : https://github.com/Karumi/Dexter
+    implementation 'com.karumi:dexter:6.2.1'
+
 
 }

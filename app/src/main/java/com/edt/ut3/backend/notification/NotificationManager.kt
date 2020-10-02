@@ -106,7 +106,7 @@ class NotificationManager private constructor(val context: Context) {
         )
 
         EventChange.Type.REMOVED -> context.getString(
-            R.string.new_event_added_full, android.text.format.DateFormat.format(
+            R.string.event_deleted_full, android.text.format.DateFormat.format(
                 "EEE dd MMM",
                 event.start
             ), android.text.format.DateFormat.format("HH:mm", event.start)
@@ -114,9 +114,9 @@ class NotificationManager private constructor(val context: Context) {
 
         EventChange.Type.UPDATED -> context.getString(
             R.string.event_updated_full, android.text.format.DateFormat.format(
-                "EEE dd MMM HH:mm",
+                "EEE dd MMM",
                 event.start
-            )
+            ), android.text.format.DateFormat.format("HH:mm", event.start)
         )
     }
 

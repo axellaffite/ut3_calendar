@@ -11,7 +11,7 @@
         android:layout_height="wrap_content">
 
         <EditText
-            android:id="@+id/searchBar"
+            android:id="@+id/search_bar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:inputType="text"
@@ -30,7 +30,7 @@
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/searchBar">
+            app:layout_constraintTop_toBottomOf="@+id/search_bar">
 
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/filters"
