@@ -186,7 +186,23 @@ class CalendarFragment : BottomSheetFragment(),
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
 
-                calendarViewModel.lastPosition.value = position
+//                calendarViewModel.lastPosition.value = position
+            }
+
+            override fun onPageScrolled(
+                position: Int,
+                positionOffset: Float,
+                positionOffsetPixels: Int
+            ) {
+                view?.pager?.let {
+                    if (positionOffset < 0.1f) {
+                        if (it.currentItem != calendarViewModel.lastPosition.value) {
+                            calendarViewModel.lastPosition.value = position
+                        }
+                    }
+                }
+//                println("position=$position, positionOffset$positionOffset")
+//                super.onPageScrolled(position, positionOffset, positionOffsetPixels)
             }
         })
 
@@ -290,7 +306,10 @@ class CalendarFragment : BottomSheetFragment(),
                                 ) {
                                     super.onDismissed(transientBottomBar, event)
 
-                                    refresh_button?.show()
+
+                                    scroll_view?.scrollY?.let {
+                                        hideRefreshWhenNecessary(it)
+                                    }
                                     status = Status.IDLE
                                 }
                             })
@@ -311,12 +330,10 @@ class CalendarFragment : BottomSheetFragment(),
      * @param verticalOffset The vertical offset of the action bar
      */
     private fun hideRefreshWhenNecessary(verticalOffset: Int) {
-        if (status == Status.UPDATING) {
-            return
-        }
-
         if (verticalOffset < 100) {
-            refresh_button.show()
+            if (status != Status.UPDATING) {
+                refresh_button.show()
+            }
             settings_button.show()
         } else {
             settings_button.hide()
