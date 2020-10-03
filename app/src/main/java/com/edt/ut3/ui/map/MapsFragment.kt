@@ -250,8 +250,6 @@ class MapsFragment : Fragment() {
 
             overlays.add(overlay)
 
-            setupLocationListener()
-
             when (PreferencesManager.getInstance(requireContext()).currentTheme()) {
                 Theme.LIGHT -> overlayManager.tilesOverlay.setColorFilter(null)
                 Theme.DARK -> {
@@ -331,7 +329,9 @@ class MapsFragment : Fragment() {
                 override fun onPermissionRationaleShouldBeShown(
                     permission: PermissionRequest?,
                     token: PermissionToken?
-                ) { /* ... */ }
+                ) {
+                    token?.continuePermissionRequest()
+                }
             }).check()
     }
 
@@ -361,7 +361,7 @@ class MapsFragment : Fragment() {
                 override fun onPermissionRationaleShouldBeShown(
                     permission: PermissionRequest?,
                     token: PermissionToken?
-                ) { /* ... */ }
+                ) { token?.continuePermissionRequest() }
             }).check()
     }
 
@@ -462,6 +462,7 @@ class MapsFragment : Fragment() {
 //        if (downloadJob?.isActive == true) {
 //            return
 //        }
+
 
         downloadJob?.cancel()
 
