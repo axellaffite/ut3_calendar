@@ -4,9 +4,8 @@ import androidx.fragment.app.Fragment
 
 abstract class ChoiceFragment<Choice>: Fragment() {
 
-    abstract fun isChoiceValid(): Boolean
+    var onChoiceDone: (() -> Unit)? = null
 
-    @Throws(IllegalStateException::class)
-    abstract fun setChoiceInViewModel(): Choice
+    abstract fun saveChoiceInViewModel()
 
 }

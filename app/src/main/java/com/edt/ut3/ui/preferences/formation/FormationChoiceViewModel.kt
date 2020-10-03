@@ -9,6 +9,7 @@ import java.io.IOException
 
 class FormationChoiceViewModel: ViewModel() {
 
+    var school = MutableLiveData<SchoolURL>()
     val currentFragment = MutableLiveData(0)
     private var schoolURLs = listOf<SchoolURL>()
 

@@ -33,6 +33,7 @@ class WhichSchoolFragment: ChoiceFragment<SchoolURL>() {
                         @Suppress("UNCHECKED_CAST")
                         schoolUniqueChoice = schoolChoice as UniqueChoiceContainer<SchoolURL>
                         schoolUniqueChoice.setDataSet(formations.toTypedArray()) { it.name }
+                        schoolUniqueChoice.onChoiceDone = onChoiceDone
                     }
                 }
             } catch (e: IOException) {
@@ -47,9 +48,7 @@ class WhichSchoolFragment: ChoiceFragment<SchoolURL>() {
         savedInstanceState: Bundle?
     ): View? = inflater.inflate(R.layout.fragment_which_school, container, false)
 
-    override fun isChoiceValid() = schoolUniqueChoice.isChoiceValid()
-
-    @Throws(IllegalStateException::class)
-    override fun setChoiceInViewModel() = schoolUniqueChoice.getChoice()
-
+    override fun saveChoiceInViewModel() {
+        viewModel.school = schoolUniqueChoice.getChoice()
+    }
 }

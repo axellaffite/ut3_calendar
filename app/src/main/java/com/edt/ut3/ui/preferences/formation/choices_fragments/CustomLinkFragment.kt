@@ -1,12 +1,13 @@
 package com.edt.ut3.ui.preferences.formation.choices_fragments
 
+import androidx.fragment.app.viewModels
+import com.edt.ut3.ui.preferences.formation.FormationChoiceViewModel
+
 class CustomLinkFragment : ChoiceFragment<Nothing>() {
 
-    override fun isChoiceValid(): Boolean {
-        TODO("Not yet implemented")
-    }
+    val viewModel: FormationChoiceViewModel by viewModels()
 
-    override fun setChoiceInViewModel(): Nothing {
+    override fun saveChoiceInViewModel() {
         TODO("Not yet implemented")
     }
 

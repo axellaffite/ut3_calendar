@@ -347,21 +347,24 @@ class MapsFragment : Fragment() {
             .withListener(object : PermissionListener {
                 @SuppressLint("MissingPermission")
                 override fun onPermissionGranted(response: PermissionGrantedResponse?) {
+                    removeLocationListener()
+                    setupLocationListener()
                     locationManager?.getLastKnownLocation(PASSIVE_PROVIDER)?.also {
                         smoothMoveTo(GeoPoint(it))
                     }
                 }
 
-                override fun onPermissionDenied(response: PermissionDeniedResponse?) { /* ... */
+                override fun onPermissionDenied(response: PermissionDeniedResponse?) {
                     maps_main?.let {
                         Snackbar.make(it, R.string.cannot_access_location, Snackbar.LENGTH_SHORT).show()
                     }
                 }
 
-                override fun onPermissionRationaleShouldBeShown(
-                    permission: PermissionRequest?,
-                    token: PermissionToken?
-                ) { token?.continuePermissionRequest() }
+                override fun onPermissionRationaleShouldBeShown(permission: PermissionRequest?,
+                                                                token: PermissionToken?
+                ) {
+                    token?.continuePermissionRequest()
+                }
             }).check()
     }
 
@@ -379,11 +382,12 @@ class MapsFragment : Fragment() {
 
         theSearchBar?.results?.setOnClickListener {
             refreshPlaces()
-//            handleTextChanged(search_bar.text.toString())
             state.value = State.SEARCHING
         }
 
-        state.observe(viewLifecycleOwner) { handleStateChange(it) }
+        state.observe(viewLifecycleOwner) {
+            handleStateChange(it)
+        }
 
         setupBackButtonPressCallback()
 
@@ -392,7 +396,6 @@ class MapsFragment : Fragment() {
         }
 
         viewModel.getPlaces(requireContext()).observe(viewLifecycleOwner) { newPlaces ->
-            println("new place")
             setupCategoriesAndPlaces(newPlaces)
         }
     }

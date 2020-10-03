@@ -14,13 +14,7 @@ class WhichGroupFragment : ChoiceFragment<Nothing>() {
         savedInstanceState: Bundle?
     ): View? = inflater.inflate(R.layout.fragment_which_formation, container, false)
 
-    override fun isChoiceValid(): Boolean {
+    override fun saveChoiceInViewModel() {
         TODO("Not yet implemented")
     }
-
-    override fun setChoiceInViewModel(): Nothing {
-        TODO("Not yet implemented")
-    }
-
-
 }

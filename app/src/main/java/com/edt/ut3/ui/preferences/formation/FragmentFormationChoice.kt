@@ -30,41 +30,47 @@ class FragmentFormationChoice: Fragment() {
 
         activity?.onBackPressedDispatcher?.addCallback(viewLifecycleOwner) {
             pager?.let {
-                if (it.currentItem == 0) {
-                    isEnabled = false
-                    activity?.onBackPressed()
-                } else {
-                    it.currentItem--
+                viewModel.currentFragment.run {
+                    val position = value ?: 0
+                    if (position == 0) {
+                        isEnabled = false
+                        activity?.onBackPressed()
+                    } else {
+                        value = position - 1
+                    }
                 }
             }
         }
 
-        val adapter = FormationChoiceAdapter(this)
-        pager.adapter = adapter
-        pager.setPageTransformer(SlideAnimations.depthPageAnimation())
+        pager?.apply {
+            fun postNotifyDataSetChanged(callback: (() -> Unit)? = null) = post {
+                adapter?.notifyDataSetChanged()
+                callback?.invoke()
+            }
 
+            adapter = FormationChoiceAdapter(this@FragmentFormationChoice, onChoiceDone = {
+                viewModel.currentFragment.value = currentItem + 1
+            })
 
-        actionButton?.setOnClickListener {
-            pager?.run {
-                val currentFragment = adapter.getFragment(currentItem)
-                println(currentFragment::class.simpleName)
-                if (currentFragment.isChoiceValid()) {
-                    viewModel.currentFragment.value = currentItem + 1
+            setPageTransformer(SlideAnimations.depthPageAnimation())
+
+            registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) {
+                    viewModel.currentFragment.value = position
                 }
-            }
-        }
+            })
 
-        pager.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                viewModel.currentFragment.value = position
-            }
-        })
+            viewModel.currentFragment.observe(viewLifecycleOwner) { currentFragment ->
+                with (adapter as FormationChoiceAdapter) {
+                    val notify = (count == currentFragment)
+                    count = currentFragment + 1
 
-        viewModel.currentFragment.observe(viewLifecycleOwner) { currentFragment ->
-            with(pager.adapter as FormationChoiceAdapter) {
-                count = currentFragment + 1
-                pager.post {
-                    notifyDataSetChanged()
+                    if (notify) {
+                        postNotifyDataSetChanged {
+                            pager.currentItem = currentFragment
+                        }
+                    }
+
                     pager.currentItem = currentFragment
                 }
             }
@@ -73,7 +79,7 @@ class FragmentFormationChoice: Fragment() {
 
     }
 
-    class FormationChoiceAdapter(fragment: Fragment): FragmentStateAdapter(fragment) {
+    class FormationChoiceAdapter(fragment: Fragment, val onChoiceDone: () -> Unit): FragmentStateAdapter(fragment) {
         var count = 1
         override fun getItemCount() = count
 
@@ -84,7 +90,11 @@ class FragmentFormationChoice: Fragment() {
             WhichGroupFragment()
         )
 
-        fun getFragment(position: Int) = fragments[position]
+        init {
+            fragments.forEach {  frag ->
+                frag.onChoiceDone = onChoiceDone
+            }
+        }
 
         override fun createFragment(position: Int): ChoiceFragment<*> = fragments[position]
 

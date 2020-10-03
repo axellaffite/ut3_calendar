@@ -15,6 +15,7 @@ class UniqueChoiceContainer<Data>(context: Context, attributeSet: AttributeSet? 
         gravity = Gravity.CENTER
     }
 
+    var onChoiceDone: (() -> Unit)? = null
     private var choice: Data? = null
 
     fun setDataSet(dataSet: Array<Data>, converter: (Data) -> String) {
@@ -35,9 +36,12 @@ class UniqueChoiceContainer<Data>(context: Context, attributeSet: AttributeSet? 
                 isChecked = (it == view)
             }
         }
-    }
 
-    fun isChoiceValid() = choice != null
+        choice = view.data
+        if (choice != null) {
+            onChoiceDone?.invoke()
+        }
+    }
 
     @Throws(IllegalStateException::class)
     fun getChoice() =

@@ -14,11 +14,7 @@ class WhichLinkFragment : ChoiceFragment<Nothing>() {
         savedInstanceState: Bundle?
     ): View? = inflater.inflate(R.layout.fragment_which_link, container, false)
 
-    override fun isChoiceValid(): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun setChoiceInViewModel(): Nothing {
+    override fun saveChoiceInViewModel() {
         TODO("Not yet implemented")
     }
 
