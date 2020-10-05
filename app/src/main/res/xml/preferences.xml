@@ -23,7 +23,7 @@
     <PreferenceCategory
         app:title="@string/title_calendar">
 
-        <EditTextPreference
+        <Preference
             android:key="section"
             app:title="@string/calendar_link"
             android:summary="@string/summary_link"

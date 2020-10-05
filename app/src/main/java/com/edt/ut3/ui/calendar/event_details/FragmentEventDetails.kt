@@ -115,6 +115,20 @@ class FragmentEventDetails : Fragment() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("pictureName", pictureName)
+        outState.putSerializable("pictureFile", pictureFile)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        savedInstanceState?.takeIf { it.containsKey("pictureName") && it.containsKey("pictureFile") }?.run {
+            pictureName = getString("pictureName")
+            pictureFile = getSerializable("pictureFile") as File
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_event_details, container, false).also { root ->

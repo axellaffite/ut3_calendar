@@ -32,6 +32,7 @@ import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_calendar.*
 import kotlinx.android.synthetic.main.fragment_calendar.view.*
+import org.json.JSONArray
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -56,7 +57,6 @@ class CalendarFragment : BottomSheetFragment(),
                 }
             }
         }
-
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -105,6 +105,16 @@ class CalendarFragment : BottomSheetFragment(),
 
         view.action_view?.menu?.findItem(R.id.change_view)?.let {
             updateViewIcon(it)
+        }
+
+        view.post {
+            PreferencesManager.getInstance(requireContext()).run {
+                link = "https://edt.univ-tlse3.fr/calendar2"
+                groups = JSONArray(listOf("MINDLIHM7CMA")).toString()
+            }
+            if (PreferencesManager.getInstance(requireContext()).link == null) {
+                findNavController().navigate(R.id.fragmentFormationChoice)
+            }
         }
     }
 

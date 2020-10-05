@@ -10,16 +10,16 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.whenCreated
 import androidx.lifecycle.whenResumed
 import com.edt.ut3.R
-import com.edt.ut3.backend.formation_choice.SchoolURL
+import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.ui.preferences.formation.FormationChoiceViewModel
 import kotlinx.android.synthetic.main.fragment_which_school.*
 import kotlinx.coroutines.launch
 import java.io.IOException
 
-class WhichSchoolFragment: ChoiceFragment<SchoolURL>() {
+class WhichSchoolFragment: ChoiceFragment<School>() {
 
     private val viewModel: FormationChoiceViewModel by activityViewModels()
-    private lateinit var schoolUniqueChoice: UniqueChoiceContainer<SchoolURL>
+    private lateinit var schoolUniqueChoice: UniqueChoiceContainer<School>
 
     init {
         lifecycleScope.launch {
@@ -31,9 +31,12 @@ class WhichSchoolFragment: ChoiceFragment<SchoolURL>() {
 
                     whenResumed {
                         @Suppress("UNCHECKED_CAST")
-                        schoolUniqueChoice = schoolChoice as UniqueChoiceContainer<SchoolURL>
+                        schoolUniqueChoice = schoolChoice as UniqueChoiceContainer<School>
                         schoolUniqueChoice.setDataSet(formations.toTypedArray()) { it.name }
-                        schoolUniqueChoice.onChoiceDone = onChoiceDone
+                        schoolUniqueChoice.onChoiceDone = {
+                            saveChoiceInViewModel()
+                            onChoiceDone?.invoke()
+                        }
                     }
                 }
             } catch (e: IOException) {
@@ -49,6 +52,7 @@ class WhichSchoolFragment: ChoiceFragment<SchoolURL>() {
     ): View? = inflater.inflate(R.layout.fragment_which_school, container, false)
 
     override fun saveChoiceInViewModel() {
-        viewModel.school = schoolUniqueChoice.getChoice()
+        println("Saving: ${schoolUniqueChoice.getChoice()}")
+        viewModel.school.value = schoolUniqueChoice.getChoice()
     }
 }

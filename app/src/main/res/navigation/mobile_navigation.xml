@@ -17,6 +17,9 @@
             app:exitAnim="@anim/fade_out"
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/slide_out" />
+        <action
+            android:id="@+id/action_navigation_calendar_to_fragmentFormationChoice"
+            app:destination="@id/fragmentFormationChoice" />
     </fragment>
 
     <fragment
@@ -71,6 +74,6 @@
         android:id="@+id/fragmentFormationChoice"
         android:name="com.edt.ut3.ui.preferences.formation.FragmentFormationChoice"
         android:label="FragmentFormationChoice"
-        tools:layout="@layout/fragment_formation_choice"/>
+        tools:layout="@layout/fragment_formation_choice" />
 
 </navigation>

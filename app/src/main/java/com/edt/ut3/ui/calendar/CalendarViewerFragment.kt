@@ -156,12 +156,15 @@ class CalendarViewerFragment: Fragment(), SharedPreferences.OnSharedPreferenceCh
             requireView().post {
                 job?.cancel()
                 job = lifecycleScope.launchWhenCreated {
-                    val height = (parentFragment as Fragment).view?.findViewById<NestedScrollView>(R.id.scroll_view)?.height ?: 0
-                    when (CalendarMode.fromJson(preferences.calendarMode)) {
-                        CalendarMode.default() ->
-                            buildDayView(calendar_container, eventList, height, requireView().width)
-                        else ->
-                            buildWeekView(calendar_container, eventList, height, requireView().width)
+                    val container = calendar_container
+                    if (container != null) {
+                        val height = (parentFragment as Fragment).view?.findViewById<NestedScrollView>(R.id.scroll_view)?.height ?: 0
+                        when (CalendarMode.fromJson(preferences.calendarMode)) {
+                            CalendarMode.default() ->
+                                buildDayView(container, eventList, height, requireView().width)
+                            else ->
+                                buildWeekView(container, eventList, height, requireView().width)
+                        }
                     }
                 }
             }

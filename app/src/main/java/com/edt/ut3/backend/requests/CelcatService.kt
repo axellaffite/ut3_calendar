@@ -1,7 +1,7 @@
 package com.edt.ut3.backend.requests
 
 import android.util.Log
-import com.edt.ut3.backend.formation_choice.SchoolURL
+import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.misc.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
@@ -79,7 +79,7 @@ class CelcatService {
     }
 
     @Throws(IOException::class, JSONException::class)
-    suspend fun getSchoolsURLs(): List<SchoolURL>? = withContext(IO) {
+    suspend fun getSchoolsURLs(): List<School>? = withContext(IO) {
         val request = Request.Builder()
             .url("https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/data/formations/urls.json")
             .get()
@@ -88,7 +88,7 @@ class CelcatService {
         val response = HttpClientProvider.generateNewClient().newCall(request).execute()
         response.body?.string()?.let { body ->
             JSONObject(body).getJSONArray("entries").map {
-                SchoolURL.fromJSON(it as JSONObject)
+                School.fromJSON(it as JSONObject)
             }
         }
     }
