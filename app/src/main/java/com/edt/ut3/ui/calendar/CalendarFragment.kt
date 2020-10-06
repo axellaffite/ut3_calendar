@@ -1,39 +1,45 @@
 package com.edt.ut3.ui.calendar
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration.ORIENTATION_PORTRAIT
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.activity.addCallback
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import androidx.viewpager2.adapter.FragmentStateAdapter
-import androidx.viewpager2.adapter.FragmentViewHolder
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import androidx.work.WorkInfo
 import com.edt.ut3.R
 import com.edt.ut3.backend.background_services.Updater
 import com.edt.ut3.backend.calendar.CalendarMode
+import com.edt.ut3.backend.calendar.DayBuilder
+import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.misc.add
-import com.edt.ut3.misc.set
-import com.edt.ut3.misc.timeCleaned
+import com.edt.ut3.misc.*
 import com.edt.ut3.ui.calendar.event_details.FragmentEventDetails
+import com.edt.ut3.ui.calendar.view_builders.EventView
+import com.edt.ut3.ui.calendar.view_builders.LayoutAllDay
+import com.elzozor.yoda.events.EventWrapper
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_calendar.*
 import kotlinx.android.synthetic.main.fragment_calendar.view.*
+import kotlinx.coroutines.Job
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.abs
 
 
 class CalendarFragment : BottomSheetFragment(),
@@ -53,6 +59,8 @@ class CalendarFragment : BottomSheetFragment(),
                 PreferencesManager.PreferenceKeys.CALENDAR_MODE.key -> {
                     val newPreference = CalendarMode.fromJson(preferences.calendarMode)
                     updateBarText(calendarViewModel.selectedDate.value!!, newPreference)
+
+                    pager?.notifyDataSetChanged()
                 }
             }
         }
@@ -99,18 +107,21 @@ class CalendarFragment : BottomSheetFragment(),
 
         updateCalendarMode()
 
-        setupViewPager()
+
         setupBottomSheetManager()
         setupBackButtonListener()
 
-        view.action_view?.menu?.findItem(R.id.change_view)?.let {
-            updateViewIcon(it)
-        }
-    }
+        view.run {
+            action_view?.menu?.findItem(R.id.change_view)?.let {
+                updateViewIcon(it)
+            }
 
-    override fun onResume() {
-        super.onResume()
-        setupListeners()
+            post {
+                setupViewPager()
+
+                setupListeners()
+            }
+        }
     }
 
     private fun setupBottomSheetManager() {
@@ -168,28 +179,6 @@ class CalendarFragment : BottomSheetFragment(),
     }
 
     private fun setupListeners() {
-        // This listener allows the CalendarViewerFragments to keep
-        // up to date their contents by listening to the
-        // view model's selectedDate variable.
-        view?.calendarView?.setOnDateChangeListener { _, year, month, dayOfMonth ->
-            val newDate = Date().set(year, month, dayOfMonth).timeCleaned()
-            calendarViewModel.selectedDate.value = newDate
-        }
-
-        // This callback is in charge to update the
-        // ViewModel current index.
-        //
-        // This is done to give information to the
-        // CalendarViewerFragments in order to keep
-        // them up to date.
-        view?.pager?.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-
-                calendarViewModel.lastPosition.value = position
-            }
-        })
-
         // This listener is in charge to listen to the
         // AppBar offset in order to hide things when
         // necessary ( such as the refresh buttons and the action bar ).
@@ -210,13 +199,6 @@ class CalendarFragment : BottomSheetFragment(),
         // when clicked.
         view?.settings_button?.setOnClickListener {
             findNavController().navigate(R.id.action_navigation_calendar_to_preferencesFragment)
-        }
-
-        // Update the action bar text when the selected date
-        // is updated in the ViewModel.
-        calendarViewModel.selectedDate.observe(viewLifecycleOwner) {
-            updateBarText(it, CalendarMode.fromJson(preferences.calendarMode))
-            calendarView.date = it.time
         }
 
         preferences.observe(preferenceChangeListener)
@@ -246,6 +228,77 @@ class CalendarFragment : BottomSheetFragment(),
 
             })
         }
+
+        setupCalendarListeners()
+    }
+
+    /**
+     * This function setup the listeners which will
+     * update the calendar ui, the day ui and anything
+     * related to them.
+     */
+    private fun setupCalendarListeners() {
+        calendarViewModel.getEvents(requireContext()).observe(viewLifecycleOwner) {
+            pager?.notifyDataSetChanged()
+        }
+
+        // This listener allows the CalendarViewerFragments to keep
+        // up to date their contents by listening to the
+        // view model's selectedDate variable.
+        view?.calendarView?.setOnDateChangeListener { _, year, month, dayOfMonth ->
+            val newDate = Date().set(year, month, dayOfMonth).timeCleaned()
+
+            calendarViewModel.selectedDate.value = newDate
+            pager?.notifyDataSetChanged()
+        }
+
+        calendarViewModel.selectedDate.observe(viewLifecycleOwner) { selectedDate ->
+            view?.calendarView?.run {
+                if (selectedDate.time != date) {
+                    setDate(selectedDate.time, false, false)
+                }
+            }
+
+            updateBarText(selectedDate, CalendarMode.fromJson(preferences.calendarMode))
+
+//            pager?.adapter?.notifyDataSetChanged()
+        }
+
+
+        // This callback is in charge to update the
+        // ViewModel current index.
+        //
+        // This is done to give information to the
+        // CalendarViewerFragments in order to keep
+        // them up to date.
+        view?.pager?.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
+            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+                super.onPageScrolled(position, positionOffset, positionOffsetPixels)
+
+                calendarViewModel.run {
+                    val oldPosition = lastPosition.value
+                    if (oldPosition != position && abs(positionOffset) < 10f) {
+                        lastPosition.value = position
+
+                        if (oldPosition == null) {
+                            return
+                        }
+
+                        val mode = CalendarMode.fromJson(preferences.calendarMode)
+                        val mult = if (mode.isAgenda()) 1 else 7
+                        selectedDate.value =
+                            selectedDate.value!!.add(Calendar.DAY_OF_YEAR, (position - oldPosition) * mult)
+                    }
+                }
+            }
+        })
+
+        calendarViewModel.getCoursesVisibility(requireContext()).observe(viewLifecycleOwner) {
+            pager?.notifyDataSetChanged()
+        }
+
+
+
 
         val childFragment = childFragmentManager.findFragmentById(R.id.event_details)
         if (childFragment is FragmentEventDetails) {
@@ -410,22 +463,98 @@ class CalendarFragment : BottomSheetFragment(),
      *
      * @param fragment The fragment which contains the viewpager.
      */
-    private inner class DaySlider(fragment: Fragment) : FragmentStateAdapter(fragment) {
+    private inner class DaySlider(fragment: Fragment) : RecyclerView.Adapter<DayViewHolder>() {
 
         override fun getItemCount() = Int.MAX_VALUE
 
-        override fun createFragment(position: Int) =
-            CalendarViewerFragment.newInstance(position).apply {
-                getHeight = { view?.scroll_view?.measuredHeight ?: 0 }
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DayViewHolder {
+            Log.d("CalendarFragment", "inflating")
+            val v = LayoutInflater.from(parent.context).inflate(R.layout.day_viewer, parent, false) as FrameLayout
+
+            return DayViewHolder(v)
+        }
+
+        override fun onBindViewHolder(holder: DayViewHolder, position: Int) {
+            holder.day.post {
+                holder.job?.cancel()
+                holder.job = lifecycleScope.launchWhenCreated {
+                    DayBuilder(
+                        calendarViewModel.getEvents(requireContext()).value,
+                        requireContext(),
+                        calendarViewModel.selectedDate.value!!,
+                        calendarViewModel.lastPosition.value!!,
+                        position,
+                        holder.day,
+                        calendarViewModel.getCoursesVisibility(requireContext()).value ?: listOf(),
+                        this@CalendarFragment::buildEventView,
+                        this@CalendarFragment::buildEmptyDayView,
+                        this@CalendarFragment::buildAllDayView
+                    ).build(pager.height, pager.width)
+                }
+            }
+        }
+    }
+
+    class DayViewHolder(val day: FrameLayout, var job: Job? = null): RecyclerView.ViewHolder(day)
+
+
+    /**
+     * This function builds a view for an Event.
+     *
+     * @param context A valid context
+     * @param eventWrapper The event encapsulated into an EventWrapper
+     * @param x The x position of this event
+     * @param y The y position of this event
+     * @param w The width of this event
+     * @param h The height of this event
+     * @return The builded view
+     */
+    fun buildEventView(context: Context, eventWrapper: EventWrapper, x: Int, y: Int, w:Int, h: Int)
+            : Pair<Boolean, View> {
+        return Pair(true, EventView(context, eventWrapper as Event.Wrapper).apply {
+            val spacing = context.resources.getDimension(R.dimen.event_spacing).toInt()
+            val positionAdder = {x:Int -> x+spacing}
+            val sizeChanger = {x:Int -> x-spacing}
+
+            layoutParams = ConstraintLayout.LayoutParams(sizeChanger(w), sizeChanger(h)).apply {
+                leftMargin = positionAdder(x)
+                topMargin = positionAdder(y)
             }
 
-        override fun onBindViewHolder(
-            holder: FragmentViewHolder,
-            position: Int,
-            payloads: MutableList<Any>
-        ) {
-            holder.setIsRecyclable(false)
-            super.onBindViewHolder(holder, position, payloads)
+            setOnClickListener { setSelectedEvent(event) }
+        })
+    }
+
+    private fun setSelectedEvent(event: Event) {
+        calendarViewModel.selectedEvent.value = event
+    }
+
+    fun buildAllDayView(events: List<EventWrapper>): View {
+        val builder = { event: EventWrapper ->
+            buildEventView(requireContext(), event, 0, 0, 0, 0).run {
+                (second as EventView).apply {
+                    padding = 16.toDp(context).toInt()
+
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+                    )
+                }
+            }
+        }
+
+        return LayoutAllDay(requireContext()).apply {
+            setEvents(events, builder)
+        }
+    }
+
+    fun buildEmptyDayView(): View {
+        return TextView(context).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            gravity = Gravity.CENTER
+            text = context.getString(R.string.empty_day).format(Emoji.happy())
         }
     }
 }

@@ -3,6 +3,7 @@ package com.edt.ut3.ui.calendar
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -175,6 +176,8 @@ class CalendarViewerFragment: Fragment(), SharedPreferences.OnSharedPreferenceCh
         val selectedDate = date.timeCleaned()
         val filter = { it: Event -> it.start > selectedDate && it.start < selectedDate.add(Calendar.DAY_OF_YEAR, 1) }
         val filtered = filterEvents(eventList, filter)
+
+        Log.d("Builder", filtered.toString())
 
 
         val eventContainer = withContext(Dispatchers.Main) {

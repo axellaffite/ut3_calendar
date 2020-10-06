@@ -27,6 +27,10 @@ data class CalendarMode(
         }
     }
 
+    fun isAgenda() = (!forceWeek && mode == Mode.AGENDA)
+
+    fun isWeek() = (!isAgenda())
+
     fun invertForceWeek() = CalendarMode(mode, !forceWeek)
 
     fun withForcedDay() = CalendarMode(mode, true)

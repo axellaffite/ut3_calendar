@@ -7,6 +7,7 @@ import android.text.format.DateFormat
 import android.util.TypedValue
 import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.Fragment
+import androidx.viewpager2.widget.ViewPager2
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -144,5 +145,14 @@ fun Fragment.hideKeyboard() {
     val imm = activity?.getSystemService(Activity.INPUT_METHOD_SERVICE)
     with (imm as InputMethodManager?) {
         this?.hideSoftInputFromWindow(requireView().windowToken, 0)
+    }
+}
+
+
+
+fun ViewPager2.notifyDataSetChanged() = this.post {
+    adapter?.notifyDataSetChanged()
+    post {
+        requestTransform()
     }
 }
