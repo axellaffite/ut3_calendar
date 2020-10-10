@@ -23,6 +23,7 @@
       "name": "IUT Paul Sabatier",
       "infos": [
         {
+          "name": "EDT IUT",
           "url": "https://edt.iut-tlse3.fr/calendar/cal", 
           "groups": "https://edt.iut-tlse3.fr/calendar/Home/ReadResourceListItems?myResources=false&searchTerm=__&pageSize=50&pageNumber=1&resType=103&_=1601408252653",
           "rooms": "https://edt.iut-tlse3.fr/calendar/Home/ReadResourceListItems?myResources=false&searchTerm=__&pageSize=10000&pageNumber=1&resType=102&_=1601408252652",
