@@ -8,8 +8,8 @@ import android.widget.FrameLayout
 import com.edt.ut3.backend.celcat.Course
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.misc.add
-import com.edt.ut3.misc.timeCleaned
+import com.edt.ut3.misc.extensions.add
+import com.edt.ut3.misc.extensions.timeCleaned
 import com.elzozor.yoda.Day
 import com.elzozor.yoda.Week
 import com.elzozor.yoda.events.EventWrapper

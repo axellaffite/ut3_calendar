@@ -24,6 +24,7 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.*
+import androidx.lifecycle.Observer
 import com.axellaffite.fastgallery.FastGallery
 import com.axellaffite.fastgallery.slider_animations.SlideAnimations
 import com.edt.ut3.R
@@ -35,8 +36,9 @@ import com.edt.ut3.backend.note.Note
 import com.edt.ut3.backend.note.Note.Reminder.ReminderType
 import com.edt.ut3.backend.note.Picture
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.misc.set
-import com.edt.ut3.misc.setTime
+import com.edt.ut3.misc.extensions.onBackPressed
+import com.edt.ut3.misc.extensions.set
+import com.edt.ut3.misc.extensions.setTime
 import com.edt.ut3.ui.custom_views.image_preview.ImagePreviewAdapter
 import com.edt.ut3.ui.map.MapsViewModel
 import com.edt.ut3.ui.preferences.Theme
@@ -65,8 +67,8 @@ class FragmentEventDetails : Fragment() {
     private val mapsViewModel: MapsViewModel by activityViewModels()
 
     private var eventNoteLD : LiveData<Note>? = null
-    private var firstNoteUpdate = true
     private var canTakePicture = true
+    private var firstNoteUpdate = true
 
     private lateinit var currentNote: Note
 
@@ -77,15 +79,45 @@ class FragmentEventDetails : Fragment() {
 
     var listenTo = MutableLiveData<Event>(null)
         set(value) {
-            value.observe(viewLifecycleOwner) {
+            firstNoteUpdate = true
+            value.observe(viewLifecycleOwner, Observer {
                 it?.let { event ->
                     setupNewEvent(event)
                 }
-            }
+            })
 
             field = value
         }
 
+    private var spinnerObserver = SpinnerObserver().apply {
+        onItemSelectedListener = { parent: AdapterView<*>?, view: View?, index: Int, id: Long ->
+            fun process() {
+                val type = ReminderType.values()[index]
+                when (type) {
+                    ReminderType.NONE -> currentNote.reminder.disable()
+                    ReminderType.FIFTEEN_MINUTES -> currentNote.reminder.setFifteenMinutesBefore()
+                    ReminderType.THIRTY_MINUTES -> currentNote.reminder.setThirtyMinutesBefore()
+                    ReminderType.ONE_HOUR -> currentNote.reminder.setOneHourBefore()
+                    ReminderType.CUSTOM -> askUserForDateTime(currentNote.date) { date: Date ->
+                        currentNote.reminder.setCustomReminder(date)
+                        lifecycleScope.launch { saveNote() }
+                    }
+                }
+
+                // We do not want to save the note
+                // 2 times, especially if the dialog is
+                // actually shown which is almost always the
+                // case at this point.
+                if (type != ReminderType.CUSTOM) {
+                    lifecycleScope.launch { saveNote() }
+                }
+            }
+
+            if (!firstNoteUpdate) {
+                process()
+            }
+        }
+    }
 
     /**
      * Used to launch an Intent that will take
@@ -126,7 +158,7 @@ class FragmentEventDetails : Fragment() {
 
         savedInstanceState?.takeIf { it.containsKey("pictureName") && it.containsKey("pictureFile") }?.run {
             pictureName = getString("pictureName")
-            pictureFile = getSerializable("pictureFile") as File
+            pictureFile = getSerializable("pictureFile") as? File
         }
     }
 
@@ -146,14 +178,14 @@ class FragmentEventDetails : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         if (listenTo.value == null && isVisible) {
-            activity?.onBackPressed()
+            onBackPressed()
         }
 
-        listenTo.observe(viewLifecycleOwner) {
-            it?.let { event ->
+        listenTo.observe(viewLifecycleOwner, Observer { event: Event? ->
+            event?.let {
                 setupNewEvent(event)
             }
-        }
+        })
     }
 
     private fun setupNewEvent(event: Event) {
@@ -169,12 +201,12 @@ class FragmentEventDetails : Fragment() {
                     onReady?.invoke()
 
                     eventNoteLD?.removeObservers(viewLifecycleOwner)
-                    eventNoteLD = getNoteByEventID(event.id)
                     firstNoteUpdate = true
 
-                    eventNoteLD?.observe(viewLifecycleOwner) {
-                        updateNoteContents(it)
-                    }
+                    eventNoteLD = getNoteByEventIDLD(event.id)
+                    eventNoteLD?.observe(viewLifecycleOwner, Observer { note: Note? ->
+                        updateNoteContents(note)
+                    })
                 }
             }
         }
@@ -222,8 +254,9 @@ class FragmentEventDetails : Fragment() {
 
 
     private fun updateNoteContents(newNote: Note?) {
-        if (!firstNoteUpdate) {
-            println("Note updated")
+        if (firstNoteUpdate) {
+            initialNoteSetup(newNote)
+        } else {
             newNote?.let {
                 if (currentNote.pictures != it.pictures) {
                     println("setting pictures to: ${it.pictures}")
@@ -232,11 +265,25 @@ class FragmentEventDetails : Fragment() {
 
                     pictures.adapter?.notifyDataSetChanged()
                 }
+
+                if (currentNote.reminder != newNote.reminder) {
+                    currentNote.reminder.setupFrom(newNote.reminder)
+                    reminder_spinner.setSelection(
+                        ReminderType.values().indexOf(currentNote.reminder.getReminderType())
+                    )
+                }
+            } ?: run {
+                clearSpinner()
             }
-
-            return
         }
+    }
 
+    private fun clearSpinner() {
+        spinnerObserver.shouldSkipNextUpdate = true
+        reminder_spinner?.setSelection(0)
+    }
+
+    private fun initialNoteSetup(newNote: Note?) {
         currentNote = newNote ?: Note.generateEmptyNote(event)
 
         if (event_note.text.toString() != newNote?.contents) {
@@ -258,9 +305,9 @@ class FragmentEventDetails : Fragment() {
                     .withOffscreenLimit(2)
                     .withSlideAnimation(SlideAnimations.zoomOutAnimation())
                     .withOverlay(overlayLayout)
-                    .withConverter { picture, imageLoader ->
+                    .withConverter { displayedPicture, imageLoader ->
                         lifecycleScope.launchWhenResumed {
-                            imageLoader.fromFile(File(picture.picture).toUri())
+                            imageLoader.fromFile(File(displayedPicture.picture).toUri())
                         }
                     }.build()
 
@@ -319,8 +366,13 @@ class FragmentEventDetails : Fragment() {
             }
         }
 
-
+        // This variable is set to avoid observer from
+        // being called every time a new event is
+        // selected.
+        spinnerObserver.shouldSkipNextUpdate = true
         updateReminderSpinner(currentNote)
+
+
 
         firstNoteUpdate = false
         note_loading.visibility = INVISIBLE
@@ -415,44 +467,11 @@ class FragmentEventDetails : Fragment() {
             }
         }
 
-        reminder_spinner.onItemSelectedListener = object: AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(adapter: AdapterView<*>?, view: View?, index: Int, id: Long) {
-                if (firstNoteUpdate) {
-                    return
-                }
+        reminder_spinner.onItemSelectedListener = spinnerObserver
 
-                val type = ReminderType.values()[index]
-                when (type) {
-                    ReminderType.NONE -> currentNote.reminder.disable()
-                    ReminderType.FIFTEEN_MINUTES -> currentNote.reminder.setFifteenMinutesBefore()
-                    ReminderType.THIRTY_MINUTES -> currentNote.reminder.setThirtyMinutesBefore()
-                    ReminderType.ONE_HOUR -> currentNote.reminder.setOneHourBefore()
-                    ReminderType.CUSTOM -> askUserForDateTime(currentNote.date) { date: Date ->
-                        currentNote.reminder.setCustomReminder(date)
-                        lifecycleScope.launch { saveNote() }
-                    }
-                }
-
-                // We do not want to save the note
-                // 2 times, especially if the dialog is
-                // actually shown which is almost always the
-                // case at this point.
-                if (type != ReminderType.CUSTOM) {
-                    lifecycleScope.launch { saveNote() }
-                }
-
-                println("save should have been called")
-            }
-
-            override fun onNothingSelected(adapter: AdapterView<*>?) {
-                // Nothing to do here
-            }
-
-        }
-
-        mapsViewModel.getPlaces(requireContext()).observe(viewLifecycleOwner) {
+        mapsViewModel.getPlaces(requireContext()).observe(viewLifecycleOwner, Observer {
             refreshLocations(it)
-        }
+        })
     }
 
     private fun askUserForDateTime(date: Date, callback: (Date) -> Unit) {
@@ -479,9 +498,11 @@ class FragmentEventDetails : Fragment() {
     private fun askUserForTime(context: Context, date: Date, newDate: Date, callback: (Date) -> Unit) {
         val hour = date.get(Calendar.HOUR_OF_DAY)
         val minute = date.get(Calendar.MINUTE)
+        println("Date: $newDate")
 
         val timeListener = { _: TimePicker, newHour: Int, newMinute: Int ->
             newDate.setTime(newHour, newMinute)
+            println("Date: $newDate")
             callback(newDate)
         }
 
@@ -646,6 +667,24 @@ class FragmentEventDetails : Fragment() {
                 save.unlock()
                 add.unlock()
             }
+        }
+    }
+
+    private class SpinnerObserver: AdapterView.OnItemSelectedListener {
+        var shouldSkipNextUpdate = false
+        var onItemSelectedListener: ((parent: AdapterView<*>?, view: View?, position: Int, id: Long) -> Unit)? = null
+
+        override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            if (shouldSkipNextUpdate) {
+                shouldSkipNextUpdate = false
+                return
+            }
+
+            onItemSelectedListener?.invoke(parent, view, position, id)
+        }
+
+        override fun onNothingSelected(parent: AdapterView<*>?) {
+
         }
     }
 

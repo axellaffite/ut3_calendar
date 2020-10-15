@@ -16,7 +16,7 @@ import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Course
 import com.edt.ut3.backend.database.viewmodels.CoursesViewModel
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.misc.toDp
+import com.edt.ut3.misc.extensions.toDp
 import com.edt.ut3.ui.calendar.CalendarViewModel
 import com.edt.ut3.ui.preferences.Theme
 import kotlinx.android.synthetic.main.fragment_calendar_options.*
@@ -67,9 +67,9 @@ class CalendarOptionsFragment: Fragment() {
 
 
     private fun generateCheckedResource(visible: Boolean) = run {
-        val icon = if (visible) {
-            R.drawable.ic_checked_round
-        } else R.drawable.ic_checked_round_empty
+        val icon =
+            if (visible) { R.drawable.ic_checked_round }
+            else { R.drawable.ic_checked_round_empty }
 
         ContextCompat.getDrawable(requireContext(), icon)?.apply {
             val color = when (PreferencesManager.getInstance(requireContext()).currentTheme()) {

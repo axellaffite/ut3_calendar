@@ -37,7 +37,7 @@ import com.edt.ut3.R
 import com.edt.ut3.backend.maps.MapsUtils
 import com.edt.ut3.backend.maps.Place
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.misc.hideKeyboard
+import com.edt.ut3.misc.extensions.hideKeyboard
 import com.edt.ut3.ui.custom_views.searchbar.FilterChip
 import com.edt.ut3.ui.custom_views.searchbar.SearchBar
 import com.edt.ut3.ui.custom_views.searchbar.SearchBarAdapter

@@ -77,6 +77,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/title"
             app:layout_constraintTop_toBottomOf="@+id/from_to"
+            android:autoLink="web|email"
             tools:text="A brief description that\ncan contains multiple\nlines." />
 
         <ImageView

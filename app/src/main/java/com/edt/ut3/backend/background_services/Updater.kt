@@ -10,14 +10,16 @@ import com.edt.ut3.backend.celcat.Course
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.viewmodels.CoursesViewModel
 import com.edt.ut3.backend.database.viewmodels.EventViewModel
+import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.notification.EventChange
 import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.CelcatService
-import com.edt.ut3.misc.fromHTML
-import com.edt.ut3.misc.map
-import com.edt.ut3.misc.timeCleaned
-import com.edt.ut3.misc.toList
+import com.edt.ut3.backend.requests.authentication_services.Authenticator
+import com.edt.ut3.misc.extensions.fromHTML
+import com.edt.ut3.misc.extensions.map
+import com.edt.ut3.misc.extensions.timeCleaned
+import com.edt.ut3.misc.extensions.toList
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.coroutineScope
@@ -94,11 +96,12 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
             val groups = JSONArray(prefManager.groups).toList<String>()
             Log.d("UPDATER", "Downloading events for theses groups: $groups")
 
-            val link = prefManager.link
-                ?: throw IllegalStateException("Link must be set")
+            val link = prefManager.link?.let {
+                School.Info.fromJSON(JSONObject(it))
+            } ?: throw IllegalStateException("Link must be set")
 
-            val classes = getClasses(link).toHashSet()
-            val courses = getCourses(link)
+            val classes = getClasses(link.rooms).toHashSet()
+            val courses = getCourses(link.courses)
 
             Log.d(this::class.simpleName, classes.toString())
             Log.d(this::class.simpleName, courses.toString())
@@ -107,7 +110,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
             val eventsJSONArray = withContext(IO) {
                 JSONArray(
                 CelcatService()
-                        .getEvents(firstUpdate, link, groups)
+                        .getEvents(applicationContext, firstUpdate, link.url, groups)
                         .body
                         ?.string()
                         ?: throw IOException()
@@ -152,6 +155,10 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                     && it != oldEventMap[it.id]
                 }
 
+                for (i in updatedEvent) {
+                    Log.d("updater", "$i not equals to ${oldEventMap[i.id]}")
+                }
+
                 /* write changes to database */
                 insert(*newEvents.toTypedArray())
                 delete(*removedEvent.toTypedArray())
@@ -186,6 +193,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
             when (e) {
                 is IOException -> {}
                 is JSONException -> {}
+                is Authenticator.InvalidCredentialsException -> {}
                 is IllegalStateException -> {}
                 else -> {}
             }
@@ -204,7 +212,8 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
      */
     @Throws(IOException::class)
     private suspend fun getClasses(link: String) = withContext(IO) {
-        val data = CelcatService().getClasses(link).body?.string() ?: throw IOException()
+        val data = CelcatService().getClasses(applicationContext, link).body?.string() ?: throw IOException()
+
         JSONObject(data).getJSONArray("results").map {
             (it as JSONObject).run { getString("id").fromHTML().trim() }
         }
@@ -216,7 +225,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
      */
     @Throws(IOException::class)
     private suspend fun getCourses(link: String) = withContext(IO) {
-        val data = CelcatService().getCoursesNames(link).body?.string() ?: throw IOException()
+        val data = CelcatService().getCoursesNames(applicationContext, link).body?.string() ?: throw IOException()
 
 
         JSONObject(data).getJSONArray("results").map {
@@ -250,9 +259,6 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                 new.find { it.title == oldCourse.title }?.let { it.visible = oldCourse.visible }
                     ?: run { titleToRemove.add(oldCourse.title) }
             }
-
-            Log.d(this::class.simpleName, "Remove: $titleToRemove")
-            Log.d(this::class.simpleName, "Insert: $new")
 
             remove(*titleToRemove.toTypedArray())
             insert(*new.toTypedArray())

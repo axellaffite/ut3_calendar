@@ -13,10 +13,10 @@ android {
 
     defaultConfig {
         applicationId "com.edt.ut3"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 30
-        versionCode 18
-        versionName "alpha-2.3"
+        versionCode 19
+        versionName "beta-2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -39,10 +39,10 @@ android {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.core:core-ktx:1.3.1'
+    implementation 'androidx.core:core-ktx:1.3.2'
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.2'
     implementation 'androidx.navigation:navigation-fragment:2.3.0'
     implementation 'androidx.navigation:navigation-ui:2.3.0'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
@@ -50,14 +50,14 @@ dependencies {
     implementation 'androidx.navigation:navigation-ui-ktx:2.3.0'
     implementation 'androidx.work:work-runtime:2.4.0'
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
-    implementation 'androidx.fragment:fragment-ktx:1.3.0-alpha08'
+    implementation 'androidx.fragment:fragment-ktx:1.3.0-beta01'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     testImplementation 'junit:junit:4.13'
-    implementation "androidx.activity:activity-ktx:1.2.0-alpha08"
+    implementation "androidx.activity:activity-ktx:1.2.0-beta01"
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
-    def coroutine_version = "2.2.0"
+    def coroutine_version = "2.3.0-beta01"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$coroutine_version"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$coroutine_version"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$coroutine_version"
@@ -99,7 +99,7 @@ dependencies {
     //           cache images.
     // Documentation : https://square.github.io/picasso/#features
     implementation 'com.squareup.picasso:picasso:2.71828'
-    implementation "androidx.exifinterface:exifinterface:1.3.0"
+    implementation "androidx.exifinterface:exifinterface:1.3.1"
 
 
 
@@ -129,11 +129,6 @@ dependencies {
     // Documentation : https://github.com/ybq/Android-SpinKit
     implementation 'com.github.ybq:Android-SpinKit:1.4.0'
 
-    // Name : NotificationScheduler
-    // Summary : A simple Android library that allows you to schedule notifications even after a restart.
-    // Github : https://github.com/AntonyDalmiere/NotificationScheduler
-    implementation 'com.github.AntonyDalmiere:NotificationScheduler:0.1'
-
     // Name : OKHttp
     implementation "com.squareup.okhttp3:okhttp:4.9.0"
 
@@ -151,6 +146,8 @@ dependencies {
     // Summary : Simplified permissions for Android
     // Documentation : https://github.com/Karumi/Dexter
     implementation 'com.karumi:dexter:6.2.1'
+
+    implementation "androidx.security:security-crypto:1.0.0-rc03"
 
 
 }

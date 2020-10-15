@@ -6,7 +6,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.edt.ut3.misc.toDp
+import com.edt.ut3.misc.extensions.toDp
 
 class ImagePreviewLayout(context: Context, attributeSet: AttributeSet): RecyclerView(context, attributeSet) {
 

@@ -8,8 +8,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.edt.ut3.R
 import com.edt.ut3.backend.goulin_room_finder.Room
-import com.edt.ut3.misc.toDp
-import com.edt.ut3.misc.toFormattedTime
+import com.edt.ut3.misc.extensions.toDp
+import com.edt.ut3.misc.extensions.toFormattedTime
 import kotlinx.android.synthetic.main.room_layout.view.*
 
 

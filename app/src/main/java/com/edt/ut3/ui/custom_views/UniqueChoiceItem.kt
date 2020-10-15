@@ -13,14 +13,13 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import com.edt.ut3.R
-import com.edt.ut3.misc.toDp
+import com.edt.ut3.misc.extensions.toDp
 import com.google.android.material.button.MaterialButton
 
 
-class UniqueChoiceItem<Data>(context: Context, attributeSet: AttributeSet? = null): MaterialButton(
-    context,
-    attributeSet
-) {
+class UniqueChoiceItem<Data>(context: Context, attributeSet: AttributeSet? = null)
+    : MaterialButton(context, attributeSet)
+{
 
     constructor(context: Context, data: Data, converter: (Data) -> String): this(context) {
         this.data = data
@@ -48,7 +47,6 @@ class UniqueChoiceItem<Data>(context: Context, attributeSet: AttributeSet? = nul
         isCheckable = true
 
         val dps = 16.toDp(context).toInt()
-        cornerRadius = dps
         layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
             setMargins(dps, dps, dps, dps)
         }

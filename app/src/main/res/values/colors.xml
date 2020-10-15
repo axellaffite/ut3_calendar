@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <color name="colorPrimary">#122A40</color>
     <color name="colorPrimaryDark">#0A1926</color>
     <color name="colorAccent">#006064</color>
     <color name="fontColor">#111111</color>
     <color name="dividerColor">#DDDDDD</color>
+    <color name="colorOnAccent">@android:color/white</color>
+
 
     <color name="backgroundColor">@android:color/white</color>
     <color name="foregroundColor">#EDEDED</color>
@@ -21,5 +23,7 @@
     <color name="textSecondary">@android:color/secondary_text_light</color>
 
     <color name="maps_cards">@android:color/white</color>
+
+    <color name="mtrl_textinput_default_box_stroke_color" tools:override="true" >@color/textColor</color>
 
 </resources>

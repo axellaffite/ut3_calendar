@@ -3,8 +3,8 @@ package com.edt.ut3.backend.database
 import androidx.room.TypeConverter
 import com.edt.ut3.backend.note.Note
 import com.edt.ut3.backend.note.Picture
-import com.edt.ut3.misc.map
-import com.edt.ut3.misc.toList
+import com.edt.ut3.misc.extensions.map
+import com.edt.ut3.misc.extensions.toList
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject

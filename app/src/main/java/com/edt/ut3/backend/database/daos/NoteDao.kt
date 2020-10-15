@@ -29,6 +29,9 @@ interface NoteDao {
     @Query("SELECT * FROM note WHERE id in (:ids)")
     suspend fun selectByIDs(vararg ids: Long): List<Note>
 
+    @Query("SELECT * FROM note WHERE id = :id")
+    suspend fun selectByID(id: Long): Note?
+
     @Query("SELECT * FROM note WHERE event_id in (:eventIDs)")
     suspend fun selectByEventIDs(vararg eventIDs: String): List<Note>
 
@@ -36,6 +39,9 @@ interface NoteDao {
     suspend fun getFromTo(begin: Long, end: Long): List<Note>
 
     @Query("SELECT * FROM note WHERE event_id = :eventID LIMIT 1")
-    fun selectByEventID(eventID: String): LiveData<Note>
+    fun selectByEventIDLD(eventID: String): LiveData<Note>
+
+    @Query("SELECT * FROM note WHERE event_id = :eventID LIMIT 1")
+    fun selectByEventID(eventID: String): Note?
 
 }

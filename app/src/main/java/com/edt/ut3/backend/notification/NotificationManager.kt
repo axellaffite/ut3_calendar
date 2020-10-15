@@ -1,10 +1,16 @@
 package com.edt.ut3.backend.notification
 
+import android.app.AlarmManager
 import android.app.NotificationChannel
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.media.RingtoneManager
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.edt.ut3.MainActivity
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.note.Note
@@ -79,8 +85,9 @@ class NotificationManager private constructor(val context: Context) {
                 .setContentTitle(context.getString(R.string.calendar_updated))
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentText(contents.toString())
-                .setStyle(NotificationCompat.InboxStyle()
-                    .setBigContentTitle(context.getString(R.string.calendar_updated))
+                .setStyle(
+                    NotificationCompat.InboxStyle()
+                        .setBigContentTitle(context.getString(R.string.calendar_updated))
                 )
                 .setGroup("UPDATE_EDT")
                 .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
@@ -92,9 +99,21 @@ class NotificationManager private constructor(val context: Context) {
     }
 
     private fun generateEventNotificationTitle(event: Event, type: EventChange.Type) = when (type) {
-        EventChange.Type.ADDED -> context.getString(R.string.new_event_added, event.courseOrCategory(context))
-        EventChange.Type.REMOVED -> context.getString(R.string.event_deleted, event.courseOrCategory(context))
-        EventChange.Type.UPDATED -> context.getString(R.string.event_updated, event.courseOrCategory(context))
+        EventChange.Type.ADDED -> context.getString(
+            R.string.new_event_added, event.courseOrCategory(
+                context
+            )
+        )
+        EventChange.Type.REMOVED -> context.getString(
+            R.string.event_deleted, event.courseOrCategory(
+                context
+            )
+        )
+        EventChange.Type.UPDATED -> context.getString(
+            R.string.event_updated, event.courseOrCategory(
+                context
+            )
+        )
     }
 
     private fun generateEventNotificationText(event: Event, type: EventChange.Type) = when(type) {
@@ -120,7 +139,16 @@ class NotificationManager private constructor(val context: Context) {
         )
     }
 
-    fun remove(note: Note) {
+    fun createNoteSchedule(note: Note) {
+        if (!note.reminder.isActive()) {
+            return
+        }
+
+        Log.d(this::class.simpleName, "Scheduling notification")
+        scheduleNotification(note)
+    }
+
+    fun removeNoteSchedule(note: Note) {
         if (note.reminder.isActive()) {
             return
         }
@@ -128,11 +156,49 @@ class NotificationManager private constructor(val context: Context) {
         // TODO remove the note schedule
     }
 
-    fun create(note: Note) {
-        if (!note.reminder.isActive()) {
-            return
+    private fun scheduleNotification(note: Note) {
+        val notificationId = note.id.toInt()
+
+        val intent = Intent(context, MainActivity::class.java)
+        val activity = PendingIntent.getActivity(
+            context,
+            notificationId,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val notification = NotificationCompat.Builder(context, "NOTE_NOTIFICATION")
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle(note.title)
+            .setContentText(note.contents)
+            .setAutoCancel(true)
+            .setGroup("NOTE_NOTIFICATION")
+            .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+            .setContentIntent(activity)
+            .build()
+
+        val notificationIntent = Intent(context, NotificationReceiver::class.java).apply {
+            putExtra(NotificationReceiver.NOTIFICATION_ID, notificationId)
+            putExtra(NotificationReceiver.NOTIFICATION, notification)
         }
 
-        // TODO Schedule the note reminder
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            notificationId,
+            notificationIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val time = note.reminder.getReminderDate()!!.time
+        val secondsBeforeFiring = (note.reminder.getReminderDate()!!.time - System.currentTimeMillis()) / 1000
+
+        Log.d(this::class.simpleName, "schedule: ${note.reminder.getReminderDate()}")
+        Log.d(this::class.simpleName, "Second before firing: $secondsBeforeFiring")
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent);
+        } else {
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pendingIntent);
+        }
     }
 }

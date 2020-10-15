@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.edt.ut3.R
 import com.edt.ut3.backend.note.Note
-import com.edt.ut3.misc.toDp
+import com.edt.ut3.misc.extensions.toDp
 import kotlinx.android.synthetic.main.layout_note.view.*
 import java.text.SimpleDateFormat
 

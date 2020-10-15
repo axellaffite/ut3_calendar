@@ -8,7 +8,11 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.edt.ut3.R
 import com.edt.ut3.backend.database.Converter
-import com.edt.ut3.misc.*
+import com.edt.ut3.misc.DestructedColor
+import com.edt.ut3.misc.Emoji
+import com.edt.ut3.misc.extensions.fromCelcatString
+import com.edt.ut3.misc.extensions.fromHTML
+import com.edt.ut3.misc.extensions.toList
 import com.elzozor.yoda.events.EventWrapper
 import kotlinx.android.parcel.Parcelize
 import org.json.JSONException
@@ -40,6 +44,7 @@ data class Event(
 
             val start = Date().apply { fromCelcatString(getString("start")) }
             val end = if (isNull("end")) start else Date().apply { fromCelcatString(getString("end")) }
+            val sites = (optJSONArray("sites")?.toList<String?>()?.filterNotNull()?.map { it.fromHTML().trim() } ?: listOf())
 
             Event(
                 id = getString("id").fromHTML(),
@@ -47,12 +52,12 @@ data class Event(
                 description = parsedDescription.precisions,
                 courseName = parsedDescription.course,
                 locations = parsedDescription.classes,
-                sites = optJSONArray("sites")?.toList<String?>()?.filterNotNull()?.map { it.fromHTML().trim() } ?: listOf(),
+                sites = sites.sorted(),
                 start = start,
                 end = end,
                 allday = getBoolean("allDay") || isNull("end"),
                 backgroundColor = getString("backgroundColor").fromHTML(),
-                textColor = optString("textColor").fromHTML() ?: "#000000",
+                textColor = optString("textColor")?.fromHTML() ?: "#000000",
                 noteID = null
             )
         }

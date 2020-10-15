@@ -25,7 +25,8 @@ import com.edt.ut3.backend.calendar.CalendarMode
 import com.edt.ut3.backend.calendar.DayBuilder
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.misc.*
+import com.edt.ut3.misc.Emoji
+import com.edt.ut3.misc.extensions.*
 import com.edt.ut3.ui.calendar.event_details.FragmentEventDetails
 import com.edt.ut3.ui.calendar.view_builders.EventView
 import com.edt.ut3.ui.calendar.view_builders.LayoutAllDay
@@ -37,7 +38,6 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_calendar.*
 import kotlinx.android.synthetic.main.fragment_calendar.view.*
 import kotlinx.coroutines.Job
-import org.json.JSONArray
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
@@ -71,16 +71,7 @@ class CalendarFragment : BottomSheetFragment(),
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View?
-    {
-        preferences = PreferencesManager.getInstance(requireContext())
-
-        // Schedule the periodic update in order to
-        // keep the Calendar up to date.
-        Updater.scheduleUpdate(requireContext())
-
-        return inflater.inflate(R.layout.fragment_calendar, container, false)
-    }
+    ): View? = inflater.inflate(R.layout.fragment_calendar, container, false)
 
     /**
      * This function is used to update the calendar mode
@@ -106,6 +97,12 @@ class CalendarFragment : BottomSheetFragment(),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        preferences = PreferencesManager.getInstance(requireContext())
+
+        // Schedule the periodic update in order to
+        // keep the Calendar up to date.
+        Updater.scheduleUpdate(requireContext())
+
         updateCalendarMode()
 
 
@@ -117,15 +114,9 @@ class CalendarFragment : BottomSheetFragment(),
                 updateViewIcon(it)
             }
 
-            post {
-                setupViewPager()
+            setupViewPager()
 
-                setupListeners()
-
-                if (PreferencesManager.getInstance(requireContext()).link == null) {
-                    findNavController().navigate(R.id.fragmentFormationChoice)
-                }
-            }
+            setupListeners()
         }
     }
 
@@ -495,7 +486,7 @@ class CalendarFragment : BottomSheetFragment(),
                         this@CalendarFragment::buildEventView,
                         this@CalendarFragment::buildEmptyDayView,
                         this@CalendarFragment::buildAllDayView
-                    ).build(pager.height, pager.width)
+                    ).build(requireView().pager.height, requireView().pager.width)
                 }
             }
         }

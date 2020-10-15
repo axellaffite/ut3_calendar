@@ -4,8 +4,8 @@ import androidx.room.Entity
 import androidx.room.TypeConverters
 import com.edt.ut3.R
 import com.edt.ut3.backend.database.Converter
-import com.edt.ut3.misc.map
-import com.edt.ut3.misc.realOpt
+import com.edt.ut3.misc.extensions.map
+import com.edt.ut3.misc.extensions.realOpt
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject

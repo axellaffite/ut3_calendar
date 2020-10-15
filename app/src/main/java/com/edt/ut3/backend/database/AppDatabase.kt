@@ -7,11 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.edt.ut3.backend.celcat.Course
 import com.edt.ut3.backend.celcat.Event
-import com.edt.ut3.backend.database.daos.CourseDao
-import com.edt.ut3.backend.database.daos.EdtChangeDao
-import com.edt.ut3.backend.database.daos.EventDao
-import com.edt.ut3.backend.database.daos.NoteDao
-import com.edt.ut3.backend.database.daos.PlaceDao
+import com.edt.ut3.backend.database.daos.*
 import com.edt.ut3.backend.maps.Place
 import com.edt.ut3.backend.note.Note
 import com.edt.ut3.backend.notification.EventChange

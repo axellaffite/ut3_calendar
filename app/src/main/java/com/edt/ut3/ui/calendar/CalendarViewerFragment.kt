@@ -22,9 +22,9 @@ import com.edt.ut3.backend.calendar.CalendarMode
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.misc.Emoji
-import com.edt.ut3.misc.add
-import com.edt.ut3.misc.timeCleaned
-import com.edt.ut3.misc.toDp
+import com.edt.ut3.misc.extensions.add
+import com.edt.ut3.misc.extensions.timeCleaned
+import com.edt.ut3.misc.extensions.toDp
 import com.edt.ut3.ui.calendar.view_builders.EventView
 import com.edt.ut3.ui.calendar.view_builders.LayoutAllDay
 import com.elzozor.yoda.Day

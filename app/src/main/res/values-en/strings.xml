@@ -18,7 +18,7 @@
     <string name="update_succeeded">Schedule successfully updated!</string>
     <string name="map_search_hint">A building, a restaurant, ...</string>
     <string name="action_ok">ok</string>
-    <string name="unknown_error">An error has occured during data update, some places may be missing</string>
+    <string name="unknown_error">An error has occured</string>
     <string name="unable_to_retrieve_data">Unable to download places, please check your internet connection</string>
     <string name="unknow_error">Unable to parse incoming data</string>
     <string name="no_description_available">No description available for this place.</string>
@@ -94,9 +94,21 @@
     <string name="action_cancel">Cancel</string>
     <string name="calendar_updated">Calendar updated !</string>
     <string name="next">Next</string>
-    <string name="title_which_school">Where do you study ?</string>
-    <string name="title_which_link">What is you calendar link ?</string>
-    <string name="title_which_formation">In which group(s) are you ?</string>
+    <string name="title_which_school">School</string>
+    <string name="title_which_link">Link</string>
+    <string name="title_which_groups">Groups</string>
     <string name="cannot_access_location">Unable to display the location</string>
     <string name="no_notes">No note to show !</string>
+    <string name="step_next">Next</string>
+    <string name="step_back">Back</string>
+    <string name="not_listed">Not listed</string>
+    <string name="title_which_link_custom">Custom link</string>
+    <string name="summary_which_school">Select the school to which you belong</string>
+    <string name="summary_which_link">Choose the link that correspond to your schedule</string>
+    <string name="summary_which_groups">Select the groups to which you belong</string>
+    <string name="summary_which_link_custom">Enter the link of your schedule</string>
+    <string name="step_cancel">Cancel</string>
+    <string name="step_finish">Validate</string>
+    <string name="groups_placeholder">M1 INF DL-IHM</string>
+    <string name="link_placeholder">Link to your schedule</string>
 </resources>

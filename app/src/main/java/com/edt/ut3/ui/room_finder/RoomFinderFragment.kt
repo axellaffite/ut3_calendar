@@ -16,8 +16,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.edt.ut3.R
 import com.edt.ut3.backend.goulin_room_finder.Room
-import com.edt.ut3.misc.hideKeyboard
-import com.edt.ut3.misc.toDp
+import com.edt.ut3.misc.extensions.hideKeyboard
+import com.edt.ut3.misc.extensions.toDp
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.room_finder_fragment.*
 import kotlinx.coroutines.Dispatchers.Main

@@ -18,7 +18,7 @@
     <string name="action_retry">Réessayer</string>
     <string name="update_succeeded">Emploi du temps mis à jour avec succès !</string>
     <string name="map_search_hint">Un batiment, un restaurant, ...</string>
-    <string name="unknown_error">Une erreur est survenue pendant la mise à jour des données, certains lieux peuvent être manquants</string>
+    <string name="unknown_error">Une erreur est survenue</string>
     <string name="unable_to_retrieve_data">Impossible de récupérer les lieux, vérifiez votre connexion internet.</string>
     <string name="unknow_error">Impossible de traiter les données reçues</string>
     <string name="action_ok">ok</string>
@@ -96,10 +96,32 @@
     <string name="calendar_updated">Emploi du temps mis à jour !</string>
     <string name="provider_name" translatable="false">light_theme_provider</string>
     <string name="next">Suivant</string>
-    <string name="title_which_school">Où étudies-tu ?</string>
-    <string name="title_which_link">Quel est le lien de ton emploi du temps ?</string>
-    <string name="title_which_formation">Dans quel(s) groupe(s) es-tu ?</string>
+    <string name="title_which_school">École</string>
+    <string name="title_which_link">Lien</string>
+    <string name="title_which_groups">Groupes</string>
     <string name="cannot_access_location">Impossible d\'afficher la localisation</string>
     <string name="event_deleted_full">Supprimé - Le %s à %s</string>
     <string name="no_notes">Pas de note à afficher !</string>
+    <string name="not_listed">Non listé</string>
+    <string name="title_which_link_custom">Lien personnalisé</string>
+    <string name="step_next">Suivant</string>
+    <string name="step_back">Retour</string>
+    <string name="summary_which_school">Sélectionnez l\'école à laquelle vous appartenez</string>
+    <string name="summary_which_link">Choisissez le lien qui correspond à votre emploi du temps</string>
+    <string name="summary_which_groups">Sélectionnez les groupes auxquels vous appartenez</string>
+    <string name="summary_which_link_custom">Saisissez le lien de votre emploi du temps</string>
+    <string name="step_cancel">Annuler</string>
+    <string name="step_finish">Valider</string>
+    <string name="groups_placeholder">M1 INF DL-IHM</string>
+    <string name="info_format" translatable="false">%s ( %s )</string>
+    <string name="link_placeholder">Lien vers votre emploi du temps</string>
+    <string name="error_invalid_link">Lien invalide</string>
+    <string name="error_link_groups">Le lien doit contenir au moins un groupe</string>
+    <string name="password">Mot de passe</string>
+    <string name="username">Identifiant</string>
+    <string name="title_authentication">Authentification</string>
+    <string name="summary_authentication">Bien que facultatif, saisir ses identifiants est recommandé pour obtenir toutes les informations de la part de Celcat.\nRequis en cas d\'authentification nécessaire.</string>
+    <string name="error_wrong_credentials">Identifiants incorrects</string>
+    <string name="error_check_internet">Veuillez vérifier votre connexion internet</string>
+    <string name="check_credentials">Validation des identifiants..</string>
 </resources>

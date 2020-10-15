@@ -9,7 +9,7 @@ import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.viewmodels.CoursesViewModel
 import com.edt.ut3.backend.database.viewmodels.EventViewModel
 import com.edt.ut3.backend.note.Note
-import com.edt.ut3.misc.timeCleaned
+import com.edt.ut3.misc.extensions.timeCleaned
 import java.util.*
 
 class CalendarViewModel : ViewModel() {

@@ -27,8 +27,33 @@
 
         <item name="chipStyle">@style/Widget.App.Chip</item>
 
-        <item name="android:textViewStyle">@style/RobotoTextViewStyle</item>
-        <item name="android:buttonStyle">@style/RobotoTextViewStyle</item>
+        <item name="android:textViewStyle">@style/MaterialTextViewStyle</item>
+        <item name="android:textAppearance">@style/TextAppearance</item>
+        <item name="colorButtonNormal">@color/colorAccent</item>
+        <item name="buttonStyle">@style/ButtonStyle</item>
+        <item name="materialButtonStyle">@style/MaterialButtonStyle</item>
+    </style>
+
+    <style name="OutlinedBox" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="colorControlNormal">@color/colorAccent</item>
+        <item name="colorControlActivated">@color/colorAccent</item>
+    </style>
+
+    <style name="TextAppearance" parent="TextAppearance.AppCompat">
+        <item name="fontFamily">@font/roboto</item>
+    </style>
+
+    <style name="ButtonStyle" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundColor">@color/colorAccent</item>
+        <item name="background">@color/colorAccent</item>
+        <item name="android:background">@color/colorAccent</item>
+        <item name="android:textColor">@color/textColor</item>
+    </style>
+
+    <style name="MaterialButtonStyle" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/colorAccent</item>
+        <item name="android:fontFamily">@font/roboto</item>
+        <item name="android:textColor">@color/colorOnAccent</item>
     </style>
 
 
@@ -49,13 +74,15 @@
         <item name="chipBackgroundColor">@color/foregroundColor</item>
     </style>
 
-    <style name="RobotoTextViewStyle" parent="android:Widget.Material.TextView">
-        <item name="android:fontFamily">@font/open_sans</item>
+    <style name="MaterialTextViewStyle" parent="android:Widget.Material.TextView">
+        <item name="android:fontFamily">@font/roboto</item>
+        <item name="fontFamily">@font/roboto</item>
         <item name="android:textColor">@color/textColor</item>
+        <item name="background">@color/colorAccent</item>
     </style>
 
     <style name="RobotoButtonStyle" parent="android:Widget.Material.Button">
-        <item name="android:fontFamily">@font/open_sans</item>
+        <item name="android:fontFamily">@font/roboto</item>
         <item name="android:textColor">@color/textColor</item>
     </style>
 
@@ -66,4 +93,5 @@
     <style name="takePictureStyleLight" parent="CardView">
         <item name="cardBackgroundColor">#DCDCDC</item>
     </style>
+
 </resources>

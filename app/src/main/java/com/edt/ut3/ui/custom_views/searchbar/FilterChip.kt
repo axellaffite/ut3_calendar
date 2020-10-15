@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import androidx.core.content.ContextCompat
 import com.edt.ut3.R
+import com.edt.ut3.misc.extensions.isNotNull
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipDrawable
 
@@ -25,7 +26,7 @@ open class FilterChip<Data>(context: Context, attrs: AttributeSet? = null): Chip
         setTextColor(ContextCompat.getColor(context, R.color.textColor))
     }
 
-    abstract class Filter<Data>(val global: Boolean) {
+    abstract class Filter<Data>() {
         abstract operator fun invoke(dataSet: List<Data>): List<Data>
     }
 
@@ -46,12 +47,12 @@ open class FilterChip<Data>(context: Context, attrs: AttributeSet? = null): Chip
      * Il we combine them all, we have a new filter that will
      * keep the words "hello" AND "world".
      */
-    class GlobalFilter<Data>(filter: ((Data) -> Boolean)?): Filter<Data>(true) {
+    class GlobalFilter<Data>(filter: ((Data) -> Boolean)?): Filter<Data>() {
 
         private val filters = mutableListOf<(Data) -> Boolean>()
 
         init {
-            if (filter != null) {
+            filter?.let {
                 filters.add(filter)
             }
         }
@@ -69,7 +70,7 @@ open class FilterChip<Data>(context: Context, attrs: AttributeSet? = null): Chip
                 dataSet
             } else {
                 dataSet.filter {
-                    filters.firstOrNull { f -> f(it) } != null
+                    filters.firstOrNull { f -> f(it) }.isNotNull()
                 }
             }
         }
@@ -83,7 +84,7 @@ open class FilterChip<Data>(context: Context, attrs: AttributeSet? = null): Chip
      * @param Data
      * @property filter
      */
-    class LocalFilter<Data>(val filter : ((List<Data>) -> List<Data>)): Filter<Data>(false) {
+    class LocalFilter<Data>(val filter : ((List<Data>) -> List<Data>)): Filter<Data>() {
         override fun invoke(dataSet: List<Data>) = filter(dataSet)
     }
 

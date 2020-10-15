@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import com.edt.ut3.backend.database.viewmodels.PlaceViewModel
 import com.edt.ut3.backend.maps.Place
 import com.edt.ut3.backend.requests.MapsServices
-import com.edt.ut3.misc.map
+import com.edt.ut3.misc.extensions.map
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import org.json.JSONObject

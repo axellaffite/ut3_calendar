@@ -8,7 +8,7 @@ import android.os.Environment
 import android.os.Parcelable
 import android.util.Log
 import android.widget.ImageView
-import com.edt.ut3.misc.toDp
+import com.edt.ut3.misc.extensions.toDp
 import com.squareup.picasso.Picasso
 import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.Dispatchers.Default

@@ -1,8 +1,10 @@
 package com.edt.ut3.backend.requests
 
+import android.content.Context
 import android.util.Log
 import com.edt.ut3.backend.formation_choice.School
-import com.edt.ut3.misc.*
+import com.edt.ut3.backend.requests.authentication_services.Authenticator
+import com.edt.ut3.misc.extensions.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -12,13 +14,14 @@ import okhttp3.Response
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
+import java.net.SocketTimeoutException
 import java.util.*
 
 
 class CelcatService {
 
-    @Throws(IOException::class)
-    suspend fun getEvents(firstUpdate: Boolean, link: String, formations: List<String>): Response = withContext(IO) {
+    @Throws(SocketTimeoutException::class, IOException::class, Authenticator.InvalidCredentialsException::class)
+    suspend fun getEvents(context: Context, firstUpdate: Boolean, link: String, formations: List<String>): Response = withContext(IO) {
         val today = Date().timeCleaned()
 
         val body = RequestsUtils.EventBody().apply {
@@ -45,41 +48,41 @@ class CelcatService {
             .post(encodedBody)
             .build()
 
-        HttpClientProvider.generateNewClient().newCall(request).execute()
+
+        return@withContext HttpClientProvider.generateNewClient().withAuthentication(context, request.url) {
+            newCall(request).execute()
+        }
     }
 
 
     @Throws(IOException::class)
-    suspend fun getClasses(link: String) = withContext(IO) {
-        Log.d(this::class.simpleName, link)
-        val search =
-            if (link.contains("calendar2")) { "___" }
-            else { "__" }
-
+    suspend fun getClasses(context: Context, link: String) = withContext(IO) {
+        Log.d(this@CelcatService::class.simpleName, "Downloading classes: $link")
         val request = Request.Builder()
-            .url("$link/Home/ReadResourceListItems?myResources=false&searchTerm=$search&pageSize=1000000&pageNumber=1&resType=102&_=1595177163927")
+            .url(link)
             .get()
             .build()
 
-        HttpClientProvider.generateNewClient().newCall(request).execute()
+        HttpClientProvider.generateNewClient().withAuthentication(context, request.url) {
+            newCall(request).execute()
+        }
     }
 
     @Throws(IOException::class)
-    suspend fun getCoursesNames(link: String) = withContext(IO) {
-        val search =
-            if (link.contains("calendar2")) { "___" }
-            else { "__" }
-
+    suspend fun getCoursesNames(context: Context, link: String) = withContext(IO) {
+        Log.d(this@CelcatService::class.simpleName, "Downloading courses: $link")
         val request = Request.Builder()
-            .url("$link/Home/ReadResourceListItems?myResources=false&searchTerm=$search&pageSize=10000000&pageNumber=1&resType=100&_=1595183277988")
+            .url(link)
             .get()
             .build()
 
-        HttpClientProvider.generateNewClient().newCall(request).execute()
+        HttpClientProvider.generateNewClient().withAuthentication(context, request.url) {
+            newCall(request).execute()
+        }
     }
 
     @Throws(IOException::class, JSONException::class)
-    suspend fun getSchoolsURLs(): List<School>? = withContext(IO) {
+    suspend fun getSchoolsURLs(): List<School> = withContext(IO) {
         val request = Request.Builder()
             .url("https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/data/formations/urls.json")
             .get()
@@ -90,6 +93,22 @@ class CelcatService {
             JSONObject(body).getJSONArray("entries").map {
                 School.fromJSON(it as JSONObject)
             }
-        }
+        } ?: throw IOException()
+    }
+
+    @Throws(IOException::class, JSONException::class)
+    suspend fun getGroups(url: String): List<School.Info.Group> = withContext(IO) {
+        Log.i(this@CelcatService::class.simpleName, "Getting groups: $url")
+        val request = Request.Builder()
+            .url(url)
+            .get()
+            .build()
+
+        val response = HttpClientProvider.generateNewClient().newCall(request).execute()
+        response.body?.string()?.let { body ->
+            JSONObject(body).getJSONArray("results").map {
+                School.Info.Group.fromJSON(it as JSONObject)
+            }
+        } ?: throw IOException()
     }
 }

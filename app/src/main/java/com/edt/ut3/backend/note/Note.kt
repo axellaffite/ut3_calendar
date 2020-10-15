@@ -8,7 +8,7 @@ import androidx.room.TypeConverters
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.Converter
 import com.edt.ut3.backend.notification.NotificationManager
-import com.edt.ut3.misc.minus
+import com.edt.ut3.misc.extensions.minus
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
@@ -93,7 +93,7 @@ data class Note(
     }
 
     fun clearNotifications(context: Context) {
-        NotificationManager.getInstance(context).remove(this)
+        NotificationManager.getInstance(context).removeNoteSchedule(this)
     }
 
     /**
@@ -134,7 +134,7 @@ data class Note(
             ReminderType.FIFTEEN_MINUTES -> date.minus(Calendar.MINUTE, 15)
             ReminderType.THIRTY_MINUTES -> date.minus(Calendar.MINUTE, 30)
             ReminderType.ONE_HOUR -> date.minus(Calendar.HOUR, 1)
-            ReminderType.CUSTOM -> date.minus(Calendar.MINUTE, 15)
+            ReminderType.CUSTOM -> customDate
         }
 
         /**
@@ -147,6 +147,7 @@ data class Note(
          */
         fun disable() {
             type = ReminderType.NONE
+            customDate = null
         }
 
         /**
@@ -155,6 +156,7 @@ data class Note(
          */
         fun setFifteenMinutesBefore() {
             type = ReminderType.FIFTEEN_MINUTES
+            customDate = null
         }
 
         /**
@@ -163,6 +165,7 @@ data class Note(
          */
         fun setThirtyMinutesBefore() {
             type = ReminderType.THIRTY_MINUTES
+            customDate = null
         }
 
         /**
@@ -171,6 +174,7 @@ data class Note(
          */
         fun setOneHourBefore() {
             type = ReminderType.ONE_HOUR
+            customDate = null
         }
 
         /**
@@ -205,6 +209,25 @@ data class Note(
 
         fun getReminderType() = type
 
+        fun setupFrom(other: Reminder) {
+            date = other.date
+            type = other.type
+            customDate = other.customDate
+        }
+
+        override fun equals(other: Any?): Boolean {
+            if (other is Reminder) {
+                return other.date == date
+                        && other.customDate == customDate
+                        && other.type == type
+            }
+
+            return false
+        }
+
+        override fun toString(): String {
+            return "Reminder(date=$date, type=$type, customDate=$customDate, isActive=${isActive()})"
+        }
     }
 
 }

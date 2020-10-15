@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group
+        android:id="@+id/formation">
+        <item android:id="@+id/which_school"
+            android:title="@string/title_which_school"/>
+    </group>
+
+<!--    <item android:id="@+id/which_link"-->
+<!--        android:title="@string/title_which_link"-->
+<!--        android:visible="false"/>-->
+
+<!--    <item android:id="@+id/which_groups"-->
+<!--        android:title="@string/title_which_groups"-->
+<!--        android:visible="false"/>-->
+
+<!--    <item android:id="@+id/which_link_custom"-->
+<!--        android:title="@string/title_which_link_custom"-->
+<!--        android:visible="false"/>-->
+
+</menu>

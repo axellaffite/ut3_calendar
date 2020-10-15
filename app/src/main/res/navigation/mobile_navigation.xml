@@ -72,7 +72,7 @@
         tools:layout="@layout/fragment_about_us" />
     <fragment
         android:id="@+id/fragmentFormationChoice"
-        android:name="com.edt.ut3.ui.preferences.formation.FragmentFormationChoice"
+        android:name="com.edt.ut3.ui.preferences.formation.FormationFragment"
         android:label="FragmentFormationChoice"
         tools:layout="@layout/fragment_formation_choice" />
 

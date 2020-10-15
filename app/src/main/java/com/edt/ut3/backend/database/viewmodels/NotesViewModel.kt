@@ -14,7 +14,9 @@ class NotesViewModel(private val context: Context) {
 
     suspend fun getNotesByEventIDs(vararg eventIDs: String) = dao.selectByEventIDs(*eventIDs)
 
-    fun getNoteByEventID(eventID: String) = dao.selectByEventID(eventID)
+    fun getNoteByEventIDLD(eventID: String) = dao.selectByEventIDLD(eventID)
+
+    suspend fun getNoteByID(id: Long) = dao.selectByID(id)
 
     suspend fun save(note: Note) {
         if (note.isEmpty()) {
@@ -31,9 +33,9 @@ class NotesViewModel(private val context: Context) {
 
             NotificationManager.getInstance(context).run {
                 if (note.reminder.isActive()) {
-                    this.create(note)
+                    this.createNoteSchedule(note)
                 } else {
-                    this.remove(note)
+                    this.removeNoteSchedule(note)
                 }
             }
         }
