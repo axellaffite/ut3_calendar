@@ -20,7 +20,8 @@ class PreferencesManager private constructor(private val context: Context, sweet
         GROUPS("groups"),
         CALENDAR_MODE("calendar_mode"),
         NOTIFICATION("notification"),
-        FIRST_LAUNCH("first_launch")
+        FIRST_LAUNCH("first_launch"),
+        CODE_VERSION("code_version")
     }
 
     var theme : String by sweetPreferences.delegate(ThemePreference.SMARTPHONE.toString(), PreferenceKeys.THEME.key)
@@ -29,6 +30,7 @@ class PreferencesManager private constructor(private val context: Context, sweet
     var calendarMode : String by sweetPreferences.delegate(CalendarMode.default().toJSON(), PreferenceKeys.CALENDAR_MODE.key)
     var notification : Boolean by sweetPreferences.delegate(true, PreferenceKeys.NOTIFICATION.key)
     var firstLaunch : Boolean by sweetPreferences.delegate(true, PreferenceKeys.FIRST_LAUNCH.key)
+    var codeVersion : Int by sweetPreferences.delegate(0, PreferenceKeys.CODE_VERSION.key)
 
     companion object {
         private var instance: PreferencesManager? = null
@@ -89,8 +91,6 @@ class PreferencesManager private constructor(private val context: Context, sweet
     @Suppress("IMPLICIT_CAST_TO_ANY")
     fun setupDefaultPreferences(): Boolean {
         return if (firstLaunch) {
-            groups = null
-            link = null
             theme = ThemePreference.SMARTPHONE.toString()
             calendarMode = CalendarMode.default().toJSON()
             notification = true

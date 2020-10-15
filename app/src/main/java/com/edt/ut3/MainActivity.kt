@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.compatibility.CompatibilityManager
 import com.edt.ut3.misc.extensions.hideKeyboard
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
@@ -19,6 +20,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        CompatibilityManager.ensureCompatibility(this)
         PreferencesManager.getInstance(this).apply {
             setupDefaultPreferences()
             observe(this@MainActivity)

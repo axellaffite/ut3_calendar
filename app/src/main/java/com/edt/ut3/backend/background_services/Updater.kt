@@ -155,10 +155,6 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                     && it != oldEventMap[it.id]
                 }
 
-                for (i in updatedEvent) {
-                    Log.d("updater", "$i not equals to ${oldEventMap[i.id]}")
-                }
-
                 /* write changes to database */
                 insert(*newEvents.toTypedArray())
                 delete(*removedEvent.toTypedArray())
