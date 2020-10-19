@@ -33,33 +33,48 @@ class NotificationManager private constructor(val context: Context) {
         }
     }
 
-    private fun createUpdateNotificationChannel() {
+    private fun createUpdateNotificationChannel(name: String, description: String, id: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Changement de cours"
-            val descriptionChannel = "Notification de changement dans l'emploi du temps"
             val channel : NotificationChannel = NotificationChannel(
-                "UPDATE_EDT",
+                id,
                 name,
                 android.app.NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = descriptionChannel
-                lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
+                this.description = description
+                this.lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
             }
+
             context.getSystemService(android.app.NotificationManager::class.java).createNotificationChannel(
                 channel
             )
         }
     }
 
+    private fun createUpdateChannel() = "UPDATE_EDT".also { channelID ->
+        createUpdateNotificationChannel(
+            context.getString(R.string.channel_course_title),
+            context.getString(R.string.channel_course_description),
+            channelID
+        )
+    }
+
+    private fun createReminderChannel() = "REMINDER".also { channelID ->
+        createUpdateNotificationChannel(
+            context.getString(R.string.channel_reminder_title),
+            context.getString(R.string.channel_reminder_description),
+            channelID
+        )
+    }
+
     fun create(events: List<Event>, type: EventChange.Type) {
-        createUpdateNotificationChannel()
+        val channelID = createUpdateChannel()
 
         val notifications = events.map { event ->
-            NotificationCompat.Builder(context, "UPDATE_EDT")
+            NotificationCompat.Builder(context, channelID)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle(generateEventNotificationTitle(event, type))
                 .setContentText(generateEventNotificationText(event, type))
-                .setGroup("UPDATE_EDT")
+                .setGroup(channelID)
                 .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
                 .setGroupSummary(false)
                 .build()
@@ -157,6 +172,7 @@ class NotificationManager private constructor(val context: Context) {
     }
 
     private fun scheduleNotification(note: Note) {
+        val channelID = createReminderChannel()
         val notificationId = note.id.toInt()
 
         val intent = Intent(context, MainActivity::class.java)
@@ -167,12 +183,12 @@ class NotificationManager private constructor(val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val notification = NotificationCompat.Builder(context, "NOTE_NOTIFICATION")
+        val notification = NotificationCompat.Builder(context, channelID)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(note.title)
             .setContentText(note.contents)
             .setAutoCancel(true)
-            .setGroup("NOTE_NOTIFICATION")
+            .setGroup(channelID)
             .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
             .setContentIntent(activity)
             .build()
