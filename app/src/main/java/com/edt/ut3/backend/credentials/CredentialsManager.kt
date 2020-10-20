@@ -78,7 +78,6 @@ class CredentialsManager private constructor(val context: Context) {
 
     /**
      * Clear the credentials stored in memory.
-     *
      */
     fun clearCredentials() {
         getCredentialsPreferenceFile().edit {
