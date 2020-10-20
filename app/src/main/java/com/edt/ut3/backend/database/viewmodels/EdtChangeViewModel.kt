@@ -8,6 +8,10 @@ class EdtChangeViewModel(context: Context) {
 
     val dao = AppDatabase.getInstance(context).edtChangeDao()
 
+    /**
+     * Insert all the given eventChanges into the database.
+     * @param eventChange
+     */
     suspend fun insert(vararg eventChange: EventChange) = dao.insert(*eventChange)
 
 }
