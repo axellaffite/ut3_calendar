@@ -164,6 +164,11 @@ data class Event(
             course = cleanCourseName()
         }
 
+        /**
+         * @return The real course name without the boilerplate
+         * if it has been guessed during the [event][Event] parsing,
+         * or the course type.
+         */
         private fun cleanCourseName(): String? {
             return try {
                 course?.let {
