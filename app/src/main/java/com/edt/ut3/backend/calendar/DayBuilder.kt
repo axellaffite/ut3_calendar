@@ -15,9 +15,23 @@ import com.elzozor.yoda.Week
 import com.elzozor.yoda.events.EventWrapper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * Used to build the [Day] view given
+ * a bunch of events and parameters.
+ *
+ * @property eventList The event list to display
+ * @property context A valid context to build the views
+ * @property currentDate The actual date to which the Calendar is set.
+ * @property currentPosition The current pager position
+ * @property dayPosition The position of the [Day] view that will be built
+ * @property container The Layout that will contain the day
+ * @property courseVisibility The [courses][Course] visibilities
+ * @property dayBuilder The function to build a [Day] view
+ * @property emptyDayBuilder The function to build an empty [Day] view
+ * @property allDayBuilder The function to build an all [Day] view
+ */
 class DayBuilder(
     private val eventList: List<Event>?,
     private val context: Context,
@@ -31,30 +45,22 @@ class DayBuilder(
     private val allDayBuilder: (events: List<EventWrapper>) -> View,
 ) {
 
-    init {
-        Log.d("Day Builder", "Building day")
-    }
-
     private val preferences = PreferencesManager.getInstance(context)
 
     /**
      * This function handle when a new bunch of
      * events are available.
-     * It calls the filterEvents function which
+     * It calls the [filterEvents] function which
      * will filter the events and then call the
-     * day_view function that display them.
+     * [buildDayView] function that display them.
      */
-
     suspend fun build(height: Int, width: Int) {
         if (eventList == null) {
             Log.d("Builder", "event list is null, aborting")
             return
         }
 
-        Log.d("Builder", "build")
-
         val calendarMode = CalendarMode.fromJson(preferences.calendarMode)
-
         when {
             calendarMode.isAgenda() ->
                 buildDayView(container, eventList, height, width)
@@ -64,11 +70,19 @@ class DayBuilder(
     }
 
 
+    /**
+     * Build a day view for the
+     * [AGENDA][CalendarMode.Mode.AGENDA] mode.
+     *
+     * @param container The layout that will contain the resulting view
+     * @param eventList The event list to display
+     * @param height The resulting view height
+     * @param width The resulting view width
+     */
     private suspend fun buildDayView(container: FrameLayout, eventList: List<Event>, height: Int, width: Int) = withContext(
         Dispatchers.Default
     ) {
         val selectedDate = currentDate.add(Calendar.DAY_OF_YEAR, dayPosition - currentPosition)
-        Log.d("DayBuilder", "Constructing day view: ${SimpleDateFormat("dd/MM/yyyy").format(selectedDate)}")
         val filter = { it: Event -> it.start > selectedDate && it.start < selectedDate.add(Calendar.DAY_OF_YEAR, 1) }
         val filtered = filterEvents(eventList, filter)
 
@@ -105,6 +119,15 @@ class DayBuilder(
     }
 
 
+    /**
+     * Build a day view for the
+     * [AGENDA][CalendarMode.Mode.WEEK] mode.
+     *
+     * @param container The layout that will contain the resulting view
+     * @param eventList The event list to display
+     * @param height The resulting view height
+     * @param width The resulting view width
+     */
     private suspend fun buildWeekView(container: FrameLayout, eventList: List<Event>, height: Int, width: Int) = withContext(
         Dispatchers.Default
     ) {
@@ -118,7 +141,11 @@ class DayBuilder(
             time
         }
 
-        val filter = { it: Event -> it.start > selectedDate && it.start < selectedDate.add(Calendar.WEEK_OF_YEAR, 1) }
+        val filter = { it: Event ->
+            it.start > selectedDate
+            && it.start < selectedDate.add(Calendar.WEEK_OF_YEAR, 1)
+        }
+
         val filtered = filterEvents(eventList, filter)
 
         val eventContainer = withContext(Dispatchers.Main) {
@@ -151,16 +178,34 @@ class DayBuilder(
         }
     }
 
-    private suspend inline fun<reified T: View> buildEventContainer(container: FrameLayout,
-                                                                    crossinline builder: () -> T,
-                                                                    crossinline initializer: (T) -> T
+    /**
+     * Generic function to build the Event container.
+     * It will remove all the views into the container
+     * before calling the [initializer] function
+     *
+     * @param container The container layout
+     * @param builder The builder
+     * @param initializer
+     */
+    private suspend inline fun<reified T: View> buildEventContainer(
+        container: FrameLayout,
+        crossinline builder: () -> T,
+        crossinline initializer: (T) -> T
     ) = withContext(Dispatchers.Main) {
         container.removeAllViews()
         initializer(builder())
     }
 
 
-
+    /**
+     * This function filter the events given
+     * the courses visibilities and the [dateFilter].
+     *
+     *
+     * @param eventList The event list to filter
+     * @param dateFilter A filter that must filter the event
+     * with the given date
+     */
     private suspend fun filterEvents(eventList: List<Event>, dateFilter: (Event) -> Boolean) = withContext(
         Dispatchers.Default
     ) {
@@ -171,23 +216,8 @@ class DayBuilder(
 
         eventList.filter { ev ->
             dateFilter(ev)
-                    && ev.courseName !in hiddenCourses
+            && ev.courseName !in hiddenCourses
         }.map { ev -> Event.Wrapper(ev) }
     }
-
-    //TODO
-//    override fun onSharedPreferenceChanged(pref: SharedPreferences?, key: String?) {
-//        if (key == PreferencesManager.PreferenceKeys.CALENDAR_MODE.key) {
-//            context?.let {
-//                val newMode = CalendarMode.fromJson(preferences.calendarMode)
-//
-//                if (mode != newMode) {
-//                    mode = newMode
-//                    refreshDate(viewModel.selectedDate.value!!, false)
-//                    handleEventsChange(viewModel.getEvents(it).value)
-//                }
-//            }
-//        }
-//    }
 
 }
