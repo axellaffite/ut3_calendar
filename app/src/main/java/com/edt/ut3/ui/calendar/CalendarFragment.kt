@@ -86,7 +86,7 @@ class CalendarFragment : BottomSheetFragment(),
                 lastValue.withWeekMode()
         }
 
-        preferences.calendarMode = newPreference.toJSON()
+        preferences.calendarMode = newPreference.toJSON().toString()
 
         view?.action_view?.menu?.findItem(R.id.change_view)?.let {
             it.isEnabled = newPreference.mode == CalendarMode.Mode.AGENDA
@@ -406,7 +406,7 @@ class CalendarFragment : BottomSheetFragment(),
         val mode = CalendarMode.fromJson(preferences.calendarMode)
         val newMode = mode.invertForceWeek()
         Log.d(this::class.simpleName, "Mode: $mode | NewMode: $newMode")
-        preferences.calendarMode = newMode.toJSON()
+        preferences.calendarMode = newMode.toJSON().toString()
 
         updateViewIcon(item)
 

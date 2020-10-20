@@ -27,7 +27,7 @@ class PreferencesManager private constructor(private val context: Context, sweet
     var theme : String by sweetPreferences.delegate(ThemePreference.SMARTPHONE.toString(), PreferenceKeys.THEME.key)
     var link : String? by sweetPreferences.delegate(null, PreferenceKeys.LINK.key)
     var groups : String? by sweetPreferences.delegate(null, PreferenceKeys.GROUPS.key)
-    var calendarMode : String by sweetPreferences.delegate(CalendarMode.default().toJSON(), PreferenceKeys.CALENDAR_MODE.key)
+    var calendarMode : String by sweetPreferences.delegate(CalendarMode.default().toJSON().toString(), PreferenceKeys.CALENDAR_MODE.key)
     var notification : Boolean by sweetPreferences.delegate(true, PreferenceKeys.NOTIFICATION.key)
     var firstLaunch : Boolean by sweetPreferences.delegate(true, PreferenceKeys.FIRST_LAUNCH.key)
     var codeVersion : Int by sweetPreferences.delegate(0, PreferenceKeys.CODE_VERSION.key)
@@ -92,7 +92,7 @@ class PreferencesManager private constructor(private val context: Context, sweet
     fun setupDefaultPreferences(): Boolean {
         return if (firstLaunch) {
             theme = ThemePreference.SMARTPHONE.toString()
-            calendarMode = CalendarMode.default().toJSON()
+            calendarMode = CalendarMode.default().toJSON().toString()
             notification = true
             firstLaunch = false
 
