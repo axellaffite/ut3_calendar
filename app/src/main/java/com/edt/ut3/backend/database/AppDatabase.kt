@@ -24,8 +24,15 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         private var db_instance: AppDatabase? = null
 
-        @Synchronized
-        fun getInstance(context: Context) : AppDatabase {
+        /**
+         * Returns an instance of the AppDatabase.
+         * The function is synchronized so it may
+         * block the current thread until the
+         * database is initialized.
+         *
+         * @param context The application context
+         */
+        fun getInstance(context: Context) = synchronized(this) {
             if (db_instance == null) {
                 db_instance = Room.databaseBuilder(
                     context.applicationContext,
@@ -34,7 +41,7 @@ abstract class AppDatabase : RoomDatabase() {
                 ).fallbackToDestructiveMigration().build()
             }
 
-            return db_instance!!
+            db_instance!!
         }
     }
 }
