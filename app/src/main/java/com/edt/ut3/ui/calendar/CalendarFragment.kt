@@ -316,6 +316,21 @@ class CalendarFragment : BottomSheetFragment(),
      */
     private fun forceUpdate() {
         Updater.forceUpdate(requireContext(), false, viewLifecycleOwner, { workInfo ->
+            val swipeCallback = object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                override fun onDismissed(
+                    transientBottomBar: Snackbar?,
+                    event: Int
+                ){
+                    super.onDismissed(transientBottomBar, event)
+
+                    status = Status.IDLE
+
+                    scroll_view?.scrollY?.let {
+                        hideRefreshWhenNecessary(it)
+                    }
+                }
+            }
+
             workInfo?.run {
                 when (state) {
                     WorkInfo.State.FAILED -> {
@@ -324,28 +339,14 @@ class CalendarFragment : BottomSheetFragment(),
                             R.string.update_failed,
                             Snackbar.LENGTH_INDEFINITE
                         )
-                            .setAction(R.string.action_retry) {
-                                forceUpdate()
-                            }
+                            .addCallback(swipeCallback)
+                            .setAction(R.string.action_retry) { forceUpdate() }
                             .show()
                     }
 
                     WorkInfo.State.SUCCEEDED -> {
                         Snackbar.make(front_layout, R.string.update_succeeded, Snackbar.LENGTH_LONG)
-                            .addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
-                                override fun onDismissed(
-                                    transientBottomBar: Snackbar?,
-                                    event: Int
-                                ) {
-                                    super.onDismissed(transientBottomBar, event)
-
-
-                                    scroll_view?.scrollY?.let {
-                                        hideRefreshWhenNecessary(it)
-                                    }
-                                    status = Status.IDLE
-                                }
-                            })
+                            .addCallback(swipeCallback)
                             .show()
                     }
 

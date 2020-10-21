@@ -90,9 +90,10 @@ class CalendarOptionsFragment: Fragment() {
         val padding = 8.toDp(context).toInt()
 
         init {
-            setPadding(padding, padding, padding, padding)
+            setPadding(padding, 0, padding, 0)
             compoundDrawablePadding = padding
             setBackgroundColor(Color.TRANSPARENT)
+            isAllCaps = false
         }
 
     }
