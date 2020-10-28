@@ -8,6 +8,17 @@ import org.osmdroid.util.GeoPoint
 
 object MapsUtils {
 
+    /**
+     * Launch a GoogleMaps Intent to navigate
+     * from the [current point][from] to the [destination point][to].
+     *
+     *
+     * @param activity The current activity
+     * @param from The current position, if null means the current position
+     * @param to The destination point
+     * @param toTitle The destination point title
+     * @param onError If the Intent cannot be launched
+     */
     fun routeFromTo(activity: Activity, from: GeoPoint?, to: GeoPoint, toTitle: String, onError: (() -> Unit)? = null) {
         try {
             var requestLink = ("https://www.google.com/maps/dir/?api=1" +

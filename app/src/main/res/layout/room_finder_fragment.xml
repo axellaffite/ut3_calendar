@@ -22,7 +22,8 @@
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
-            android:elevation="8dp"
+            android:elevation="0dp"
+            app:cardElevation="0dp"
             app:cardBackgroundColor="@color/foregroundColor"
             app:cardCornerRadius="8dp"
             app:layout_constrainedHeight="true"
@@ -70,6 +71,7 @@
             android:layout_height="wrap_content"
             android:padding="8dp"
             android:paddingStart="16dp"
+            android:visibility="visible"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/search_bar_container">
@@ -87,8 +89,8 @@
                     android:checkable="true"
                     android:checked="true"
                     android:text="@string/since_now"
-                    app:chipBackgroundColor="@color/foregroundColor"
-                    app:checkedIconTint="@color/iconTint"/>
+                    app:checkedIconTint="@color/iconTint"
+                    app:chipBackgroundColor="@color/foregroundColor" />
 
             </com.google.android.material.chip.ChipGroup>
 
@@ -101,7 +103,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/filters_container" />
+            app:layout_constraintTop_toBottomOf="@+id/filters_container"
+            android:visibility="gone"/>
 
         <TextView
             android:id="@+id/thanks"
@@ -114,7 +117,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            android:visibility="gone"/>
 
         <LinearLayout
             android:id="@+id/loading_container"
@@ -126,7 +130,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="parent"
+            android:visibility="gone">
 
             <com.github.ybq.android.spinkit.SpinKitView
                 android:id="@+id/loading_animation"

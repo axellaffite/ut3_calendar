@@ -1,6 +1,7 @@
-package com.edt.ut3.ui.room_finder
+    package com.edt.ut3.ui.room_finder
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.*
@@ -8,91 +9,83 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.TextView
-import androidx.activity.addCallback
 import androidx.core.view.children
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.edt.ut3.R
+import com.edt.ut3.backend.goulin_room_finder.Building
 import com.edt.ut3.backend.goulin_room_finder.Room
-import com.edt.ut3.misc.extensions.hideKeyboard
-import com.edt.ut3.misc.extensions.toDp
+import com.edt.ut3.misc.extensions.*
+import com.edt.ut3.ui.room_finder.RoomFinderState.*
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.room_finder_fragment.*
-import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.withContext
-import java.io.IOException
 import java.util.*
-
 class RoomFinderFragment : Fragment() {
 
-    enum class Status { IDLE, SEARCHING, DOWNLOADING, RESULT }
+    private val viewModel: RoomFinderViewModel by activityViewModels()
 
-    private var status = Status.IDLE
-        set(value) {
-            handleStatusChange(value)
-            field = value
-        }
 
-    private var idle = true
-
-    private val viewModel: RoomFinderViewModel by viewModels()
-
-    private val activatedFilters = hashSetOf<(List<Room>) -> List<Room>>()
-
-    private var downloadSortJob : Job? = null
-
-    override fun onCreateView(inflater: LayoutInflater,
-                              container: ViewGroup?,
-                              savedInstanceState: Bundle?): View?
-    {
-        return inflater.inflate(R.layout.room_finder_fragment, container, false)
-    }
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? = inflater.inflate(R.layout.room_finder_fragment, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        status = Status.IDLE
         result.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         result.addItemDecoration(RoomAdapter.RoomSeparator())
 
         setupFilters()
-        launchBuildingsDownload()
+        setupListeners()
+        viewModel.updateBuildingsData()
     }
 
+    /**
+     * Setup the listeners that are
+     * in charge to update the view.
+     *
+     * As the logic is stored in the [view model][viewModel],
+     * theses listeners don't modify the incoming data.
+     */
     private fun setupListeners() {
-        hints.setOnItemClickListener { parent: AdapterView<*>, view: View, position: Int, id: Long ->
-            with (view as TextView) {
-                val building = text.toString()
-                search_bar.text = building
-                getFreeRooms(building, true)
+        viewModel.run {
+            state.observe(viewLifecycleOwner, ::handleStateChange)
+            error.observe(viewLifecycleOwner, ::handleError)
+            searchResult.observe(viewLifecycleOwner, ::handleSearchUpdate)
+            searchBarText.observe(viewLifecycleOwner, ::handleTextChanged)
+            buildings.observe(viewLifecycleOwner, ::handleBuildingUpdate)
+        }
+
+
+        hints.setOnItemClickListener { _: AdapterView<*>, view: View, _: Int, _: Long ->
+            if (view is TextView) {
+                viewModel.selectBuilding(view.text.toString())
             }
         }
 
         search_bar.apply {
+            doOnTextChanged { text, _, _, _ ->
+                viewModel.updateBarText(text.toString())
+            }
+
             setOnClickListener {
-                if (status == Status.SEARCHING) {
-                    status = if (idle) {
-                        Status.IDLE
-                    } else {
-                        Status.RESULT
-                    }
-                } else {
-                    status = Status.SEARCHING
-                }
+                invertHintsVisibility()
             }
         }
 
-        activity?.run {
-            onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
-                when (status) {
-                    Status.SEARCHING -> status = if (idle) Status.IDLE else Status.RESULT
-                    else -> {
-                        isEnabled = false
-                        onBackPressed()
-                    }
+        addOnBackPressedListener {
+            when (viewModel.state.value) {
+                is Searching -> viewModel.state.value =
+                    if (viewModel.ready) Result
+                    else Presentation
+
+                else -> {
+                    isEnabled = false
+                    onBackPressed()
                 }
             }
         }
@@ -101,22 +94,38 @@ class RoomFinderFragment : Fragment() {
             if (child is RoomFilterChip) {
                 child.setOnClickListener {
                     if (child.isChecked) {
-                        activatedFilters.add(child.filter)
+                        viewModel.addFilter(child.filter)
                     } else {
-                        activatedFilters.remove(child.filter)
-                    }
-
-                    val selectedBuilding = search_bar.text
-                    if (!selectedBuilding.isNullOrBlank()) {
-                        getFreeRooms(search_bar.text.toString(), forceRefresh = false)
+                        viewModel.removeFilter(child.filter)
                     }
                 }
 
                 if (child.isChecked) {
-                    activatedFilters.add(child.filter)
+                    viewModel.addFilter(child.filter)
+                } else {
+                    viewModel.removeFilter(child.filter)
                 }
             }
         }
+    }
+
+    private fun invertHintsVisibility() {
+        hints.run {
+            if (visibility != VISIBLE) {
+                visibility = VISIBLE
+                search_bar_container?.cardElevation = 8.toDp(context)
+            } else {
+                hideHints()
+            }
+        }
+    }
+
+    private fun hideHints() {
+        search_bar_container?.cardElevation = 0f
+        hints?.visibility = GONE
+
+        search_bar.clearFocus()
+        hideKeyboard()
     }
 
     private fun setupFilters() {
@@ -127,60 +136,27 @@ class RoomFinderFragment : Fragment() {
         }
     }
 
-    private fun launchBuildingsDownload() {
-        downloadSortJob?.cancel()
-        downloadSortJob = lifecycleScope.launchWhenResumed {
-            try {
-                val buildings = viewModel.getBuildings()
-                hints.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, buildings.map { it.name })
 
-                setupListeners()
-            } catch (e: IOException) {
-                withContext(Main) {
-                    displayInternetError {
-                        launchBuildingsDownload()
-                    }
-                }
-            }
-        }
-    }
-
-    private fun getFreeRooms(building: String, forceRefresh: Boolean = false) {
-        downloadSortJob?.cancel()
-        downloadSortJob = lifecycleScope.launchWhenResumed {
-            if (forceRefresh) {
-                status = Status.DOWNLOADING
-            }
-
-            try {
-                val rooms = filterResult(viewModel.getFreeRooms(building, forceRefresh))
-                result.adapter = RoomAdapter(rooms)
-                status = Status.RESULT
-            } catch (e: IOException) {
-                status = Status.IDLE
-                displayInternetError {
-                    getFreeRooms(building, forceRefresh)
-                }
-            }
-        }
-    }
-
-    private fun filterResult(result: List<Room>) =
-        activatedFilters.fold(result) { acc, roomFilter ->
-            roomFilter(acc)
-        }
-
-    private fun displayInternetError(onError: () -> Unit) {
+    /**
+     * Displays a [Snackbar] with the given action
+     *
+     * @param action The action to perform when the action button is clicked
+     */
+    private fun displayInternetError(actionLabel: Int = R.string.action_retry, action: (View?) -> Unit) {
         Snackbar.make(result, getString(R.string.data_update_failed), Snackbar.LENGTH_INDEFINITE)
-            .setAction(R.string.action_retry) {
-                onError()
-            }
+            .setAction(actionLabel, action)
             .show()
     }
 
-    private fun handleStatusChange(status: Status) = when (status) {
-        Status.IDLE -> {
-            search_bar_container.cardElevation = 0f
+
+    /**
+     * Handles all the errors that can occur in this Fragment.
+     * There are all listed into the [RoomFinderState] class.
+     *
+     * @param state The given state.
+     */
+    private fun handleStateChange(state: RoomFinderState) = when (state) {
+        is Presentation -> {
             thanks.visibility = VISIBLE
             hints.visibility = GONE
             loading_container.visibility = INVISIBLE
@@ -190,40 +166,93 @@ class RoomFinderFragment : Fragment() {
             hideKeyboard()
         }
 
-        Status.RESULT -> {
-            idle = false
-            search_bar_container.cardElevation = 0f
-
-
+        is Result -> {
             thanks.visibility = INVISIBLE
-            hints.visibility = GONE
             loading_container.visibility = INVISIBLE
             result.visibility = VISIBLE
 
+            hideHints()
             search_bar.clearFocus()
             hideKeyboard()
         }
 
-        Status.SEARCHING -> {
-            search_bar_container.cardElevation = 8.toDp(requireContext())
-
+        is Searching -> {
             thanks.visibility = INVISIBLE
-            hints.visibility = VISIBLE
-            loading_container.visibility = INVISIBLE
-            result.visibility = VISIBLE
-        }
-
-        Status.DOWNLOADING -> {
-            search_bar_container.cardElevation = 0f
-
-            hints.visibility = GONE
-            thanks.visibility = GONE
             loading_container.visibility = VISIBLE
             result.visibility = INVISIBLE
+            hideHints()
+        }
 
-            search_bar.clearFocus()
-            hideKeyboard()
+        is Downloading -> {
+            hints.visibility = GONE
+            thanks.visibility = INVISIBLE
+            loading_container.visibility = INVISIBLE
+            result.visibility = INVISIBLE
         }
     }
 
+    /**
+     * Handles all the errors that can occur in this Fragment.
+     * There are all listed into the [RoomFinderFailure] class.
+     *
+     * @param error The given error.
+     */
+    private fun handleError(error: RoomFinderFailure?): Unit = when (error) {
+        is RoomFinderFailure.SearchFailure ->  {
+            viewModel.state.value = Presentation
+            displayInternetError {
+                viewModel.updateSearchResults(true)
+            }
+        }
+
+        is RoomFinderFailure.UpdateBuildingFailure -> {
+            viewModel.state.value = Presentation
+            displayInternetError {
+                viewModel.updateBuildingsData(true)
+            }
+        }
+
+        null -> {
+            // Just to avoid logging false errors in the else statement
+        }
+
+        else -> Log.e(RoomFinderFragment::class.simpleName,
+            "Unhandled error: ${error.javaClass}"
+        ).discard() // To force the statement to return Unit
+    }
+
+    /**
+     * Display the incoming results by updating
+     * the result adapter.
+     *
+     * @param rooms The available rooms
+     */
+    private fun handleSearchUpdate(rooms: List<Room>) {
+        Log.d(this::class.simpleName, "New rooms: $rooms")
+        result.adapter = RoomAdapter(rooms)
+    }
+
+    /**
+     * Update the displayed text if it is different
+     * from the given [text]
+     *
+     * @param text The text to display
+     */
+    private fun handleTextChanged(text: String?): Unit = when (text) {
+        search_bar?.text, null -> {}
+        else -> {
+            search_bar?.setText(text)
+        }
+    }.discard() // To force the return type to be Unit
+
+    /**
+     * Update the building adapter with the incoming data.
+     *
+     * @param buildings The new buildings
+     */
+    private fun handleBuildingUpdate(buildings: Set<Building>) {
+        hints.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, buildings.map { it.name })
+    }
+
 }
+
