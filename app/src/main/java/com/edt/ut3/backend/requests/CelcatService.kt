@@ -96,15 +96,18 @@ class CelcatService {
         } ?: throw IOException()
     }
 
-    @Throws(IOException::class, JSONException::class)
-    suspend fun getGroups(url: String): List<School.Info.Group> = withContext(IO) {
+    @Throws(SocketTimeoutException::class, IOException::class, Authenticator.InvalidCredentialsException::class, JSONException::class)
+    suspend fun getGroups(context: Context, url: String): List<School.Info.Group> = withContext(IO) {
         Log.i(this@CelcatService::class.simpleName, "Getting groups: $url")
         val request = Request.Builder()
             .url(url)
             .get()
             .build()
 
-        val response = HttpClientProvider.generateNewClient().newCall(request).execute()
+        val response = HttpClientProvider.generateNewClient().withAuthentication(context, request.url) {
+            newCall(request).execute()
+        }
+
         response.body?.string()?.let { body ->
             JSONObject(body).getJSONArray("results").map {
                 School.Info.Group.fromJSON(it as JSONObject)

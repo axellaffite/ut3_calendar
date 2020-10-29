@@ -15,7 +15,7 @@ import com.edt.ut3.backend.requests.authentication_services.Authenticator
 class CredentialsManager private constructor(val context: Context) {
 
     companion object {
-        var instance: CredentialsManager? = null
+        private var instance: CredentialsManager? = null
 
         fun getInstance(applicationContext: Context): CredentialsManager {
             synchronized(this) {

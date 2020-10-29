@@ -16,7 +16,7 @@
 
     <fragment
         android:id="@+id/which_groups"
-        android:name="com.edt.ut3.ui.preferences.formation.WhichGroups"
+        android:name="com.edt.ut3.ui.preferences.formation.which_groups.FragmentWhichGroups"
         android:label="@string/title_which_groups"/>
 
     <fragment

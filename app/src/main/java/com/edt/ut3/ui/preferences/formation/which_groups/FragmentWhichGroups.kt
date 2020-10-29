@@ -1,4 +1,4 @@
-package com.edt.ut3.ui.preferences.formation
+package com.edt.ut3.ui.preferences.formation.which_groups
 
 import android.os.Bundle
 import android.util.Log
@@ -14,23 +14,21 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.edt.ut3.R
 import com.edt.ut3.backend.formation_choice.School
-import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.backend.requests.CelcatService
-import com.edt.ut3.misc.extensions.toList
+import com.edt.ut3.misc.extensions.discard
 import com.edt.ut3.ui.custom_views.searchbar.SearchBar
 import com.edt.ut3.ui.custom_views.searchbar.SearchBarAdapter
 import com.edt.ut3.ui.custom_views.searchbar.SearchHandler
+import com.edt.ut3.ui.preferences.formation.FormationSelectionViewModel
+import com.edt.ut3.ui.preferences.formation.StepperElement
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_which_groups.*
 import kotlinx.android.synthetic.main.layout_search_bar.view.*
 import kotlinx.coroutines.Job
-import org.json.JSONArray
-import org.json.JSONException
 
-class WhichGroups: StepperElement() {
+class FragmentWhichGroups: StepperElement() {
 
-    val viewModel: FormationViewModel by activityViewModels()
+    val viewModel: FormationSelectionViewModel by activityViewModels()
     lateinit var searchBar : SearchBar<School.Info.Group, GroupAdapter>
 
     override fun onCreateView(
@@ -42,26 +40,39 @@ class WhichGroups: StepperElement() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupSearchBar()
+        setupListeners()
+    }
+
+    private fun setupSearchBar() {
         @Suppress("UNCHECKED_CAST")
         searchBar = group_search_bar as SearchBar<School.Info.Group, GroupAdapter>
         searchBar.configure(
-            dataSet = viewModel.availableGroups,
+            dataSet = viewModel.groups,
             converter = { it.text },
             searchHandler = GroupSearchHandler(),
             adapter = GroupAdapter().apply {
-                onItemClicked = { view: View, position: Int, group: School.Info.Group ->
-                    viewModel.groups.value = (viewModel.groups.value ?: setOf()) + group
+                onItemClicked = { _: View, _: Int, group: School.Info.Group ->
+                    viewModel.addGroup(group)
                     searchBar.clearFocus()
                 }
             }
         )
+    }
 
-        viewModel.link.observe(viewLifecycleOwner) { opt ->
-            opt.ifInit { nullableInfo ->
-                nullableInfo?.let { info ->
-                    setupSearchBar(info)
-                }
+    private fun setupListeners() {
+        viewModel.run {
+            groupsLD.observe(viewLifecycleOwner) {
+                searchBar.results?.adapter?.notifyDataSetChanged()
+                searchBar.results?.visibility = VISIBLE
             }
+
+            selectedGroups.observe(viewLifecycleOwner) { selectedGroups: Set<School.Info.Group> ->
+                updateChips(selectedGroups)
+            }
+
+            groupsStatus.observe(viewLifecycleOwner, ::handleStateChange)
+            groupsFailure.observe(viewLifecycleOwner, ::handleError)
         }
 
         searchBar.search_bar.setOnFocusChangeListener { v, hasFocus ->
@@ -73,62 +84,57 @@ class WhichGroups: StepperElement() {
                 searchBar.results.visibility = GONE
             }
         }
-
-        viewModel.groups.observe(viewLifecycleOwner) { groups: Set<School.Info.Group> ->
-            updateChips(groups)
-       }
-
     }
 
-    private fun setupSearchBar(link: School.Info) {
-        lifecycleScope.launchWhenResumed {
-            try {
-                val groups = CelcatService().getGroups(link.groups)
-                viewModel.availableGroups.apply {
-                    clear()
-                    addAll(groups)
-                }
-
-                viewModel.groups.apply {
-                    if (value.isNullOrEmpty()) {
-                        try {
-                            val groupsSetInPreferences = PreferencesManager.getInstance(requireContext()).groups
-                            groupsSetInPreferences?.let {
-                                val prefGroupArray = JSONArray(groupsSetInPreferences).toList<String>()
-
-                                val prefGroups = prefGroupArray.fold(setOf<School.Info.Group>()) { acc, id ->
-                                    groups.find { it.id == id }?.let {
-                                        acc + it
-                                    } ?: acc
-                                }.toSet()
-
-                                value = prefGroups
-                            }
-                        } catch (e: JSONException) {
-                            e.printStackTrace()
-                        }
-                    }
-                }
-
-                searchBar.results?.adapter?.notifyDataSetChanged()
-                searchBar.results?.visibility = VISIBLE
-            } catch (e: Exception) {
-                e.printStackTrace()
-                snack_container?.let {
-                    Snackbar.make(it, R.string.error_check_internet, Snackbar.LENGTH_INDEFINITE)
-                        .setAction(R.string.action_retry) {
-                            setupSearchBar(link)
-                        }
-                        .show()
-                }
-            }
+    private fun handleStateChange(state: WhichGroupsState?) : Unit = when (state) {
+        WhichGroupsState.NotReady -> {
+            searchBar.search_bar?.isEnabled = false
+            selectedGroups?.visibility = VISIBLE
+            loading?.visibility = GONE
+            errorMessage?.visibility = GONE
         }
-    }
+
+        WhichGroupsState.Downloading -> {
+            searchBar.search_bar?.isEnabled = false
+            selectedGroups?.visibility = GONE
+            loading?.visibility = VISIBLE
+            errorMessage?.visibility = GONE
+        }
+
+        WhichGroupsState.Ready -> {
+            searchBar.search_bar?.isEnabled = true
+            selectedGroups?.visibility = VISIBLE
+            loading?.visibility = GONE
+            errorMessage?.visibility = GONE
+        }
+
+        else -> {}
+    }.also { Log.d("FragmentWhichGroups", "State set to $state") }
+
+    private fun handleError(error: WhichGroupsFailure?) : Unit = when (error) {
+        WhichGroupsFailure.WrongCredentials, WhichGroupsFailure.UnknownError -> {
+            snack_container?.let {
+                Snackbar.make(it, error.reason(it.context), Snackbar.LENGTH_SHORT).show()
+            }.discard()
+        }
+
+        WhichGroupsFailure.GroupUpdateFailure -> {
+            snack_container?.let {
+                Snackbar.make(it, error.reason(it.context), Snackbar.LENGTH_INDEFINITE)
+                    .setAction(R.string.action_retry) { v ->
+                        viewModel.updateGroups(v.context)
+                    }
+                    .show()
+            }.discard()
+        }
+
+        else -> {}
+    }.also { viewModel.clearFailure(error) }
 
     private fun updateChips(groups: Set<School.Info.Group>) {
-        chipGroup?.removeAllViews()
+        selectedGroups?.removeAllViews()
         groups.forEach { group ->
-            chipGroup?.addView(Chip(requireContext()).apply {
+            selectedGroups?.addView(Chip(requireContext()).apply {
                 text = if (group.text.length > 20) {
                     group.text.substring(0, 10) + "..." + group.text.substring(group.text.length - 10)
                 } else {
@@ -138,8 +144,7 @@ class WhichGroups: StepperElement() {
                 isCheckable = false
 
                 setOnCloseIconClickListener {
-                    viewModel.groups.value = (viewModel.groups.value ?: setOf()) - group
-                    chipGroup?.removeView(it)
+                    viewModel.removeGroup(group)
                 }
             })
         }

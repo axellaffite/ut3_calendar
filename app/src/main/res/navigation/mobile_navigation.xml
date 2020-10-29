@@ -9,7 +9,7 @@
         android:id="@+id/navigation_calendar"
         android:name="com.edt.ut3.ui.calendar.CalendarFragment"
         android:label="@string/title_calendar"
-        tools:layout="@layout/fragment_calendar" >
+        tools:layout="@layout/fragment_calendar">
         <action
             android:id="@+id/action_navigation_calendar_to_preferencesFragment"
             app:destination="@id/preferencesFragment"
@@ -19,14 +19,14 @@
             app:popExitAnim="@anim/slide_out" />
         <action
             android:id="@+id/action_navigation_calendar_to_fragmentFormationChoice"
-            app:destination="@id/fragmentFormationChoice" />
+            app:destination="@id/formationSelectionFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_notes"
         android:name="com.edt.ut3.ui.notes.NotesFragment"
         android:label="@string/title_notes"
-        tools:layout="@layout/fragment_notes" >
+        tools:layout="@layout/fragment_notes">
         <action
             android:id="@+id/action_navigation_notes_to_fragmentNoteDetails"
             app:destination="@id/fragmentNoteDetails" />
@@ -41,7 +41,7 @@
     <fragment
         android:id="@+id/preferencesFragment"
         android:name="com.edt.ut3.ui.preferences.PreferencesFragment"
-        android:label="PreferencesFragment" >
+        android:label="PreferencesFragment">
         <action
             android:id="@+id/action_preferencesFragment_to_aboutUsFragment"
             app:destination="@id/aboutUsFragment"
@@ -51,7 +51,7 @@
             app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/action_preferencesFragment_to_fragmentFormationChoice"
-            app:destination="@id/fragmentFormationChoice" />
+            app:destination="@id/formationSelectionFragment" />
     </fragment>
 
     <fragment
@@ -64,16 +64,16 @@
         android:id="@+id/fragmentNoteDetails"
         android:name="com.edt.ut3.ui.notes.FragmentNoteDetails"
         android:label="FragmentNoteDetails"
-        tools:layout="@layout/fragment_note_details"/>
+        tools:layout="@layout/fragment_note_details" />
     <fragment
         android:id="@+id/aboutUsFragment"
         android:name="com.edt.ut3.ui.about_us.AboutUsFragment"
         android:label="fragment_about_us"
         tools:layout="@layout/fragment_about_us" />
     <fragment
-        android:id="@+id/fragmentFormationChoice"
-        android:name="com.edt.ut3.ui.preferences.formation.FormationFragment"
-        android:label="FragmentFormationChoice"
-        tools:layout="@layout/fragment_formation_choice" />
+        android:id="@+id/formationSelectionFragment"
+        android:name="com.edt.ut3.ui.preferences.formation.FormationSelectionFragment"
+        android:label="FormationSelectionFragment"
+        tools:layout="@layout/state_fragment" />
 
 </navigation>

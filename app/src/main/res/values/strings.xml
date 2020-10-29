@@ -128,4 +128,6 @@
     <string name="channel_course_description">Notification de changement dans l\'emploi du temps</string>
     <string name="channel_reminder_title">Rappel</string>
     <string name="channel_reminder_description">Rappel définit par l\'utilisateur</string>
+    <string name="step_check_credentials">Vérifier</string>
+    <string name="step_checking_credentials">Vérification..</string>
 </resources>
