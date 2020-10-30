@@ -15,6 +15,7 @@ import com.edt.ut3.misc.BaseState
 import com.edt.ut3.misc.extensions.isTrue
 import com.edt.ut3.misc.extensions.toJSONArray
 import com.edt.ut3.misc.extensions.toList
+import com.edt.ut3.misc.extensions.trigger
 import com.edt.ut3.ui.preferences.formation.authentication.AuthenticationFailure
 import com.edt.ut3.ui.preferences.formation.authentication.AuthenticationState
 import com.edt.ut3.ui.preferences.formation.which_groups.WhichGroupsFailure
@@ -112,7 +113,7 @@ class FormationSelectionViewModel: ViewModel() {
                 synchronized(groups) {
                     _groups.clear()
                     _groups.addAll(newGroups)
-                    _groupsLD.value = _groups
+                    _groupsLD.trigger()
                 }
 
                 setupAlreadyChosenGroups(context)
@@ -198,4 +199,14 @@ class FormationSelectionViewModel: ViewModel() {
             link = School.default.info.first().toJSON().toString()
         }
     }
+
+    fun checkConfiguration(it: Context) = PreferencesManager.getInstance(it).run {
+        ((link.isNullOrBlank() || groups.isNullOrBlank()) == false).also {
+            if (it == false) {
+                _authenticationFailure.value = AuthenticationFailure.ConfigurationNotFinished
+            }
+        }
+    }
+
+    fun triggerAuthenticationButton() = _authenticationState.trigger()
 }

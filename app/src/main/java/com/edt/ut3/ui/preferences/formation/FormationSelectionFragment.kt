@@ -7,6 +7,7 @@ import com.edt.ut3.backend.background_services.Updater
 import com.edt.ut3.misc.extensions.discard
 import com.edt.ut3.misc.extensions.onBackPressed
 import com.edt.ut3.ui.preferences.formation.authentication.FragmentAuthentication
+import com.edt.ut3.ui.preferences.formation.state_fragment.StateFragment
 import com.edt.ut3.ui.preferences.formation.which_groups.FragmentWhichGroups
 
 class FormationSelectionFragment: StateFragment() {
@@ -22,7 +23,11 @@ class FormationSelectionFragment: StateFragment() {
                     viewModel.validateCredentials(it)
                 } ?: false
             },
-            onRequestBack = { true },
+            onRequestBack = {
+                context?.let {
+                    viewModel.checkConfiguration(it)
+                } ?: false
+            },
             onBack = { onCancel() },
             onNext = {
                 nextTo(null)
@@ -39,12 +44,16 @@ class FormationSelectionFragment: StateFragment() {
             title = R.string.title_which_groups,
             summary = R.string.summary_which_groups,
             builder = { FragmentWhichGroups() },
-            onRequestNext = { viewModel.validateGroups().also { println("valid: $it") } },
+            onRequestNext = { viewModel.validateGroups() },
             onRequestBack = { true },
-            onBack = { back() },
+            onBack = { back(); triggerAuthenticationButton() },
             onNext = { onFinish() }
         )
     )
+
+    private fun triggerAuthenticationButton() {
+        viewModel.triggerAuthenticationButton()
+    }
 
     override fun onFinish(): Unit = context?.let {
         viewModel.saveGroups(it)

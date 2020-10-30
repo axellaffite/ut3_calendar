@@ -2,6 +2,7 @@ package com.edt.ut3.compatibility
 
 import android.content.Context
 import android.content.pm.PackageInfo
+import android.util.Log
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.PreferencesManager
 
@@ -27,14 +28,24 @@ object CompatibilityManager {
         val oldVersion = preferencesManager.codeVersion
         val newVersion = context.packageInfo.minorVersion
 
-        if (oldVersion == newVersion) {
-            return
-        }
-
         when (oldVersion to newVersion) {
-            0 to 19 -> from0To19()
+            0 to 19,
+            0 to 20 -> from0To19()
+
+            else -> {
+                Log.d(
+                    "CompatibilityManager",
+                    "Versions are the same or " +
+                            "compatibility cannot be done: " +
+                            "old=$oldVersion new=$newVersion"
+                )
+            }
         }
 
+        updateVersionCode(newVersion)
+    }
+
+    private fun updateVersionCode(newVersion: Int) {
         preferencesManager.codeVersion = newVersion
     }
 

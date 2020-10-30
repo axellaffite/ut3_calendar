@@ -16,4 +16,5 @@ abstract class AuthenticationFailure(private val reason: Int): BaseState.Failure
     object InternetFailure: AuthenticationFailure(R.string.error_check_internet)
     object WrongCredentials: AuthenticationFailure(R.string.error_wrong_credentials)
     object UnknownError: AuthenticationFailure(R.string.unknown_error)
+    object ConfigurationNotFinished: AuthenticationFailure(R.string.error_complete_configuration)
 }

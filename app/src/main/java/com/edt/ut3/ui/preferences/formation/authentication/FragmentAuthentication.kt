@@ -9,6 +9,7 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.widget.doOnTextChanged
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.edt.ut3.R
 import com.edt.ut3.backend.requests.authentication_services.Authenticator
@@ -18,12 +19,11 @@ import com.edt.ut3.misc.extensions.isTrue
 import com.edt.ut3.misc.extensions.updateIfNecessary
 import com.edt.ut3.ui.custom_views.TextInputEditText2
 import com.edt.ut3.ui.preferences.formation.FormationSelectionViewModel
-import com.edt.ut3.ui.preferences.formation.StateFragment
-import com.edt.ut3.ui.preferences.formation.StepperElement
+import com.edt.ut3.ui.preferences.formation.state_fragment.StateFragment
 import kotlinx.android.synthetic.main.fragment_authentication.*
 import kotlinx.android.synthetic.main.state_fragment.*
 
-class FragmentAuthentication: StepperElement() {
+class FragmentAuthentication: Fragment() {
 
     val viewModel: FormationSelectionViewModel by activityViewModels()
 
@@ -44,6 +44,7 @@ class FragmentAuthentication: StepperElement() {
             getCredentials(view.context).observe(viewLifecycleOwner, ::handleCredentialsUpdate)
             authenticationState.observe(viewLifecycleOwner, ::handleStateChange)
             authenticationFailure.observe(viewLifecycleOwner, ::handleFailure)
+
         }
 
         setupField(username)
@@ -131,7 +132,7 @@ class FragmentAuthentication: StepperElement() {
 
     private fun handleFailure(failure: AuthenticationFailure?) = failure?.let {
         context?.let {
-            Toast.makeText(it, failure.reason(it), Toast.LENGTH_LONG).show()
+            Toast.makeText(it, failure.reason(it), Toast.LENGTH_SHORT).show()
         }
 
         viewModel.clearFailure(failure)
@@ -147,7 +148,7 @@ class FragmentAuthentication: StepperElement() {
                 val credentials = viewModel.getCredentials(it).value
                 if (parent is StateFragment) {
                     when (credentials) {
-                        null -> parent.resetNextText()
+                        null -> parent.setNextText(R.string.step_skip)
                         else -> parent.setNextText(R.string.step_check_credentials)
                     }
                 }

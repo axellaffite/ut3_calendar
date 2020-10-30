@@ -21,7 +21,9 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         setContentView(R.layout.activity_main)
 
         CompatibilityManager.ensureCompatibility(this)
+        val shouldConfigure: Boolean
         PreferencesManager.getInstance(this).apply {
+            shouldConfigure = (link.isNullOrBlank() || groups.isNullOrBlank())
             setupDefaultPreferences()
             observe(this@MainActivity)
             setupTheme()
@@ -30,9 +32,11 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
 
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
         val controller = findNavController(R.id.nav_host_fragment)
-
-
         navView.setupWithNavController(controller)
+
+        if (shouldConfigure && controller.currentDestination?.id == R.id.navigation_calendar) {
+            controller.navigate(R.id.action_navigation_calendar_to_firstLaunchFragment)
+        }
 
         controller.addOnDestinationChangedListener { _, destination, _ ->
             hideKeyboard()

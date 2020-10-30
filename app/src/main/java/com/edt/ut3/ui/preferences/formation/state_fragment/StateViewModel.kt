@@ -1,4 +1,4 @@
-package com.edt.ut3.ui.preferences.formation
+package com.edt.ut3.ui.preferences.formation.state_fragment
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

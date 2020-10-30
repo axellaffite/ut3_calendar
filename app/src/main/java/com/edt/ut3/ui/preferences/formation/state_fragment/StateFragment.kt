@@ -1,4 +1,4 @@
-package com.edt.ut3.ui.preferences.formation
+package com.edt.ut3.ui.preferences.formation.state_fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,6 +9,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.edt.ut3.R
+import com.edt.ut3.misc.extensions.addOnBackPressedListener
 import kotlinx.android.synthetic.main.state_fragment.*
 import kotlinx.coroutines.Job
 
@@ -45,6 +46,8 @@ abstract class StateFragment: Fragment() {
         viewModel.run {
             position.observe(viewLifecycleOwner) { position: StateViewModel.Position ->
                 pager?.currentItem = position.current ?: 0
+                resetBackText()
+                resetNextText()
                 setTitle(builders[position.current ?: 0].title)
                 setSummary(builders[position.current ?: 0].summary)
             }
@@ -58,29 +61,29 @@ abstract class StateFragment: Fragment() {
             }
         }
 
-        back.setOnClickListener {
-            synchronized(this) {
-                onRequestBackJob?.cancel()
-                onRequestBackJob = lifecycleScope.launchWhenResumed {
-                    val current = viewModel.currentPosition()
-                    val builder = builders[current]
-                    if (builder.onRequestBack()) {
-                        builder.onBack()
-                    }
-                }
+        addOnBackPressedListener { requestBack() }
+        back.setOnClickListener { requestBack() }
+        next.setOnClickListener { requestNext() }
+    }
+
+    private fun requestBack() = synchronized(this) {
+        onRequestBackJob?.cancel()
+        onRequestBackJob = lifecycleScope.launchWhenResumed {
+            val current = viewModel.currentPosition()
+            val builder = builders[current]
+            if (builder.onRequestBack()) {
+                builder.onBack()
             }
         }
+    }
 
-        next.setOnClickListener {
-            synchronized(this) {
-                onRequestNextJob?.cancel()
-                onRequestNextJob = lifecycleScope.launchWhenResumed {
-                    val current = viewModel.currentPosition()
-                    val builder = builders[current]
-                    if (builder.onRequestNext(current)) {
-                        builder.onNext()
-                    }
-                }
+    private fun requestNext() = synchronized(this) {
+        onRequestNextJob?.cancel()
+        onRequestNextJob = lifecycleScope.launchWhenResumed {
+            val current = viewModel.currentPosition()
+            val builder = builders[current]
+            if (builder.onRequestNext(current)) {
+                builder.onNext()
             }
         }
     }

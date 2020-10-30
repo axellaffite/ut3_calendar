@@ -1,4 +1,4 @@
-package com.edt.ut3.ui.preferences.formation
+package com.edt.ut3.ui.preferences.formation.state_fragment
 
 import androidx.fragment.app.Fragment
 import com.edt.ut3.R

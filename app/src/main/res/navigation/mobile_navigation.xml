@@ -18,8 +18,8 @@
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/slide_out" />
         <action
-            android:id="@+id/action_navigation_calendar_to_fragmentFormationChoice"
-            app:destination="@id/formationSelectionFragment" />
+            android:id="@+id/action_navigation_calendar_to_firstLaunchFragment"
+            app:destination="@id/firstLaunchFragment" />
     </fragment>
 
     <fragment
@@ -75,5 +75,16 @@
         android:name="com.edt.ut3.ui.preferences.formation.FormationSelectionFragment"
         android:label="FormationSelectionFragment"
         tools:layout="@layout/state_fragment" />
+    <fragment
+        android:id="@+id/firstLaunchFragment"
+        android:name="com.edt.ut3.ui.first_launch.FirstLaunchFragment"
+        android:label="fragment_first_launch"
+        tools:layout="@layout/fragment_first_launch" >
+        <action
+            android:id="@+id/action_firstLaunchFragment_to_formationSelectionFragment"
+            app:destination="@id/formationSelectionFragment"
+            app:popUpTo="@id/firstLaunchFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
 
 </navigation>

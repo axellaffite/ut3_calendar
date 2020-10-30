@@ -9,6 +9,7 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
@@ -19,14 +20,13 @@ import com.edt.ut3.ui.custom_views.searchbar.SearchBar
 import com.edt.ut3.ui.custom_views.searchbar.SearchBarAdapter
 import com.edt.ut3.ui.custom_views.searchbar.SearchHandler
 import com.edt.ut3.ui.preferences.formation.FormationSelectionViewModel
-import com.edt.ut3.ui.preferences.formation.StepperElement
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_which_groups.*
 import kotlinx.android.synthetic.main.layout_search_bar.view.*
 import kotlinx.coroutines.Job
 
-class FragmentWhichGroups: StepperElement() {
+class FragmentWhichGroups: Fragment() {
 
     val viewModel: FormationSelectionViewModel by activityViewModels()
     lateinit var searchBar : SearchBar<School.Info.Group, GroupAdapter>
