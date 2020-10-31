@@ -5,7 +5,6 @@ import androidx.navigation.fragment.findNavController
 import com.edt.ut3.R
 import com.edt.ut3.backend.background_services.Updater
 import com.edt.ut3.misc.extensions.discard
-import com.edt.ut3.misc.extensions.onBackPressed
 import com.edt.ut3.ui.preferences.formation.authentication.FragmentAuthentication
 import com.edt.ut3.ui.preferences.formation.state_fragment.StateFragment
 import com.edt.ut3.ui.preferences.formation.which_groups.FragmentWhichGroups
@@ -61,6 +60,6 @@ class FormationSelectionFragment: StateFragment() {
         findNavController().popBackStack()
     }.discard()
 
-    override fun onCancel(): Unit = onBackPressed().discard()
+    override fun onCancel(): Unit = findNavController().popBackStack().discard()
 
 }
