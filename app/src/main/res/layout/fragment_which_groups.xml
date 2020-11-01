@@ -56,12 +56,29 @@
                 android:layout_gravity="center"/>
 
 
-            <com.github.ybq.android.spinkit.SpinKitView
+            <LinearLayout
                 android:id="@+id/loading"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                style="@style/SpinKitView.FoldingCube"/>
+                android:orientation="vertical">
+
+                <com.github.ybq.android.spinkit.SpinKitView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:layout_gravity="center_horizontal"
+                    app:SpinKit_Color="@color/textColor"
+                    style="@style/SpinKitView.FoldingCube"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/downloading_groups"
+                    android:textColor="@color/textColor"/>
+
+            </LinearLayout>
 
         </FrameLayout>
 

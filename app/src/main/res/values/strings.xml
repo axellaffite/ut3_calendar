@@ -135,4 +135,5 @@
     <string name="first_launch_message">Salut à toi et bienvenue dans EDT UT3 !\n\nAvant de commencer, nous devons te demander quelques informations, notamment les groupes auxquels tu appartiens.\n\nAvant de commencer, sâches que tes identifiants seront stockés sur ton téléphone et non pas envoyés sur un serveur distant. L\'étape de l\'authentification est d\'ailleurs optionnelle :)</string>
     <string name="step_skip">Passer</string>
     <string name="personnal_note">Note personnelle</string>
+    <string name="downloading_groups">Téléchargement des groupes..</string>
 </resources>
