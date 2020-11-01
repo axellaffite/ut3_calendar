@@ -11,7 +11,6 @@ import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.viewmodels.CoursesViewModel
 import com.edt.ut3.backend.database.viewmodels.EventViewModel
 import com.edt.ut3.backend.formation_choice.School
-import com.edt.ut3.backend.notification.EventChange
 import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.CelcatService
@@ -165,20 +164,11 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
                 if (shouldDisplayNotifications) {
                     val notificationManager = NotificationManager.getInstance(applicationContext)
 
-                    notificationManager.displayUpdateGroup(newEvents.size, removedEvent.size, updatedEvent.size)
-
-                    if(removedEvent.isNotEmpty()) {
-                        notificationManager.create(removedEvent, EventChange.Type.REMOVED)
-                    }
-
-                    if(newEvents.isNotEmpty()) {
-                        notificationManager.create(newEvents, EventChange.Type.ADDED)
-                    }
-
-                    if(updatedEvent.isNotEmpty()) {
-                        notificationManager.create(updatedEvent, EventChange.Type.UPDATED)
-                    }
-
+                    notificationManager.notifyUpdates(
+                        added = newEvents,
+                        removed = removedEvent,
+                        updated = updatedEvent
+                    )
                 }
 
                 insertCoursesVisibility(receivedEvent)

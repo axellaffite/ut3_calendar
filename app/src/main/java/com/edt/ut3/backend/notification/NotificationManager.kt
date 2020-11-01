@@ -1,6 +1,7 @@
 package com.edt.ut3.backend.notification
 
 import android.app.AlarmManager
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.PendingIntent
 import android.content.Context
@@ -20,63 +21,76 @@ import java.util.*
 class NotificationManager private constructor(val context: Context) {
 
     companion object {
-        @Volatile
         private var INSTANCE: NotificationManager? = null
 
-
-        @Synchronized fun getInstance(context: Context): NotificationManager {
+        fun getInstance(context: Context): NotificationManager = synchronized(this) {
             if (INSTANCE == null) {
                 INSTANCE = NotificationManager(context)
             }
 
-            return INSTANCE!!
+            INSTANCE!!
         }
     }
 
-    private fun createUpdateNotificationChannel(name: String, description: String, id: String) {
+    private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+    init {
+        createReminderChannel()
+        createUpdateChannel()
+    }
+
+    /**
+     * This function ensure that the notification channel
+     * has been created.
+     * It's called when the [NotificationManager]
+     * is created.
+     *
+     * @param info The channel information
+     */
+    private fun createUpdateNotificationChannel(info: NotificationChannelInformation) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel : NotificationChannel = NotificationChannel(
-                id,
-                name,
-                android.app.NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                this.description = description
-                this.lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
-            }
-
-            context.getSystemService(android.app.NotificationManager::class.java).createNotificationChannel(
-                channel
+            val channel = NotificationChannel(
+                info.id,
+                info.getTitle(context),
+                info.importance
             )
+
+            channel.description = info.getDescription(context)
+            channel.lockscreenVisibility = info.visibility
+
+            context.getSystemService(android.app.NotificationManager::class.java)
+                .createNotificationChannel(channel)
         }
     }
 
-    private fun createUpdateChannel() = "UPDATE_EDT".also { channelID ->
-        createUpdateNotificationChannel(
-            context.getString(R.string.channel_course_title),
-            context.getString(R.string.channel_course_description),
-            channelID
-        )
-    }
+    /**
+     * Ensure that the channel for the
+     * event updates is created.
+     */
+    private fun createUpdateChannel() = createUpdateNotificationChannel(NotificationChannelInformation.UpdateChannel)
 
-    private fun createReminderChannel() = "REMINDER".also { channelID ->
-        createUpdateNotificationChannel(
-            context.getString(R.string.channel_reminder_title),
-            context.getString(R.string.channel_reminder_description),
-            channelID
-        )
-    }
+    /**
+     * Ensure that the channel for the
+     * reminder is created.
+     */
+    private fun createReminderChannel() = createUpdateNotificationChannel(NotificationChannelInformation.ReminderChannel)
 
-    fun create(events: List<Event>, type: EventChange.Type) {
-        val channelID = createUpdateChannel()
+    /**
+     * Creates notifications for each [events] passed
+     * to the function.
+     *
+     * @param events The events to notify
+     * @param type The [type] of the events
+     */
+    private fun create(events: List<Event>, type: EventChange.Type) {
+        val channel = NotificationChannelInformation.UpdateChannel
 
         val notifications = events.map { event ->
-            NotificationCompat.Builder(context, channelID)
+            NotificationCompat.Builder(context, channel.id)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle(generateEventNotificationTitle(event, type))
                 .setContentText(generateEventNotificationText(event, type))
-                .setGroup(channelID)
-                .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
-                .setGroupSummary(false)
+                .setGroup(channel.id)
                 .build()
         }
 
@@ -87,7 +101,16 @@ class NotificationManager private constructor(val context: Context) {
         }
     }
 
-    fun displayUpdateGroup(added: Int, removed: Int, updated: Int) {
+    /**
+     * Display the group notification.
+     * Must be called before the notifications are displayed.
+     *
+     * @param added The new events
+     * @param removed The removed events
+     * @param updated The updated events
+     */
+    private fun displayUpdateGroup(added: Int, removed: Int, updated: Int) {
+        val channel = NotificationChannelInformation.UpdateChannel
         if (added + removed + updated == 0) return
 
         val contents = StringBuilder()
@@ -96,7 +119,7 @@ class NotificationManager private constructor(val context: Context) {
         if (updated > 0) contents.append(context.getString(R.string.event_updated).format(updated))
 
         NotificationManagerCompat.from(context).apply {
-            val summary = NotificationCompat.Builder(context, "UPDATE_EDT")
+            val summary = NotificationCompat.Builder(context, channel.id)
                 .setContentTitle(context.getString(R.string.calendar_updated))
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentText(contents.toString())
@@ -104,12 +127,28 @@ class NotificationManager private constructor(val context: Context) {
                     NotificationCompat.InboxStyle()
                         .setBigContentTitle(context.getString(R.string.calendar_updated))
                 )
-                .setGroup("UPDATE_EDT")
-                .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
+                .setGroup(channel.id)
                 .setGroupSummary(true)
                 .build()
 
-            notify("SUMMARY".hashCode(), summary)
+            notify(channel.summaryID, summary)
+        }
+    }
+
+
+    fun notifyUpdates(added: List<Event>, removed: List<Event>, updated: List<Event>) {
+        displayUpdateGroup(added.size, removed.size, updated.size)
+
+        val modifications = listOf(
+            added to EventChange.Type.ADDED,
+            removed to EventChange.Type.REMOVED,
+            updated to EventChange.Type.UPDATED
+        )
+
+        for ((events, type) in modifications) {
+            if (events.isNotEmpty()) {
+                create(events, type)
+            }
         }
     }
 
@@ -168,11 +207,21 @@ class NotificationManager private constructor(val context: Context) {
             return
         }
 
-        // TODO remove the note schedule
+        val notificationIntent = createNoteNotificationIntent()
+        val notificationPendingIntent = createNoteNotificationPendingIntent(note, notificationIntent)
+
+
+        alarmManager.cancel(notificationPendingIntent)
     }
 
+    /**
+     * Schedule a notification from
+     * a note.
+     *
+     * @param note The note to schedule
+     */
     private fun scheduleNotification(note: Note) {
-        val channelID = createReminderChannel()
+        val channel = NotificationChannelInformation.ReminderChannel
         val notificationId = note.id.toInt()
 
         val intent = Intent(context, MainActivity::class.java)
@@ -183,38 +232,60 @@ class NotificationManager private constructor(val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val notification = NotificationCompat.Builder(context, channelID)
+        val notification = NotificationCompat.Builder(context, channel.id)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(note.title)
             .setContentText(note.contents)
             .setAutoCancel(true)
-            .setGroup(channelID)
+            .setGroup(channel.id)
             .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
             .setContentIntent(activity)
             .build()
 
-        val notificationIntent = Intent(context, NotificationReceiver::class.java).apply {
+        val notificationIntent = createNoteNotificationIntent().apply {
             putExtra(NotificationReceiver.NOTIFICATION_ID, notificationId)
             putExtra(NotificationReceiver.NOTIFICATION, notification)
         }
 
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            notificationId,
-            notificationIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT
-        )
+        val pendingIntent = createNoteNotificationPendingIntent(note, notificationIntent)
 
         val time = note.reminder.getReminderDate()!!.time
         val secondsBeforeFiring = (note.reminder.getReminderDate()!!.time - System.currentTimeMillis()) / 1000
 
         Log.d(this::class.simpleName, "schedule: ${note.reminder.getReminderDate()}")
         Log.d(this::class.simpleName, "Second before firing: $secondsBeforeFiring")
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent);
-        } else {
-            alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pendingIntent);
+        when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ->
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+            else ->
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+        }
+    }
+
+    private fun createNoteNotificationIntent() = Intent(context, NotificationReceiver::class.java)
+
+    private fun createNoteNotificationPendingIntent(note: Note, notificationIntent: Intent): PendingIntent? {
+        return PendingIntent.getBroadcast(
+            context,
+            note.id.toInt(),
+            notificationIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
+    }
+
+    fun displayNoteNotification(id: Int, notification: Notification) {
+        val channel = NotificationChannelInformation.ReminderChannel
+
+        NotificationManagerCompat.from(context).run {
+            val summary = NotificationCompat.Builder(context, channel.id)
+                .setContentTitle(context.getString(R.string.personnal_note))
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setGroup(channel.id)
+                .setGroupSummary(true)
+                .build()
+
+            notify(channel.summaryID, summary)
+            notify(id, notification)
         }
     }
 }

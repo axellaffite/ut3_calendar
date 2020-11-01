@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import androidx.core.app.NotificationManagerCompat
 import com.edt.ut3.backend.database.viewmodels.NotesViewModel
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -21,7 +20,7 @@ class NotificationReceiver : BroadcastReceiver() {
         Log.d(this::class.simpleName, "Notification received")
         intent.getParcelableExtra<Notification>(NOTIFICATION)?.let { notification ->
             val notificationId = intent.getIntExtra(NOTIFICATION_ID, 0)
-            NotificationManagerCompat.from(context).notify(notificationId, notification)
+            NotificationManager.getInstance(context).displayNoteNotification(notificationId, notification)
 
             GlobalScope.launch {
                 NotesViewModel(context).run {
