@@ -1,5 +1,6 @@
 package com.edt.ut3.ui.preferences.formation.authentication
 
+import android.content.Context
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -36,12 +37,17 @@ class FragmentAuthentication: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupListeners(view)
+        setupListeners(view.context)
     }
 
-    private fun setupListeners(view: View) {
+    /**
+     * Setup the fragment listeners.
+     *
+     * @param context A valid [Context]
+     */
+    private fun setupListeners(context: Context) {
         viewModel.run {
-            getCredentials(view.context).observe(viewLifecycleOwner, ::handleCredentialsUpdate)
+            getCredentials(context).observe(viewLifecycleOwner, ::handleCredentialsUpdate)
             authenticationState.observe(viewLifecycleOwner, ::handleStateChange)
             authenticationFailure.observe(viewLifecycleOwner, ::handleFailure)
 
@@ -51,6 +57,13 @@ class FragmentAuthentication: Fragment() {
         setupField(password)
     }
 
+    /**
+     * Setup a credential field in order to
+     * handle the changes from it and update
+     * the UI depending on them.
+     *
+     * @param field The text field
+     */
     private fun setupField(field: TextInputEditText2?) = field?.apply {
         doOnTextChanged { _, _, _, _ -> updateViewModelCredentials() }
 
@@ -78,8 +91,16 @@ class FragmentAuthentication: Fragment() {
         }
     }
 
+    /**
+     * Shows the parent's action buttons
+     * depending on the current event.
+     *
+     * @param v The view
+     * @param keyCode The event key code
+     * @return Always return false
+     */
     private fun showKeyboardOnEvent(v: View? = null, keyCode: Int): Boolean {
-        val shouldBeHandled = (keyCode  == KeyEvent.KEYCODE_ENTER && v == password)
+        val shouldBeHandled = (keyCode == KeyEvent.KEYCODE_ENTER && v == password)
 
         if (shouldBeHandled) {
             showActionButtonsIfSubFragment()
@@ -88,6 +109,10 @@ class FragmentAuthentication: Fragment() {
         return false
     }
 
+    /**
+     * Show the actions button depending
+     * on the credentials fields focuses.
+     */
     private fun showActionButtonsDependingOnFocus() {
         when {
             username?.hasFocus().isTrue() -> hideActionButtonsIfSubFragment()
@@ -96,6 +121,11 @@ class FragmentAuthentication: Fragment() {
         }
     }
 
+    /**
+     * Hides the action buttons if the
+     * current fragment is a child of
+     * a StateFragment.
+     */
     private fun hideActionButtonsIfSubFragment() {
         val parent = parentFragment
         if (parent is StateFragment) {
@@ -103,6 +133,11 @@ class FragmentAuthentication: Fragment() {
         }
     }
 
+    /**
+     * Show the action buttons if the
+     * current fragment is a child of
+     * a StateFragment.
+     */
     private fun showActionButtonsIfSubFragment() {
         val parent = parentFragment
         if (parent is StateFragment) {
@@ -110,6 +145,11 @@ class FragmentAuthentication: Fragment() {
         }
     }
 
+    /**
+     * Sets the credentials into the [viewModel].
+     * If one of the field is null or blank,
+     * we just pass null to the [viewModel].
+     */
     private fun updateViewModelCredentials() {
         val username = username?.text.takeIf { !it.isNullOrBlank() }
         val password = password?.text.takeIf { !it.isNullOrBlank() }
@@ -122,6 +162,16 @@ class FragmentAuthentication: Fragment() {
         )
     }
 
+    /**
+     * Update the view depending on the
+     * incoming [credentials].
+     *
+     * If they are the same as the view's ones,
+     * they are not updated to avoid an infinite
+     * loop.
+     *
+     * @param credentials The incoming credentials
+     */
     private fun handleCredentialsUpdate(credentials: Authenticator.Credentials?) {
         val newUsername = credentials?.username ?: return
         val newPassword = credentials.password
@@ -130,6 +180,12 @@ class FragmentAuthentication: Fragment() {
         password?.updateIfNecessary(newPassword)
     }
 
+    /**
+     * Handles an [AuthenticationFailure].
+     * Actually it only display a [Toast].
+     *
+     * @param failure The incoming failure.
+     */
     private fun handleFailure(failure: AuthenticationFailure?) = failure?.let {
         context?.let {
             Toast.makeText(it, failure.reason(it), Toast.LENGTH_SHORT).show()
@@ -138,6 +194,12 @@ class FragmentAuthentication: Fragment() {
         viewModel.clearFailure(failure)
     }
 
+    /**
+     * Update the view depending on
+     * incoming [state].
+     *
+     * @param state The new state.
+     */
     private fun handleStateChange(state: AuthenticationState?): Unit = when (state) {
         AuthenticationState.Unauthenticated -> {
             username?.isEnabled = true
