@@ -12,7 +12,7 @@ import com.edt.ut3.backend.maps.Place
 import com.edt.ut3.backend.note.Note
 import com.edt.ut3.backend.notification.EventChange
 
-@Database(entities = [Note::class, Event::class, Course::class, Place::class, EventChange::class], version = 2, exportSchema = false)
+@Database(entities = [Note::class, Event::class, Course::class, Place::class, EventChange::class], version = 2, exportSchema = true)
 @TypeConverters(Converter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun eventDao() : EventDao
