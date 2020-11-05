@@ -40,9 +40,9 @@ object CompatibilityManager {
     }
 
     private fun migrateFrom(migration: Migration): Int = when (migration) {
-        in Migration(0,19)..Migration(0,25) -> {
-            from0To19_25()
-            25
+        in Migration(0,19)..Migration(0,26) -> {
+            from0To19_26()
+            26
         }
 
         else -> {
@@ -57,7 +57,7 @@ object CompatibilityManager {
         }
     }
 
-    private fun from0To19_25(): Unit = preferencesManager.run {
+    private fun from0To19_26(): Unit = preferencesManager.run {
         link = School.default.info.first().toJSON().toString()
     }
 
