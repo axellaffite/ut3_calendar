@@ -73,11 +73,12 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
+            android:autoLink="web|email"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+            android:textIsSelectable="true"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/title"
             app:layout_constraintTop_toBottomOf="@+id/from_to"
-            android:autoLink="web|email"
             tools:text="A brief description that\ncan contains multiple\nlines." />
 
         <ImageView

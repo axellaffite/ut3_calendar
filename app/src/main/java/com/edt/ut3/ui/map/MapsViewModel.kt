@@ -14,7 +14,7 @@ import java.io.IOException
 
 class MapsViewModel: ViewModel() {
     lateinit var places : LiveData<List<Place>>
-
+    private var permissionAsked = false
 
     @Synchronized
     fun getPlaces(context: Context) : LiveData<List<Place>> {
@@ -23,6 +23,12 @@ class MapsViewModel: ViewModel() {
         }
 
         return places
+    }
+
+    fun shouldAskPositionPermission() = synchronized(permissionAsked) {
+        (permissionAsked == false).also {
+            permissionAsked = true
+        }
     }
 
 
