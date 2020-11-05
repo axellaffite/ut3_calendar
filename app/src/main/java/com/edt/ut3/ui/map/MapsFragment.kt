@@ -20,16 +20,15 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import androidx.activity.addCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.doOnAttach
-import androidx.core.view.doOnDetach
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.observe
 import androidx.recyclerview.widget.RecyclerView
 import com.axellaffite.fastgallery.FastGallery
 import com.axellaffite.fastgallery.ImageLoader
@@ -37,6 +36,7 @@ import com.edt.ut3.R
 import com.edt.ut3.backend.maps.MapsUtils
 import com.edt.ut3.backend.maps.Place
 import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.misc.extensions.discard
 import com.edt.ut3.misc.extensions.hideKeyboard
 import com.edt.ut3.ui.custom_views.searchbar.FilterChip
 import com.edt.ut3.ui.custom_views.searchbar.SearchBar
@@ -47,12 +47,6 @@ import com.edt.ut3.ui.map.custom_makers.PlaceMarker
 import com.edt.ut3.ui.preferences.Theme
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
 import com.google.android.material.snackbar.Snackbar
-import com.karumi.dexter.Dexter
-import com.karumi.dexter.PermissionToken
-import com.karumi.dexter.listener.PermissionDeniedResponse
-import com.karumi.dexter.listener.PermissionGrantedResponse
-import com.karumi.dexter.listener.PermissionRequest
-import com.karumi.dexter.listener.single.PermissionListener
 import kotlinx.android.synthetic.main.fragment_maps.*
 import kotlinx.android.synthetic.main.fragment_maps.view.*
 import kotlinx.android.synthetic.main.layout_search_bar.view.*
@@ -87,29 +81,74 @@ class MapsFragment : Fragment() {
 
     private val viewModel: MapsViewModel by viewModels()
 
-    private var searchJob : Job? = null
     private var downloadJob : Job? = null
 
-    private val selectedCategories = HashSet<String>()
     private val places = mutableListOf<Place>()
-    private val matchingPlaces = mutableListOf<Place>()
 
     private var theSearchBar: (SearchBar<Place, MapsSearchBarAdapter>)? = null
 
     private var locationListener: LocationListener? = null
     private var locationManager: LocationManager? = null
 
+    private val locationListenerPermission = object: PermittedAction(Manifest.permission.ACCESS_FINE_LOCATION) {
+        override fun shouldAskPermission() : Boolean {
+            return viewModel.shouldAskPositionPermission()
+        }
+
+        @SuppressLint("MissingPermission")
+        override fun ifGranted(): Unit = activity?.run {
+            locationListener = MapsLocationListener()
+
+            locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            locationManager?.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER,
+                0L,
+                0f,
+                locationListener!!
+            )
+        }.discard()
+
+        override fun ifDenied() = maps_info?.let {
+            Snackbar.make(it, R.string.cannot_access_location, Snackbar.LENGTH_SHORT).show()
+        }.discard()
+    }
+
+    private val centerOnLocationPermission = object: PermittedAction(Manifest.permission.ACCESS_FINE_LOCATION) {
+        override fun shouldAskPermission() = true
+
+        @SuppressLint("MissingPermission")
+        override fun ifGranted() {
+            removeLocationListener()
+            setupLocationListener()
+            locationManager?.getLastKnownLocation(PASSIVE_PROVIDER)?.also {
+                smoothMoveTo(GeoPoint(it))
+            }
+        }
+
+        override fun ifDenied() = maps_info?.let {
+            Snackbar.make(it, R.string.cannot_access_location, Snackbar.LENGTH_SHORT).show()
+        }.discard()
+    }
+
 
     override fun onPause() {
         super.onPause()
         // Do not remove this line until we use osmdroid
         map.onPause()
+
+        view?.post {
+            removeLocationListener()
+        }
     }
 
     override fun onResume() {
         super.onResume()
         // Do not remove this line until we use omsdroid
         map.onResume()
+
+        view?.post {
+            setupLocationListener()
+        }
     }
 
     override fun onCreateView(
@@ -281,14 +320,6 @@ class MapsFragment : Fragment() {
                     overlayManager.tilesOverlay.setColorFilter(ColorMatrixColorFilter(colorMatrix))
                 }
             }
-
-            doOnAttach {
-                setupLocationListener()
-            }
-
-            doOnDetach {
-                removeLocationListener()
-            }
         }
     }
 
@@ -301,72 +332,17 @@ class MapsFragment : Fragment() {
      * the requestLocationPermissionIfNecessary is
      * called and check it before executing it
      */
-    @SuppressLint("MissingPermission")
-    private fun setupLocationListener() {
-        Dexter.withContext(requireContext())
-            .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-            .withListener(object : PermissionListener {
-                override fun onPermissionGranted(response: PermissionGrantedResponse?) {
-                    locationListener = MapsLocationListener()
+    private fun setupLocationListener() = context?.let {
+        locationListenerPermission.execute(it)
+    }.discard()
 
-                    locationManager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-                    executeIfLocationPermissionIsGranted {
-                        locationManager?.requestLocationUpdates(
-                            LocationManager.GPS_PROVIDER,
-                            0L,
-                            0f,
-                            locationListener!!
-                        )
-                    }
-                }
+    private fun removeLocationListener() = locationListener?.let {
+        locationManager?.removeUpdates(it)
+    }.discard()
 
-                override fun onPermissionDenied(response: PermissionDeniedResponse?) { /* ... */
-                    maps_main?.let {
-                        Snackbar.make(it, R.string.cannot_access_location, Snackbar.LENGTH_SHORT).show()
-                    }
-                }
-
-                override fun onPermissionRationaleShouldBeShown(
-                    permission: PermissionRequest?,
-                    token: PermissionToken?
-                ) {
-                    token?.continuePermissionRequest()
-                }
-            }).check()
-    }
-
-    private fun removeLocationListener() {
-        locationListener?.let {
-            locationManager?.removeUpdates(it)
-        }
-    }
-
-    private fun centerOnLocation() {
-        Dexter.withContext(requireContext())
-            .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-            .withListener(object : PermissionListener {
-                @SuppressLint("MissingPermission")
-                override fun onPermissionGranted(response: PermissionGrantedResponse?) {
-                    removeLocationListener()
-                    setupLocationListener()
-                    locationManager?.getLastKnownLocation(PASSIVE_PROVIDER)?.also {
-                        smoothMoveTo(GeoPoint(it))
-                    }
-                }
-
-                override fun onPermissionDenied(response: PermissionDeniedResponse?) {
-                    maps_main?.let {
-                        Snackbar.make(it, R.string.cannot_access_location, Snackbar.LENGTH_SHORT).show()
-                    }
-                }
-
-                override fun onPermissionRationaleShouldBeShown(permission: PermissionRequest?,
-                                                                token: PermissionToken?
-                ) {
-                    token?.continuePermissionRequest()
-                }
-            }).check()
-    }
+    private fun centerOnLocation() = context?.let {
+        centerOnLocationPermission.execute(it)
+    }.discard()
 
     /**
      * Setup all the listeners to handle user's actions.
@@ -385,9 +361,9 @@ class MapsFragment : Fragment() {
             state.value = State.SEARCHING
         }
 
-        state.observe(viewLifecycleOwner) {
+        state.observe(viewLifecycleOwner, Observer {
             handleStateChange(it)
-        }
+        })
 
         setupBackButtonPressCallback()
 
@@ -395,9 +371,9 @@ class MapsFragment : Fragment() {
             centerOnLocation()
         }
 
-        viewModel.getPlaces(requireContext()).observe(viewLifecycleOwner) { newPlaces ->
+        viewModel.getPlaces(requireContext()).observe(viewLifecycleOwner, Observer { newPlaces ->
             setupCategoriesAndPlaces(newPlaces)
-        }
+        })
     }
 
     private fun executeIfLocationPermissionIsGranted(callback: () -> Unit) {
@@ -471,9 +447,10 @@ class MapsFragment : Fragment() {
 
         // Assign the downloadJob to the new operation
         downloadJob = lifecycleScope.launch {
-            println("launched")
             withContext(Main) {
-                Snackbar.make(maps_main, R.string.data_update, Snackbar.LENGTH_SHORT).show()
+                maps_info?.let {
+                    Snackbar.make(it, R.string.data_update, Snackbar.LENGTH_SHORT).show()
+                }
             }
 
             val downloadResult = viewModel.launchDataUpdate(requireContext())
@@ -486,8 +463,9 @@ class MapsFragment : Fragment() {
             when (downloadResult.errorCount) {
                 // Display success message
                 0 -> callback = {
-                    Snackbar.make(maps_main, R.string.maps_update_success, Snackbar.LENGTH_LONG)
-                        .show()
+                    maps_info?.let {
+                        Snackbar.make(it, R.string.maps_update_success, Snackbar.LENGTH_LONG).show()
+                    }
                 }
 
                 // Display an error message depending on
@@ -498,11 +476,13 @@ class MapsFragment : Fragment() {
                         else -> R.string.building_update_failed
                     }
 
-                    Snackbar.make(maps_main, errRes, Snackbar.LENGTH_INDEFINITE)
-                        .setAction(R.string.action_retry) {
-                            startDownloadJob()
-                        }
-                        .show()
+                    maps_info?.let {
+                        Snackbar.make(it, errRes, Snackbar.LENGTH_INDEFINITE)
+                            .setAction(R.string.action_retry) {
+                                startDownloadJob()
+                            }
+                            .show()
+                    }
                 }
 
                 // Display an error message depending on
@@ -513,27 +493,27 @@ class MapsFragment : Fragment() {
                         else -> R.string.restaurant_update_failed
                     }
 
-                    Snackbar.make(maps_main, errRes, Snackbar.LENGTH_INDEFINITE)
-                        .setAction(R.string.action_retry) {
-                            startDownloadJob()
-                        }
-                        .show()
+                    maps_info?.let {
+                        Snackbar.make(it, errRes, Snackbar.LENGTH_INDEFINITE)
+                            .setAction(R.string.action_retry) {
+                                startDownloadJob()
+                            }
+                            .show()
+                    }
                 }
 
                 // Display an internet error message
                 else -> callback = {
-                    Snackbar.make(
-                        maps_main,
-                        R.string.unable_to_retrieve_data,
-                        Snackbar.LENGTH_INDEFINITE
-                    ).show()
+                    maps_info?.let {
+                        Snackbar.make(it, R.string.unable_to_retrieve_data, Snackbar.LENGTH_INDEFINITE)
+                            .show()
+                    }
                 }
             }
 
             // Calling the callback.
             Log.d(this::class.simpleName, downloadResult.toString())
             callback()
-//            maps_main?.post()
         }
 
         println("or not ?")
@@ -542,9 +522,6 @@ class MapsFragment : Fragment() {
     private fun setupCategoriesAndPlaces(incomingPlaces: List<Place>) {
         places.clear()
         places.addAll(incomingPlaces)
-
-        println(incomingPlaces)
-
 
         theSearchBar!!.run {
             search()
@@ -670,9 +647,9 @@ class MapsFragment : Fragment() {
                         GeoPoint(selected.geolocalisation),
                         selected.title
                     ) {
-                        maps_main?.let {
+                        maps_info?.let { info ->
                             Snackbar.make(
-                                it,
+                                info,
                                 R.string.unable_to_launch_googlemaps,
                                 Snackbar.LENGTH_LONG
                             ).show()
@@ -786,5 +763,35 @@ class MapsFragment : Fragment() {
          * due to function deprecation
          */
         override fun onProviderDisabled(provider: String) {}
+    }
+
+    abstract inner class PermittedAction(private val permission: String) {
+        private val permissionChecker =
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+                if (isGranted) {
+                    ifGranted()
+                } else {
+                    ifDenied()
+                }
+            }
+
+        abstract fun shouldAskPermission(): Boolean
+        abstract fun ifGranted()
+        abstract fun ifDenied()
+
+        fun execute(context: Context) = when (checkPermission(context)) {
+            PackageManager.PERMISSION_GRANTED -> {
+                ifGranted()
+            }
+
+            else -> if (shouldAskPermission()) {
+                permissionChecker.launch(permission)
+            } else {
+                ifDenied()
+            }
+        }
+
+        private fun checkPermission(context: Context) =
+            ContextCompat.checkSelfPermission(context, permission)
     }
 }
