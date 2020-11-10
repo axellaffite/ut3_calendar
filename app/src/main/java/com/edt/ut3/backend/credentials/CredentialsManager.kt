@@ -1,6 +1,7 @@
 package com.edt.ut3.backend.credentials
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
@@ -34,19 +35,17 @@ class CredentialsManager private constructor(val context: Context) {
      */
     private fun getMasterKey() = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
 
-    /**
-     * Returns the credentials preference file
-     * which is an encrypted file.
-     *
-     * Creates it if it doesn't exist.
-     */
-    private fun getCredentialsPreferenceFile() = EncryptedSharedPreferences.create(
-        "credentials",
-        getMasterKey(),
-        context,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
+
+    private fun getCredentialsPreferenceFile(): SharedPreferences {
+        return EncryptedSharedPreferences.create(
+            "credentials",
+            getMasterKey(),
+            context,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
+
 
     /**
      * Save the credentials into an
@@ -54,7 +53,7 @@ class CredentialsManager private constructor(val context: Context) {
      *
      * @param credentials The user credentials
      */
-    fun saveCredentials(credentials: Authenticator.Credentials) {
+    fun saveCredentials(credentials: Authenticator.Credentials) = synchronized(this) {
         getCredentialsPreferenceFile().edit {
             putString("username", credentials.username)
             putString("password", credentials.password)
@@ -67,19 +66,19 @@ class CredentialsManager private constructor(val context: Context) {
      *
      * @return The credentials or null
      */
-    fun getCredentials(): Authenticator.Credentials? {
+    fun getCredentials(): Authenticator.Credentials? = synchronized(this) {
         getCredentialsPreferenceFile().run {
             val username = getString("username", null)
             val password = getString("password", null)
 
-            return Authenticator.Credentials.from(username, password)
+            Authenticator.Credentials.from(username, password)
         }
     }
 
     /**
      * Clear the credentials stored in memory.
      */
-    fun clearCredentials() {
+    fun clearCredentials(): Unit = synchronized(this){
         getCredentialsPreferenceFile().edit {
             putString("username", null)
             putString("password", null)
