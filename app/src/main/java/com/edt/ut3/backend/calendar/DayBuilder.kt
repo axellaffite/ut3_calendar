@@ -60,7 +60,7 @@ class DayBuilder(
             return
         }
 
-        val calendarMode = CalendarMode.fromJson(preferences.calendarMode)
+        val calendarMode = preferences.calendarMode
         when {
             calendarMode.isAgenda() ->
                 buildDayView(container, eventList, height, width)

@@ -58,7 +58,7 @@ object CompatibilityManager {
     }
 
     private fun from0To19_28(): Unit = preferencesManager.run {
-        link = School.default.info.first().toJSON().toString()
+        link = School.default.info.first()
     }
 
     data class Migration(val from: Int, val to: Int): Comparable<Migration> {

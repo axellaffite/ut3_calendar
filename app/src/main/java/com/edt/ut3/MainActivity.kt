@@ -10,11 +10,12 @@ import androidx.navigation.ui.setupWithNavController
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.compatibility.CompatibilityManager
 import com.edt.ut3.misc.extensions.hideKeyboard
+import com.edt.ut3.ui.preferences.ThemePreference
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
 
-    private var previousTheme : String? = null
+    private var previousTheme : ThemePreference? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,7 +24,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         CompatibilityManager.ensureCompatibility(this)
         val shouldConfigure: Boolean
         PreferencesManager.getInstance(this).apply {
-            shouldConfigure = (link.isNullOrBlank() || groups.isNullOrBlank())
+            shouldConfigure = (link == null || groups.isNullOrEmpty())
             setupDefaultPreferences()
             observe(this@MainActivity)
             setupTheme()
