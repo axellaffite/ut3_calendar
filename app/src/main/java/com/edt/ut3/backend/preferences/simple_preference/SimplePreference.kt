@@ -6,10 +6,33 @@ import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import kotlin.reflect.KProperty
 
-class SimplePreference(context: Context) {
+/**
+ * Used to substitute the classic preferences.
+ *
+ * @param context Used to get the default shared preferences.
+ * @property preferences The preferences from which the values will be get from.
+ */
+class SimplePreference(
+    context: Context,
+    val preferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+) {
 
-    private val preferences = PreferenceManager.getDefaultSharedPreferences(context)
-
+    /**
+     * Used to delegate a preference value.
+     * When the value is assigned, it is directly put into the
+     * [SharedPreferences].
+     * When the value is accessed, it is directly get from the
+     * [SharedPreferences].
+     *
+     * @param T The type of the preference (non nullable)
+     * @property key The key where to store the preference
+     * @property defValue The default value to retrieve if the preference is unset. If the
+     * specified type is nullable, the [default value][defValue] should be equal to null
+     * as some parsers are able to detect that the deserialized object is in fact null. But this
+     * is only an advice as the final decision remains on the development context.
+     * @property converter The converter to convert the value from and to the [SharedPreferences]
+     * @property getter The way to get the preference
+     */
     inner class Delegate <T> (
         private val key: String,
         private val defValue: String,
@@ -17,42 +40,69 @@ class SimplePreference(context: Context) {
         private val getter: (pref: SharedPreferences, key: String, defValue: String) -> String =
             { pref, key, def -> pref.getString(key, null) ?: def }
     ) {
+        /**
+         * How to get the value from the preferences.
+         * It uses the [getter] provided in the constructor.
+         * By default it only get the value as a string.
+         *
+         * @param thisRef The reference to the current variable
+         * @param property The properties of the current variable
+         *
+         * @return The property get from the preferences with the getter
+         * provided in the constructor. By default if the value is not present,
+         * the [defValue] is returned.
+         */
         operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
             val value = getter(preferences, key, defValue)
-            return converter.getFromString(value)
+            return converter.deserialize(value)
         }
 
+        /**
+         * Sets the value into the [SharedPreferences].
+         * The value is set as a [String].
+         *
+         * @param thisRef The reference to the current variable
+         * @param property The properties of the current variable
+         * @param value The value to set into the [SharedPreferences]
+         */
         operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
             preferences.edit {
-                putString(key, converter.convertToString(value))
+                putString(key, converter.serialize(value))
             }
         }
     }
 
-    inner class NullableDelegate <T> (
-        private val key: String,
-        private val defValue: String?,
-        private val converter: NullableConverter<T>
-    ) {
-        operator fun getValue(thisRef: Any?, property: KProperty<*>): T? {
-            return converter.getFromString(preferences.getString(key, defValue))
-        }
-
-        operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T?) {
-            preferences.edit {
-                putString(key, converter.convertToString(value))
-            }
-        }
-    }
-
-    abstract class NullableConverter <T> {
-        abstract fun getFromString(value: String?): T?
-        abstract fun convertToString(value: T?): String?
-    }
-
+    /**
+     * Used to specify how to convert a certain type.
+     *
+     * @param T The type the the object to convert.
+     */
     abstract class Converter <T> {
-        abstract fun getFromString(value: String): T
-        abstract fun convertToString(value: T): String
+        /**
+         * This function describes how the object should
+         * be deserialized from a [String].
+         *
+         * @param value The string from which the value
+         * will be converted. Note that the string may be
+         * equal to "null" if the incoming value is null.
+         *
+         * @return T The converted value as a [T] object
+         */
+        abstract fun deserialize(value: String): T
+
+        /**
+         * This function describes how the object should
+         * be serialized to a [String].
+         *
+         * @param value The value to serialize.
+         * If the type is nullable, the returned value
+         * should be equal to "null" as some parsers are
+         * able to guess that "null" should be converted
+         * as a null object.
+         *
+         * @return The serialized object as a [String]
+         */
+        abstract fun serialize(value: T): String
     }
 
 }

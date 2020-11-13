@@ -6,6 +6,7 @@ import com.edt.ut3.R
 import com.edt.ut3.backend.formation_choice.School.Info
 import com.edt.ut3.misc.extensions.map
 import com.edt.ut3.misc.extensions.toJSONArray
+import kotlinx.serialization.Serializable
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -15,6 +16,7 @@ import org.json.JSONObject
  * @property name
  * @property info
  */
+@Serializable
 data class School(
     val name: String,
     val info: List<Info>
@@ -36,7 +38,7 @@ data class School(
 
         /**
          * Returns the default School which is Paul Sabatier
-         * with all its [informations][Info].
+         * with all its [information][Info].
          */
         val default = School(
             name="Université Paul Sabatier",
@@ -70,6 +72,7 @@ data class School(
      * @property rooms The link to get all the rooms
      * @property courses The link to get all the courses
      */
+    @Serializable
     data class Info (
         val name: String,
         val url: String,
@@ -134,31 +137,27 @@ data class School(
             @Throws(InvalidLinkException::class)
             fun fromClassicLink(link: String): Pair<Info, List<String>> {
                 try {
-                    try {
-                        val baseLink = celcatLinkPattern.find(link)?.value
-                        val fids = extractFids(link.toUri())
+                    val baseLink = celcatLinkPattern.find(link)?.value
+                    val fids = extractFids(link.toUri())
 
-                        if (baseLink.isNullOrBlank()) {
-                            throw InvalidLinkException(R.string.error_invalid_link)
-                        }
-
-                        if (fids.isEmpty()) {
-                            throw InvalidLinkException(R.string.error_link_groups)
-                        }
-
-                        val name = ""
-                        println(baseLink)
-                        val url = celcatLinkPattern.find(link)?.groups?.get(1)?.value!!
-                        val groups = guessGroupsLink(url)
-                        val rooms = guessRoomsLink(url)
-                        val courses = guessCoursesLink(url)
-
-                        return Pair(Info(name, url, groups, rooms, courses), fids)
-                    } catch (e: UnsupportedOperationException) {
+                    if (baseLink.isNullOrBlank()) {
                         throw InvalidLinkException(R.string.error_invalid_link)
                     }
-                } catch (e: InvalidLinkException) {
-                    throw e
+
+                    if (fids.isEmpty()) {
+                        throw InvalidLinkException(R.string.error_link_groups)
+                    }
+
+                    val name = ""
+                    println(baseLink)
+                    val url = celcatLinkPattern.find(link)?.groups?.get(1)?.value!!
+                    val groups = guessGroupsLink(url)
+                    val rooms = guessRoomsLink(url)
+                    val courses = guessCoursesLink(url)
+
+                    return Pair(Info(name, url, groups, rooms, courses), fids)
+                } catch (e: UnsupportedOperationException) {
+                    throw InvalidLinkException(R.string.error_invalid_link)
                 }
             }
 
