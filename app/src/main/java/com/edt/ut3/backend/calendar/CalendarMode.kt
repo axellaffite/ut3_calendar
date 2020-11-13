@@ -18,8 +18,8 @@ import org.json.JSONObject
 @Serializable
 data class CalendarMode(
     var mode: Mode = Mode.AGENDA,
-    var forceWeek: Boolean = false)
-{
+    var forceWeek: Boolean = false
+) {
 
     enum class Mode { AGENDA, WEEK }
 
