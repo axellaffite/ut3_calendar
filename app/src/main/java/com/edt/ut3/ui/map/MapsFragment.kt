@@ -27,7 +27,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.axellaffite.fastgallery.FastGallery
@@ -361,7 +360,7 @@ class MapsFragment : Fragment() {
             state.value = State.SEARCHING
         }
 
-        state.observe(viewLifecycleOwner, Observer {
+        state.observe(viewLifecycleOwner, {
             handleStateChange(it)
         })
 
@@ -371,7 +370,7 @@ class MapsFragment : Fragment() {
             centerOnLocation()
         }
 
-        viewModel.getPlaces(requireContext()).observe(viewLifecycleOwner, Observer { newPlaces ->
+        viewModel.getPlaces(requireContext()).observe(viewLifecycleOwner, { newPlaces ->
             setupCategoriesAndPlaces(newPlaces)
         })
     }

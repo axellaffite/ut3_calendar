@@ -104,7 +104,7 @@ data class Note(
      * Available types are defined in the ReminderType
      * enum class.
      *
-     * @property noteDate The base date which will be used
+     * @property date The base date which will be used
      * to compute the actual reminder time.
      */
     data class Reminder(
@@ -224,6 +224,8 @@ data class Note(
 
             return false
         }
+
+        override fun hashCode() = Objects.hash(date, customDate, type)
 
         override fun toString(): String {
             return "Reminder(date=$date, type=$type, customDate=$customDate, isActive=${isActive()})"

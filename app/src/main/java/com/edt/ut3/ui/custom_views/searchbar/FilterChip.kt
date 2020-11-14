@@ -26,7 +26,7 @@ open class FilterChip<Data>(context: Context, attrs: AttributeSet? = null): Chip
         setTextColor(ContextCompat.getColor(context, R.color.textColor))
     }
 
-    abstract class Filter<Data>() {
+    abstract class Filter<Data> {
         abstract operator fun invoke(dataSet: List<Data>): List<Data>
     }
 

@@ -20,5 +20,3 @@ fun<E> Iterable<E>.toJSONArray(converter: (E) -> Any?) : JSONArray {
         }
     }
 }
-
-fun Any?.discard() = Unit
