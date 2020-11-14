@@ -1,6 +1,7 @@
 package com.edt.ut3.backend.celcat
 
 import android.content.Context
+import androidx.core.text.isDigitsOnly
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -156,23 +157,32 @@ data class Event(
                 val line = regex.find(it)?.groups?.get(1)?.let { module ->
                     it.removeSuffix(module.value).trim()
                 } ?: it
-                when {
-                    line.matches(Regex("\\d\\*")) -> {
-                        teacherID = line.toInt()
+
+                when (line) {
+                    in classesNames -> {
+                        classes.add(line)
                     }
 
-                    classesNames.contains(line) -> classes.add(line)
+                    in coursesNames -> {
+                        course = coursesNames[line]
+                    }
 
-                    coursesNames.contains(line) -> course = coursesNames[line]
-
-                    line == category -> {
+                    category -> {
                         /* ignore line */
                     }
 
-                    else -> if (precisionBuilder.isBlank()) {
-                        precisionBuilder.append(line)
-                    } else {
-                        precisionBuilder.append("\n").append(line)
+                    else -> when {
+                        line.isDigitsOnly() -> {
+                            teacherID = line.toInt()
+                        }
+
+                        precisionBuilder.isBlank() -> {
+                            precisionBuilder.append(line)
+                        }
+
+                        else -> {
+                            precisionBuilder.append("\n").append(line)
+                        }
                     }
                 }
             }
