@@ -10,6 +10,8 @@ import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.simple_preference.SimplePreference
 import com.edt.ut3.ui.preferences.Theme
 import com.edt.ut3.ui.preferences.ThemePreference
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * Used to manage the application preferences.
@@ -76,7 +78,7 @@ class PreferencesManager private constructor(
 
     var calendarMode : CalendarMode by simplePreference.Delegate(
         key = PreferenceKeys.CALENDAR_MODE.key,
-        defValue = CalendarMode.default().toJSON().toString(),
+        defValue = Json.encodeToString(CalendarMode.default()),
         converter = CalendarModeConverter
     )
 

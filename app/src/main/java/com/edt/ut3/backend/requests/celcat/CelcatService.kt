@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.requests.HttpClientProvider
+import com.edt.ut3.backend.requests.JsonWebDeserializer
 import com.edt.ut3.backend.requests.RequestsUtils
 import com.edt.ut3.backend.requests.authentication_services.Authenticator
 import com.edt.ut3.backend.requests.withAuthentication
