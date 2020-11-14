@@ -4,11 +4,7 @@ import android.net.Uri
 import androidx.core.net.toUri
 import com.edt.ut3.R
 import com.edt.ut3.backend.formation_choice.School.Info
-import com.edt.ut3.misc.extensions.map
-import com.edt.ut3.misc.extensions.toJSONArray
 import kotlinx.serialization.Serializable
-import org.json.JSONException
-import org.json.JSONObject
 
 /**
  * Represents a School by its name and [information][Info].
@@ -22,20 +18,6 @@ data class School(
     val info: List<Info>
 ){
     companion object {
-        /**
-         * Parse an [School] object from a JSON string.
-         *
-         * @throws JSONException If the json representation isn't valid.
-         * @param json The JSON object to parse.
-         */
-        @Throws(JSONException::class)
-        fun fromJSON(json: JSONObject) = School (
-            name = json.getString("name"),
-            info = json.getJSONArray("infos").map {
-                Info.fromJSON(it as JSONObject)
-            }
-        )
-
         /**
          * Returns the default School which is Paul Sabatier
          * with all its [information][Info].
@@ -52,15 +34,6 @@ data class School(
                 )
             )
         )
-    }
-
-    /**
-     * Serialize the current [object][School]
-     * into a JSONObject.
-     */
-    fun toJSON() = JSONObject().apply {
-        put("name", name)
-        put("infos", info.toJSONArray { it.toJSON() })
     }
 
     /**
@@ -81,21 +54,6 @@ data class School(
         val courses: String
     ){
         companion object {
-            /**
-             * Parse an [Info] object from a JSON string.
-             *
-             * @throws JSONException If the json representation isn't valid.
-             * @param json The JSON object to parse.
-             */
-            @Throws(JSONException::class)
-            fun fromJSON(json: JSONObject) = Info (
-                name = json.getString("name"),
-                url = json.getString("url"),
-                groups = json.getString("groups"),
-                rooms = json.getString("rooms"),
-                courses = json.getString("courses")
-            )
-
             /**
              * This function extracts the fids from a Celcat URL.
              *
@@ -205,18 +163,6 @@ data class School(
         }
 
         /**
-         * Serialize the current [object][Info]
-         * into a JSONObject.
-         */
-        fun toJSON() = JSONObject().apply {
-            put("name", name)
-            put("url", url)
-            put("groups", groups)
-            put("rooms", rooms)
-            put("courses", courses)
-        }
-
-        /**
          * Thrown if the given link is invalid.
          *
          * @property reason A resource id pointing to
@@ -231,32 +177,10 @@ data class School(
          * @property id The group id
          * @property text The textual representation
          */
+        @Serializable
         data class Group (
             val id: String,
             val text: String
-        ) {
-            companion object {
-                /**
-                 * Parse a [Group] object from a JSON string.
-                 *
-                 * @throws JSONException If the json representation isn't valid.
-                 * @param json The JSON object to parse.
-                 */
-                @Throws(JSONException::class)
-                fun fromJSON(json: JSONObject) = Group (
-                    id = json.getString("id"),
-                    text = json.getString("text")
-                )
-            }
-
-            /**
-             * Serialize the current [object][Group]
-             * into a JSONObject.
-             */
-            fun toJSON() = JSONObject().apply {
-                put("id", id)
-                put("text", text)
-            }
-        }
+        )
     }
 }

@@ -1,7 +1,6 @@
 package com.edt.ut3.backend.celcat
 
 import android.content.Context
-import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -12,16 +11,13 @@ import com.edt.ut3.misc.DestructedColor
 import com.edt.ut3.misc.Emoji
 import com.edt.ut3.misc.extensions.fromCelcatString
 import com.edt.ut3.misc.extensions.fromHTML
-import com.edt.ut3.misc.extensions.toList
+import com.edt.ut3.misc.extensions.getNotNull
 import com.elzozor.yoda.events.EventWrapper
-import kotlinx.android.parcel.Parcelize
-import org.json.JSONException
-import org.json.JSONObject
+import kotlinx.serialization.json.*
 import java.io.IOException
 import java.util.*
 
 @Entity(tableName = "event")
-@Parcelize
 data class Event(
     @PrimaryKey var id: String,
     var category: String?,
@@ -35,32 +31,47 @@ data class Event(
     var backgroundColor: String?,
     var textColor: String?,
     @ColumnInfo(name = "note_id") var noteID: Long?
-) : Parcelable {
+) {
     companion object {
-        @Throws(JSONException::class)
-        fun fromJSON(obj: JSONObject, classes: Set<String>, courses: Map<String, String>) = obj.run {
-            val category = optString("eventCategory").fromHTML()
-            val parsedDescription = ParsedDescription(category, optString("description").fromHTML(), classes, courses)
+        @Throws(Exception::class)
+        fun fromJSON(obj: JsonObject, classes: Set<String>, courses: Map<String, String>) = obj.run {
+                val category = getNotNull("eventCategory")?.jsonPrimitive?.content?.fromHTML()
+                val parsedDescription = ParsedDescription(
+                    category,
+                    getNotNull("description")?.jsonPrimitive?.content?.fromHTML(),
+                    classes,
+                    courses
+                )
 
-            val start = Date().apply { fromCelcatString(getString("start")) }
-            val end = if (isNull("end")) start else Date().apply { fromCelcatString(getString("end")) }
-            val sites = (optJSONArray("sites")?.toList<String?>()?.filterNotNull()?.map { it.fromHTML().trim() } ?: listOf())
+                val start = Date().fromCelcatString(getValue("start").jsonPrimitive.content)
 
-            Event(
-                id = getString("id").fromHTML(),
-                category = category,
-                description = parsedDescription.precisions,
-                courseName = parsedDescription.course,
-                locations = parsedDescription.classes,
-                sites = sites.sorted(),
-                start = start,
-                end = end,
-                allday = getBoolean("allDay") || isNull("end"),
-                backgroundColor = getString("backgroundColor").fromHTML(),
-                textColor = optString("textColor")?.fromHTML() ?: "#000000",
-                noteID = null
-            )
-        }
+                val end = getNotNull("end")?.let {
+                    Date().fromCelcatString(it.jsonPrimitive.content)
+                } ?: start
+
+                val sites = getNotNull("sites")?.let { json ->
+                    json.jsonArray
+                        .filterIsInstance<JsonPrimitive>()
+                        .map { it.content.fromHTML().trim() }
+                } ?: listOf()
+
+                Event(
+                    id = getValue("id").jsonPrimitive.content.fromHTML(),
+                    category = category,
+                    description = parsedDescription.precisions,
+                    courseName = parsedDescription.course,
+                    locations = parsedDescription.classes,
+                    sites = sites.sorted(),
+                    start = start,
+                    end = end,
+                    allday = getNotNull("allDay")?.jsonPrimitive?.boolean == true
+                            || getNotNull("end") == null,
+                    backgroundColor = getValue("backgroundColor").jsonPrimitive.content.fromHTML(),
+                    textColor = getNotNull("textColor")?.jsonPrimitive?.content?.fromHTML()
+                        ?: "#000000",
+                    noteID = null
+                )
+            }
 
     }
 
@@ -68,7 +79,7 @@ data class Event(
         return category?.let {
             when {
                 it.contains("controle", true) ||
-                    it.contains("examen", true) -> "$category ${Emoji.sad()}"
+                        it.contains("examen", true) -> "$category ${Emoji.sad()}"
 
                 else -> category
             }
@@ -87,7 +98,7 @@ data class Event(
      * @param context Application context
      * @return The darkened color
      */
-    fun darkBackgroundColor(context: Context) : Int {
+    fun darkBackgroundColor(context: Context): Int {
         return DestructedColor.fromCelcatColor(context, backgroundColor).changeLuminosity().toArgb()
     }
 
@@ -98,7 +109,7 @@ data class Event(
      * @param context Application context
      * @return The converted color
      */
-    fun lightBackgroundColor(context: Context) : Int {
+    fun lightBackgroundColor(context: Context): Int {
         return DestructedColor.fromCelcatColor(context, backgroundColor).toArgb()
     }
 
@@ -108,7 +119,7 @@ data class Event(
      *
      * @property event The event to encapsulate.
      */
-    class Wrapper(val event: Event): EventWrapper() {
+    class Wrapper(val event: Event) : EventWrapper() {
         override fun begin() = event.start
 
         override fun end() = event.end ?: event.start
@@ -126,7 +137,12 @@ data class Event(
      * @param classesNames All the classes names that exists (otherwise classes will always be empty)
      * @param coursesNames All the courses names that exists (otherwise course will always be null)
      */
-    class ParsedDescription(category: String?, description: String?, classesNames: Set<String>, coursesNames: Map<String, String>) {
+    class ParsedDescription(
+        category: String?,
+        description: String?,
+        classesNames: Set<String>,
+        coursesNames: Map<String, String>
+    ) {
         var course: String? = null
         val classes = mutableListOf<String>()
         var teacherID: Int? = null
@@ -141,13 +157,17 @@ data class Event(
                     it.removeSuffix(module.value).trim()
                 } ?: it
                 when {
-                    it.matches(Regex("\\d\\*")) -> { teacherID = line.toInt() }
+                    line.matches(Regex("\\d\\*")) -> {
+                        teacherID = line.toInt()
+                    }
 
                     classesNames.contains(line) -> classes.add(line)
 
                     coursesNames.contains(line) -> course = coursesNames[line]
 
-                    line == category -> { /* ignore line */ }
+                    line == category -> {
+                        /* ignore line */
+                    }
 
                     else -> if (precisionBuilder.isBlank()) {
                         precisionBuilder.append(line)
@@ -159,7 +179,9 @@ data class Event(
 
             precisions = if (precisionBuilder.isNotEmpty()) {
                 precisionBuilder.toString()
-            } else { null }
+            } else {
+                null
+            }
 
             course = cleanCourseName()
         }
@@ -172,7 +194,8 @@ data class Event(
         private fun cleanCourseName(): String? {
             return try {
                 course?.let {
-                    val (_, newCourse) = Regex("(\\w+\\s-) (.+)").find(it)?.destructured ?: throw IOException()
+                    val (_, newCourse) = Regex("(\\w+\\s-) (.+)").find(it)?.destructured
+                        ?: throw IOException()
                     newCourse
                 }
             } catch (e: IOException) {
