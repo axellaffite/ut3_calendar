@@ -34,19 +34,17 @@ class HttpClientProvider {
          *
          * @return The OkHttpClient
          */
-        fun generateNewClient(): OkHttpClient {
-            synchronized(this) {
-                if (client == null) {
-                    client = OkHttpClient.Builder()
-                        .connectTimeout(10, TimeUnit.SECONDS)
-                        .writeTimeout(10, TimeUnit.SECONDS)
-                        .readTimeout(10, TimeUnit.SECONDS)
-                        .cookieJar(CookieProvider.getInstance())
-                        .build()
-                }
-
-                return client!!
+        fun generateNewClient(): OkHttpClient = synchronized(this) {
+            if (client == null) {
+                client = OkHttpClient.Builder()
+                    .connectTimeout(10, TimeUnit.SECONDS)
+                    .writeTimeout(10, TimeUnit.SECONDS)
+                    .readTimeout(10, TimeUnit.SECONDS)
+                    .cookieJar(CookieProvider)
+                    .build()
             }
+
+            client!!
         }
 
 
@@ -55,12 +53,13 @@ class HttpClientProvider {
 
 val authMutex = Mutex()
 @Throws(SocketTimeoutException::class, IOException::class, Authenticator.InvalidCredentialsException::class)
-suspend fun<T> OkHttpClient.withAuthentication(context: Context,
-                                               host: HttpUrl,
-                                               auth: CelcatAuthenticator = CelcatAuthenticator(),
-                                               credentials: Authenticator.Credentials? = null,
-                                               block: OkHttpClient.() -> T): T
-{
+suspend fun<T> OkHttpClient.withAuthentication(
+    context: Context,
+    host: HttpUrl,
+    auth: CelcatAuthenticator = CelcatAuthenticator(),
+    credentials: Authenticator.Credentials? = null,
+    block: OkHttpClient.() -> T
+): T {
     return authMutex.withLock {
         var err: Exception? = null
         var result: T? = null

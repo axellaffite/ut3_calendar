@@ -10,7 +10,6 @@ import java.io.IOException
 import java.net.SocketTimeoutException
 
 class CelcatAuthenticator {
-    private val cookieProvider = CookieProvider.getInstance()
 
     @Throws(SocketTimeoutException::class, IOException::class, Authenticator.InvalidCredentialsException::class)
     suspend fun connect(url: HttpUrl, credentials: Authenticator.Credentials?) {
@@ -18,7 +17,7 @@ class CelcatAuthenticator {
             getAuthenticator(url.host)
                 ?.ensureAuthentication(
                     url.host,
-                    cookieProvider,
+                    CookieProvider,
                     credentials
                 )
         } ?: throw Authenticator.InvalidCredentialsException("Credentials are null")
@@ -39,6 +38,7 @@ class CelcatAuthenticator {
     }
 
     fun disconnect(url: HttpUrl) {
-        cookieProvider.removeCookiesFor(url)
+        CookieProvider.removeCookiesFor(url)
     }
+
 }

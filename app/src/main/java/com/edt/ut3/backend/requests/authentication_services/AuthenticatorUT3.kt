@@ -24,9 +24,9 @@ class AuthenticatorUT3: Authenticator() {
         // Here we look for authentication cookies
         // If there are no cookie available for authentication
         // the resulting cookie is null.
-        val cookies = CookieProvider.getInstance()
-                .getCookiesFor(host)
-                ?.filter { it.name.matches(".*AspNetCore.Cookies.*".toRegex()) }
+        val cookies = CookieProvider.getCookiesFor(host)?.filter {
+            it.name.matches(".*AspNetCore.Cookies.*".toRegex())
+        }
 
 
         // The authentication is considered successful
