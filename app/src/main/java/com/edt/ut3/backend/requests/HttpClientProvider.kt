@@ -4,7 +4,6 @@ import android.content.Context
 import com.edt.ut3.backend.credentials.CredentialsManager
 import com.edt.ut3.backend.requests.authentication_services.Authenticator
 import com.edt.ut3.backend.requests.authentication_services.CelcatAuthenticator
-import com.edt.ut3.misc.extensions.isNotNull
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okhttp3.HttpUrl
@@ -65,9 +64,10 @@ suspend fun<T> OkHttpClient.withAuthentication(
         var result: T? = null
         try {
             val cred = credentials ?: CredentialsManager.getInstance(context).getCredentials()
-            if (cred.isNotNull()) {
+            cred?.let {
                 auth.connect(host, cred)
             }
+
             result = block(this)
         } catch (e: Exception) {
             err = e

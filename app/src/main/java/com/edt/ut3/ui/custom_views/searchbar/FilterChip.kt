@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.AttributeSet
 import androidx.core.content.ContextCompat
 import com.edt.ut3.R
-import com.edt.ut3.misc.extensions.isNotNull
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipDrawable
 
@@ -70,7 +69,7 @@ open class FilterChip<Data>(context: Context, attrs: AttributeSet? = null): Chip
                 dataSet
             } else {
                 dataSet.filter {
-                    filters.firstOrNull { f -> f(it) }.isNotNull()
+                    filters.firstOrNull { f -> f(it) } != null
                 }
             }
         }

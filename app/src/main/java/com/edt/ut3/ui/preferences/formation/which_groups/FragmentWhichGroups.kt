@@ -15,7 +15,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.edt.ut3.R
 import com.edt.ut3.backend.formation_choice.School
-import com.edt.ut3.misc.extensions.discard
 import com.edt.ut3.ui.custom_views.searchbar.SearchBar
 import com.edt.ut3.ui.custom_views.searchbar.SearchBarAdapter
 import com.edt.ut3.ui.custom_views.searchbar.SearchHandler
@@ -111,25 +110,29 @@ class FragmentWhichGroups: Fragment() {
         else -> {}
     }.also { Log.d("FragmentWhichGroups", "State set to $state") }
 
-    private fun handleError(error: WhichGroupsFailure?) : Unit = when (error) {
-        WhichGroupsFailure.WrongCredentials, WhichGroupsFailure.UnknownError -> {
-            snack_container?.let {
-                Snackbar.make(it, error.reason(it.context), Snackbar.LENGTH_SHORT).show()
-            }.discard()
+    private fun handleError(error: WhichGroupsFailure?){
+        when (error) {
+            WhichGroupsFailure.WrongCredentials, WhichGroupsFailure.UnknownError -> {
+                snack_container?.let {
+                    Snackbar.make(it, error.reason(it.context), Snackbar.LENGTH_SHORT).show()
+                }
+            }
+
+            WhichGroupsFailure.GroupUpdateFailure -> {
+                snack_container?.let {
+                    Snackbar.make(it, error.reason(it.context), Snackbar.LENGTH_INDEFINITE)
+                        .setAction(R.string.action_retry) { v ->
+                            viewModel.updateGroups(v.context)
+                        }
+                        .show()
+                }
+            }
+
+            else -> {}
         }
 
-        WhichGroupsFailure.GroupUpdateFailure -> {
-            snack_container?.let {
-                Snackbar.make(it, error.reason(it.context), Snackbar.LENGTH_INDEFINITE)
-                    .setAction(R.string.action_retry) { v ->
-                        viewModel.updateGroups(v.context)
-                    }
-                    .show()
-            }.discard()
-        }
-
-        else -> {}
-    }.also { viewModel.clearFailure(error) }
+        viewModel.clearFailure(error)
+    }
 
     private fun updateChips(groups: Set<School.Info.Group>) {
         selectedGroups?.removeAllViews()
