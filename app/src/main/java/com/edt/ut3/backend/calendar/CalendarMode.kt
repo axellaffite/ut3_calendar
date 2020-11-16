@@ -15,8 +15,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class CalendarMode(
-    var mode: Mode = Mode.AGENDA,
-    var forceWeek: Boolean = false
+    val mode: Mode = Mode.AGENDA,
+    val forceWeek: Boolean = false
 ) {
 
     enum class Mode { AGENDA, WEEK }
@@ -62,14 +62,14 @@ data class CalendarMode(
      * the current configuration but the [forceWeek]
      * variable is set to true.
      */
-    fun withForcedDay() = CalendarMode(mode, true)
+    fun withForcedWeek() = CalendarMode(mode, true)
 
     /**
      * Returns a [CalendarMode] object with
      * the current configuration but the [forceWeek]
      * variable is set to false.
      */
-    fun withoutForceDay() = CalendarMode(mode, false)
+    fun withoutForcedWeek() = CalendarMode(mode, false)
 
     /**
      * Returns a [CalendarMode] object with
