@@ -1,7 +1,6 @@
 package com.edt.ut3.backend.requests.authentication_services
 
 import com.edt.ut3.backend.requests.CookieProvider
-import com.edt.ut3.misc.extensions.isNotNull
 import java.io.IOException
 import java.net.SocketTimeoutException
 
@@ -50,7 +49,7 @@ abstract class Authenticator {
     ) {
         companion object {
             fun from(username: String?, password: String?): Credentials? {
-                return if (username.isNotNull() && password.isNotNull()) {
+                return if (username != null && password != null) {
                     Credentials(username, password)
                 } else {
                     null

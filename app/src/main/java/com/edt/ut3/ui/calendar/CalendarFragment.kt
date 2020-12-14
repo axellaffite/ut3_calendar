@@ -55,10 +55,10 @@ class CalendarFragment : BottomSheetFragment(),
     private lateinit var preferences: PreferencesManager
 
     private val preferenceChangeListener =
-        SharedPreferences.OnSharedPreferenceChangeListener { _: SharedPreferences, key: String ->
+        SharedPreferences.OnSharedPreferenceChangeListener { pref: SharedPreferences, key: String ->
             when (key) {
                 PreferencesManager.PreferenceKeys.CALENDAR_MODE.key -> {
-                    val newPreference = CalendarMode.fromJson(preferences.calendarMode)
+                    val newPreference = preferences.calendarMode
                     updateBarText(calendarViewModel.selectedDate.value!!, newPreference)
 
                     pager?.notifyDataSetChanged()
@@ -78,7 +78,7 @@ class CalendarFragment : BottomSheetFragment(),
      * which is sets in the ViewModel.
      */
     private fun updateCalendarMode() {
-        val lastValue = CalendarMode.fromJson(preferences.calendarMode)
+        val lastValue = preferences.calendarMode
         val newPreference = when (context?.resources?.configuration?.orientation) {
             ORIENTATION_PORTRAIT ->
                 lastValue.withAgendaMode()
@@ -86,7 +86,7 @@ class CalendarFragment : BottomSheetFragment(),
                 lastValue.withWeekMode()
         }
 
-        preferences.calendarMode = newPreference.toJSON().toString()
+        preferences.calendarMode = newPreference
 
         view?.action_view?.menu?.findItem(R.id.change_view)?.let {
             it.isEnabled = newPreference.mode == CalendarMode.Mode.AGENDA
@@ -255,7 +255,7 @@ class CalendarFragment : BottomSheetFragment(),
                 }
             }
 
-            updateBarText(selectedDate, CalendarMode.fromJson(preferences.calendarMode))
+            updateBarText(selectedDate, preferences.calendarMode)
 
 //            pager?.adapter?.notifyDataSetChanged()
         }
@@ -280,7 +280,7 @@ class CalendarFragment : BottomSheetFragment(),
                             return
                         }
 
-                        val mode = CalendarMode.fromJson(preferences.calendarMode)
+                        val mode = preferences.calendarMode
                         val mult = if (mode.isAgenda()) 1 else 7
                         selectedDate.value =
                             selectedDate.value!!.add(Calendar.DAY_OF_YEAR, (position - oldPosition) * mult)
@@ -404,10 +404,10 @@ class CalendarFragment : BottomSheetFragment(),
     }
 
     private fun onChangeViewClick(item: MenuItem): Boolean {
-        val mode = CalendarMode.fromJson(preferences.calendarMode)
+        val mode = preferences.calendarMode
         val newMode = mode.invertForceWeek()
         Log.d(this::class.simpleName, "Mode: $mode | NewMode: $newMode")
-        preferences.calendarMode = newMode.toJSON().toString()
+        preferences.calendarMode = newMode
 
         updateViewIcon(item)
 
@@ -415,7 +415,7 @@ class CalendarFragment : BottomSheetFragment(),
     }
 
     private fun updateViewIcon(item: MenuItem) {
-        val mode = CalendarMode.fromJson(preferences.calendarMode)
+        val mode = preferences.calendarMode
         val icon = when (mode) {
             CalendarMode.default() -> R.drawable.ic_week_view
             else -> R.drawable.ic_agenda_view
@@ -534,7 +534,7 @@ class CalendarFragment : BottomSheetFragment(),
                     padding = 16.toDp(context).toInt()
 
                     layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+                        MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
                     )
                 }
             }
@@ -548,8 +548,8 @@ class CalendarFragment : BottomSheetFragment(),
     fun buildEmptyDayView(): View {
         return TextView(context).apply {
             layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
+                MATCH_PARENT,
+                MATCH_PARENT
             )
             gravity = Gravity.CENTER
             text = context.getString(R.string.empty_day).format(Emoji.happy())

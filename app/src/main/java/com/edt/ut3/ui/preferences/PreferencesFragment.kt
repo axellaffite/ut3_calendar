@@ -27,7 +27,7 @@ class PreferencesFragment: PreferenceFragmentCompat() {
             onPreferenceChangeListener = Preference.OnPreferenceChangeListener { preference: Preference, any: Any ->
                 try {
                     val pref = PreferencesManager.getInstance(context)
-                    pref.theme = any as String
+                    pref.theme = ThemePreference.valueOf(any as String)
 
                     true
                 } catch (e: Exception) {

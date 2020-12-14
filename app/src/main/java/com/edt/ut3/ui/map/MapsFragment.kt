@@ -27,7 +27,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.axellaffite.fastgallery.FastGallery
@@ -36,7 +35,6 @@ import com.edt.ut3.R
 import com.edt.ut3.backend.maps.MapsUtils
 import com.edt.ut3.backend.maps.Place
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.misc.extensions.discard
 import com.edt.ut3.misc.extensions.hideKeyboard
 import com.edt.ut3.ui.custom_views.searchbar.FilterChip
 import com.edt.ut3.ui.custom_views.searchbar.SearchBar
@@ -96,21 +94,25 @@ class MapsFragment : Fragment() {
         }
 
         @SuppressLint("MissingPermission")
-        override fun ifGranted(): Unit = activity?.run {
-            locationListener = MapsLocationListener()
+        override fun ifGranted(): Unit {
+            activity?.run {
+                locationListener = MapsLocationListener()
 
-            locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-            locationManager?.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER,
-                0L,
-                0f,
-                locationListener!!
-            )
-        }.discard()
+                locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                locationManager?.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER,
+                    0L,
+                    0f,
+                    locationListener!!
+                )
+            }
+        }
 
-        override fun ifDenied() = maps_info?.let {
-            Snackbar.make(it, R.string.cannot_access_location, Snackbar.LENGTH_SHORT).show()
-        }.discard()
+        override fun ifDenied() {
+            maps_info?.let {
+                Snackbar.make(it, R.string.cannot_access_location, Snackbar.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private val centerOnLocationPermission = object: PermittedAction(Manifest.permission.ACCESS_FINE_LOCATION) {
@@ -125,9 +127,11 @@ class MapsFragment : Fragment() {
             }
         }
 
-        override fun ifDenied() = maps_info?.let {
-            Snackbar.make(it, R.string.cannot_access_location, Snackbar.LENGTH_SHORT).show()
-        }.discard()
+        override fun ifDenied() {
+            maps_info?.let {
+                Snackbar.make(it, R.string.cannot_access_location, Snackbar.LENGTH_SHORT).show()
+            }
+        }
     }
 
 
@@ -332,17 +336,23 @@ class MapsFragment : Fragment() {
      * the requestLocationPermissionIfNecessary is
      * called and check it before executing it
      */
-    private fun setupLocationListener() = context?.let {
-        locationListenerPermission.execute(it)
-    }.discard()
+    private fun setupLocationListener() {
+        context?.let {
+            locationListenerPermission.execute(it)
+        }
+    }
 
-    private fun removeLocationListener() = locationListener?.let {
-        locationManager?.removeUpdates(it)
-    }.discard()
+    private fun removeLocationListener() {
+        locationListener?.let {
+            locationManager?.removeUpdates(it)
+        }
+    }
 
-    private fun centerOnLocation() = context?.let {
-        centerOnLocationPermission.execute(it)
-    }.discard()
+    private fun centerOnLocation() {
+        context?.let {
+            centerOnLocationPermission.execute(it)
+        }
+    }
 
     /**
      * Setup all the listeners to handle user's actions.
@@ -361,7 +371,7 @@ class MapsFragment : Fragment() {
             state.value = State.SEARCHING
         }
 
-        state.observe(viewLifecycleOwner, Observer {
+        state.observe(viewLifecycleOwner, {
             handleStateChange(it)
         })
 
@@ -371,7 +381,7 @@ class MapsFragment : Fragment() {
             centerOnLocation()
         }
 
-        viewModel.getPlaces(requireContext()).observe(viewLifecycleOwner, Observer { newPlaces ->
+        viewModel.getPlaces(requireContext()).observe(viewLifecycleOwner, { newPlaces ->
             setupCategoriesAndPlaces(newPlaces)
         })
     }

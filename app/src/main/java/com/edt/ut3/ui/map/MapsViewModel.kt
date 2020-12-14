@@ -5,12 +5,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.edt.ut3.backend.database.viewmodels.PlaceViewModel
 import com.edt.ut3.backend.maps.Place
-import com.edt.ut3.backend.requests.MapsServices
-import com.edt.ut3.misc.extensions.map
+import com.edt.ut3.backend.requests.maps.MapsService
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import java.io.IOException
 
 class MapsViewModel: ViewModel() {
     lateinit var places : LiveData<List<Place>>
@@ -48,6 +45,7 @@ class MapsViewModel: ViewModel() {
      * - errorCount = 3 : The internet connection does not seem to work,
      *                    we display an error message saying to check it.
      */
+    @Suppress("BlockingMethodInNonBlockingContext")
     suspend fun launchDataUpdate(context: Context) : DownloadResult {
 
         var error: Exception? = null
@@ -58,15 +56,7 @@ class MapsViewModel: ViewModel() {
         // First download for Paul Sabatier places
         // (from our github)
         try {
-            val paulSabatierPlaces = withContext(IO) {
-                val body = MapsServices().getPaulSabatierPlaces().body?.string() ?: throw IOException()
-                JSONObject(body).getJSONArray("records")
-            }.map {
-                with (it as JSONObject) {
-                    Place.fromJSON(this)
-                }
-            }
-
+            val paulSabatierPlaces = withContext(IO) { MapsService.getPaulSabatierPlaces() }
             newPlaces.addAll(paulSabatierPlaces)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -78,15 +68,7 @@ class MapsViewModel: ViewModel() {
         // Second download for Crous places
         // (from the government website)
         try {
-            val crousPlaces = withContext(IO) {
-                val body = MapsServices().getCrousPlaces().body?.string() ?: throw IOException()
-                JSONObject(body).getJSONArray("records")
-            }.map {
-                with (it as JSONObject) {
-                    Place.fromJSON(this)
-                }
-            }
-
+            val crousPlaces = withContext(IO) { MapsService.getCrousPlaces() }
             newPlaces.addAll(crousPlaces)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -96,7 +78,6 @@ class MapsViewModel: ViewModel() {
 
 
         PlaceViewModel(context).insert(*newPlaces.toTypedArray())
-
         return DownloadResult(errorCount, error)
     }
 

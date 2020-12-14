@@ -40,9 +40,9 @@ object CompatibilityManager {
     }
 
     private fun migrateFrom(migration: Migration): Int = when (migration) {
-        in Migration(0,19)..Migration(0,28) -> {
-            from0To19_28()
-            28
+        in Migration(0,19)..Migration(0,29) -> {
+            from0To19_29()
+            29
         }
 
         else -> {
@@ -57,8 +57,8 @@ object CompatibilityManager {
         }
     }
 
-    private fun from0To19_28(): Unit = preferencesManager.run {
-        link = School.default.info.first().toJSON().toString()
+    private fun from0To19_29(): Unit = preferencesManager.run {
+        link = School.default.info.first()
     }
 
     data class Migration(val from: Int, val to: Int): Comparable<Migration> {
@@ -88,8 +88,7 @@ object CompatibilityManager {
     class MigrationProgression(
         override val start: Migration,
         override val endInclusive: Migration
-    ) : Iterable<Migration>,
-        ClosedRange<Migration> {
+    ) : Iterable<Migration>, ClosedRange<Migration> {
 
         override fun iterator(): Iterator<Migration> = MigrationIterator(start, endInclusive)
 

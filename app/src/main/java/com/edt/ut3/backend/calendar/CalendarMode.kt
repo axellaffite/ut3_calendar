@@ -2,8 +2,6 @@ package com.edt.ut3.backend.calendar
 
 import com.edt.ut3.backend.calendar.CalendarMode.Mode
 import kotlinx.serialization.Serializable
-import org.json.JSONException
-import org.json.JSONObject
 
 /**
  * Used to save the current CalendarMode
@@ -17,9 +15,9 @@ import org.json.JSONObject
  */
 @Serializable
 data class CalendarMode(
-    var mode: Mode = Mode.AGENDA,
-    var forceWeek: Boolean = false)
-{
+    val mode: Mode = Mode.AGENDA,
+    val forceWeek: Boolean = false
+) {
 
     enum class Mode { AGENDA, WEEK }
 
@@ -39,25 +37,6 @@ data class CalendarMode(
          * mode isn't forced.
          */
         fun defaultWeek() = CalendarMode(Mode.WEEK, false)
-
-        /**
-         * Parse a [CalendarMode] class from
-         * JSON.
-         *
-         * @throws JSONException If the given string
-         * isn't a valid representation of a CalendarMode class.
-         * @param str The string to parse
-         * @return A [CalendarMode] object matching the json.
-         */
-        @Throws(JSONException::class)
-        fun fromJson(str: String) : CalendarMode {
-            val json = JSONObject(str)
-
-            return CalendarMode(
-                mode = Mode.valueOf(json.getString("mode")),
-                forceWeek = json.getBoolean("forceWeek")
-            )
-        }
     }
 
     /**
@@ -83,14 +62,14 @@ data class CalendarMode(
      * the current configuration but the [forceWeek]
      * variable is set to true.
      */
-    fun withForcedDay() = CalendarMode(mode, true)
+    fun withForcedWeek() = CalendarMode(mode, true)
 
     /**
      * Returns a [CalendarMode] object with
      * the current configuration but the [forceWeek]
      * variable is set to false.
      */
-    fun withoutForceDay() = CalendarMode(mode, false)
+    fun withoutForcedWeek() = CalendarMode(mode, false)
 
     /**
      * Returns a [CalendarMode] object with
@@ -105,15 +84,5 @@ data class CalendarMode(
      * variable is set to [Mode.AGENDA].
      */
     fun withAgendaMode() = CalendarMode(Mode.AGENDA, forceWeek)
-
-
-    /**
-     * Serialize the current object into a
-     * JSONObject
-     */
-    fun toJSON() = JSONObject().apply {
-        put("mode", mode.toString())
-        put("forceWeek", forceWeek)
-    }
 
 }

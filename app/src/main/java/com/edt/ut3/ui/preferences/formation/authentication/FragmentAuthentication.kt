@@ -14,7 +14,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.edt.ut3.R
 import com.edt.ut3.backend.requests.authentication_services.Authenticator
-import com.edt.ut3.misc.extensions.discard
 import com.edt.ut3.misc.extensions.hideKeyboard
 import com.edt.ut3.misc.extensions.isTrue
 import com.edt.ut3.misc.extensions.updateIfNecessary
@@ -200,43 +199,45 @@ class FragmentAuthentication: Fragment() {
      *
      * @param state The new state.
      */
-    private fun handleStateChange(state: AuthenticationState?): Unit = when (state) {
-        AuthenticationState.Unauthenticated -> {
-            username?.isEnabled = true
-            password?.isEnabled = true
+    private fun handleStateChange(state: AuthenticationState?) {
+        when (state) {
+            AuthenticationState.Unauthenticated -> {
+                username?.isEnabled = true
+                password?.isEnabled = true
 
-            context?.let {
-                val parent = parentFragment
-                val credentials = viewModel.getCredentials(it).value
-                if (parent is StateFragment) {
-                    when (credentials) {
-                        null -> parent.setNextText(R.string.step_skip)
-                        else -> parent.setNextText(R.string.step_check_credentials)
+                context?.let {
+                    val parent = parentFragment
+                    val credentials = viewModel.getCredentials(it).value
+                    if (parent is StateFragment) {
+                        when (credentials) {
+                            null -> parent.setNextText(R.string.step_skip)
+                            else -> parent.setNextText(R.string.step_check_credentials)
+                        }
                     }
                 }
             }
-        }
 
-        AuthenticationState.Authenticating -> {
-            val parent = parentFragment
-            if (parent is StateFragment) {
-                parent.setNextText(R.string.step_checking_credentials)
+            AuthenticationState.Authenticating -> {
+                val parent = parentFragment
+                if (parent is StateFragment) {
+                    parent.setNextText(R.string.step_checking_credentials)
+                }
+
+                username?.isEnabled = false
+                password?.isEnabled = false
             }
 
-            username?.isEnabled = false
-            password?.isEnabled = false
-        }
+            AuthenticationState.Authenticated -> {
+                val parent = parentFragment
+                if (parent is StateFragment) {
+                    parent.resetNextText()
+                }
 
-        AuthenticationState.Authenticated -> {
-            val parent = parentFragment
-            if (parent is StateFragment) {
-                parent.resetNextText()
+                username?.isEnabled = true
+                password?.isEnabled = true
             }
 
-            username?.isEnabled = true
-            password?.isEnabled = true
+            else -> {}
         }
-
-        else -> {}
-    }.discard()
+    }
 }

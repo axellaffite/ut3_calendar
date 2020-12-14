@@ -17,12 +17,16 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.edt.ut3.R
 import com.edt.ut3.backend.goulin_room_finder.Building
 import com.edt.ut3.backend.goulin_room_finder.Room
-import com.edt.ut3.misc.extensions.*
+import com.edt.ut3.misc.extensions.addOnBackPressedListener
+import com.edt.ut3.misc.extensions.hideKeyboard
+import com.edt.ut3.misc.extensions.onBackPressed
+import com.edt.ut3.misc.extensions.toDp
 import com.edt.ut3.ui.room_finder.RoomFinderState.*
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.room_finder_fragment.*
 import java.util.*
-class RoomFinderFragment : Fragment() {
+
+    class RoomFinderFragment : Fragment() {
 
     private val viewModel: RoomFinderViewModel by activityViewModels()
 
@@ -197,28 +201,32 @@ class RoomFinderFragment : Fragment() {
      *
      * @param error The given error.
      */
-    private fun handleError(error: RoomFinderFailure?): Unit = when (error) {
-        is RoomFinderFailure.SearchFailure ->  {
-            viewModel.state.value = Presentation
-            displayInternetError {
-                viewModel.updateSearchResults(true)
+    private fun handleError(error: RoomFinderFailure?) {
+        when (error) {
+            is RoomFinderFailure.SearchFailure ->  {
+                viewModel.state.value = Presentation
+                displayInternetError {
+                    viewModel.updateSearchResults(true)
+                }
+            }
+
+            is RoomFinderFailure.UpdateBuildingFailure -> {
+                viewModel.state.value = Presentation
+                displayInternetError {
+                    viewModel.updateBuildingsData(true)
+                }
+            }
+
+            null -> {
+                // Just to avoid logging false errors in the else statement
+            }
+
+            else -> {
+                Log.e(RoomFinderFragment::class.simpleName,
+                    "Unhandled error: ${error.javaClass}"
+                )
             }
         }
-
-        is RoomFinderFailure.UpdateBuildingFailure -> {
-            viewModel.state.value = Presentation
-            displayInternetError {
-                viewModel.updateBuildingsData(true)
-            }
-        }
-
-        null -> {
-            // Just to avoid logging false errors in the else statement
-        }
-
-        else -> Log.e(RoomFinderFragment::class.simpleName,
-            "Unhandled error: ${error.javaClass}"
-        ).discard() // To force the statement to return Unit
     }
 
     /**
@@ -238,12 +246,14 @@ class RoomFinderFragment : Fragment() {
      *
      * @param text The text to display
      */
-    private fun handleTextChanged(text: String?): Unit = when (text) {
-        search_bar?.text, null -> {}
-        else -> {
-            search_bar?.setText(text)
+    private fun handleTextChanged(text: String?) {
+        when (text) {
+            search_bar?.text, null -> {}
+            else -> {
+                search_bar?.text = text
+            }
         }
-    }.discard() // To force the return type to be Unit
+    }
 
     /**
      * Update the building adapter with the incoming data.

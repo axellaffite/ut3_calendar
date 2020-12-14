@@ -3,7 +3,6 @@ package com.edt.ut3.ui.preferences.formation.state_fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.edt.ut3.misc.extensions.discard
 import java.util.*
 
 class StateViewModel: ViewModel() {
@@ -26,7 +25,9 @@ class StateViewModel: ViewModel() {
 
     fun currentPosition(): Int = _position.peek()
 
-    fun back(): Unit = _position.pop().discard()
+    fun back() {
+        _position.pop()
+    }
 
     fun nextTo(fragmentIndex: Int?) {
         val next = when (fragmentIndex) {

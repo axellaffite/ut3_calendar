@@ -1,5 +1,7 @@
 package com.edt.ut3.misc.extensions
 
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -28,4 +30,9 @@ fun<T> JSONObject.realOpt(key: String): T? {
     } else {
         get(key) as T
     }
+}
+
+fun JsonObject.getNotNull(key: String) = when (val value = get(key)) {
+    null, is JsonNull -> null
+    else -> value
 }

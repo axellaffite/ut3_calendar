@@ -1,34 +1,15 @@
 package com.edt.ut3.backend.requests
 
-import com.edt.ut3.misc.extensions.isNull
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
 
-class CookieProvider private constructor(): CookieJar {
+object CookieProvider : CookieJar {
 
     private val savedCookies = mutableMapOf<String, MutableSet<Cookie>>()
 
-    companion object {
-
-        private var instance: CookieProvider? = null
-
-        fun getInstance(): CookieProvider {
-            synchronized(this) {
-                if (instance.isNull()) {
-                    instance = CookieProvider()
-                }
-
-                return instance!!
-            }
-        }
-
-    }
-
-    override fun loadForRequest(url: HttpUrl): List<Cookie> {
-        synchronized(this) {
-            return (savedCookies[url.host] ?: setOf()).toList()
-        }
+    override fun loadForRequest(url: HttpUrl): List<Cookie> = synchronized(this) {
+        (savedCookies[url.host] ?: setOf()).toList()
     }
 
     override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {

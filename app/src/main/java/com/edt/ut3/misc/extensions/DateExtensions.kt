@@ -32,7 +32,7 @@ fun Date.toCelcatDateTimeStr() =
     DateFormat.format("yyyy-MM-dd", this).toString()
 
 @Throws(Exception::class)
-fun Date.fromCelcatString(date: String) {
+fun Date.fromCelcatString(date: String): Date = this.apply {
     time =  Html.escapeHtml(date).toString().replace('T', ' ').let {
         SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.FRANCE).parse(it)
     }?.time ?: throw Exception()
@@ -85,4 +85,4 @@ fun Date.setTime(hour: Int, minute: Int, second: Int = 0, milliSecond: Int = 0) 
     time = calendar.time.time
 }
 
-fun Date.toFormattedTime(format: String) = SimpleDateFormat(format).format(this)
+fun Date.toFormattedTime(format: String): String = SimpleDateFormat(format).format(this)

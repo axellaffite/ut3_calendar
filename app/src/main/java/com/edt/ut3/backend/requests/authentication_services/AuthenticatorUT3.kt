@@ -3,7 +3,6 @@ package com.edt.ut3.backend.requests.authentication_services
 import android.util.Log
 import com.edt.ut3.backend.requests.CookieProvider
 import com.edt.ut3.backend.requests.HttpClientProvider
-import com.edt.ut3.misc.extensions.isNotNull
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import okhttp3.Cookie
@@ -24,9 +23,9 @@ class AuthenticatorUT3: Authenticator() {
         // Here we look for authentication cookies
         // If there are no cookie available for authentication
         // the resulting cookie is null.
-        val cookies = CookieProvider.getInstance()
-                .getCookiesFor(host)
-                ?.filter { it.name.matches(".*AspNetCore.Cookies.*".toRegex()) }
+        val cookies = CookieProvider.getCookiesFor(host)?.filter {
+            it.name.matches(".*AspNetCore.Cookies.*".toRegex())
+        }
 
 
         // The authentication is considered successful
@@ -99,9 +98,7 @@ class AuthenticatorUT3: Authenticator() {
     }
 
     private fun containsValidAuthenticationCookie(cookies: List<Cookie>) : Boolean {
-        cookies.forEach { println("${it.persistent}, ${it.expiresAt}") }
-        return cookies.isNotNull() &&
-                cookies.find { it.name.matches(Regex(".AspNetCore.Cookies")) }.isNotNull()
+        return cookies.find { it.name.matches(Regex(".AspNetCore.Cookies")) } != null
     }
 
 

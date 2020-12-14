@@ -48,8 +48,7 @@ class CredentialsManager private constructor(val context: Context) {
 
 
     /**
-     * Save the credentials into an
-     * encrypted file.
+     * Save the credentials into an encrypted file.
      *
      * @param credentials The user credentials
      */

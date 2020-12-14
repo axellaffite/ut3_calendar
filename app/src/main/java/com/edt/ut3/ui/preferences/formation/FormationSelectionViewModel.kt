@@ -8,12 +8,11 @@ import androidx.lifecycle.viewModelScope
 import com.edt.ut3.backend.credentials.CredentialsManager
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.backend.requests.CelcatService
 import com.edt.ut3.backend.requests.authentication_services.Authenticator
 import com.edt.ut3.backend.requests.authentication_services.CelcatAuthenticator
+import com.edt.ut3.backend.requests.celcat.CelcatService
 import com.edt.ut3.misc.BaseState
 import com.edt.ut3.misc.extensions.isTrue
-import com.edt.ut3.misc.extensions.toJSONArray
 import com.edt.ut3.misc.extensions.toList
 import com.edt.ut3.misc.extensions.trigger
 import com.edt.ut3.ui.preferences.formation.authentication.AuthenticationFailure
@@ -109,7 +108,7 @@ class FormationSelectionViewModel: ViewModel() {
         groupsDownloadJob = viewModelScope.launch {
             _groupsStatus.value = WhichGroupsState.Downloading
             val success: Boolean = try {
-                val newGroups = CelcatService().getGroups(context, School.default.info.first().groups)
+                val newGroups = CelcatService.getGroups(context, School.default.info.first().groups)
                 synchronized(groups) {
                     _groups.clear()
                     _groups.addAll(newGroups)
@@ -195,13 +194,13 @@ class FormationSelectionViewModel: ViewModel() {
 
     fun saveGroups(context: Context) {
         PreferencesManager.getInstance(context).apply {
-            groups = this@FormationSelectionViewModel._selectedGroups.value?.toJSONArray { it.id }.toString()
-            link = School.default.info.first().toJSON().toString()
+            groups = this@FormationSelectionViewModel._selectedGroups.value?.map { it.id }
+            link = School.default.info.first()
         }
     }
 
     fun checkConfiguration(it: Context) = PreferencesManager.getInstance(it).run {
-        ((link.isNullOrBlank() || groups.isNullOrBlank()) == false).also {
+        ((link == null || groups.isNullOrEmpty()) == false).also {
             if (it == false) {
                 _authenticationFailure.value = AuthenticationFailure.ConfigurationNotFinished
             }

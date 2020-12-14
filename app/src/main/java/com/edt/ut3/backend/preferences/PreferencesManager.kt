@@ -3,17 +3,50 @@ package com.edt.ut3.backend.preferences
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
-import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate.*
 import androidx.preference.PreferenceManager
-import ch.liip.sweetpreferences.SweetPreferences
 import com.edt.ut3.backend.calendar.CalendarMode
+import com.edt.ut3.backend.formation_choice.School
+import com.edt.ut3.backend.preferences.simple_preference.SimplePreference
 import com.edt.ut3.ui.preferences.Theme
 import com.edt.ut3.ui.preferences.ThemePreference
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
+/**
+ * Used to manage the application preferences.
+ *
+ * @property context The application context
+ *
+ * @param simplePreference The [SimplePreference] used to delegate
+ * properties.
+ */
+class PreferencesManager private constructor(
+    private val context: Context,
+    simplePreference: SimplePreference
+) {
 
-class PreferencesManager private constructor(private val context: Context, sweetPreferences: SweetPreferences) {
+    private val preferences = PreferenceManager.getDefaultSharedPreferences(context)
 
+    companion object {
+        private var instance: PreferencesManager? = null
+
+        @Synchronized
+        fun getInstance(context: Context) = synchronized(this) {
+            if (instance == null) {
+                instance = PreferencesManager(context, SimplePreference(context))
+            }
+
+            instance!!
+        }
+    }
+
+    /**
+     * Describes the different preferences keys.
+     *
+     * @property key The key that is used to store
+     * the preference.
+     */
     enum class PreferenceKeys(val key: String) {
         THEME("theme"),
         LINK("link"),
@@ -24,63 +57,100 @@ class PreferencesManager private constructor(private val context: Context, sweet
         CODE_VERSION("code_version")
     }
 
-    var theme : String by sweetPreferences.delegate(ThemePreference.SMARTPHONE.toString(), PreferenceKeys.THEME.key)
-    var link : String? by sweetPreferences.delegate(null, PreferenceKeys.LINK.key)
-    var groups : String? by sweetPreferences.delegate(null, PreferenceKeys.GROUPS.key)
-    var calendarMode : String by sweetPreferences.delegate(CalendarMode.default().toJSON().toString(), PreferenceKeys.CALENDAR_MODE.key)
-    var notification : Boolean by sweetPreferences.delegate(true, PreferenceKeys.NOTIFICATION.key)
-    var firstLaunch : Boolean by sweetPreferences.delegate(true, PreferenceKeys.FIRST_LAUNCH.key)
-    var codeVersion : Int by sweetPreferences.delegate(0, PreferenceKeys.CODE_VERSION.key)
 
-    companion object {
-        private var instance: PreferencesManager? = null
+    var theme : ThemePreference by simplePreference.Delegate(
+        key = PreferenceKeys.THEME.key,
+        defValue = ThemePreference.SMARTPHONE.toString(),
+        converter = ThemePreferenceConverter
+    )
 
-        @Synchronized
-        fun getInstance(context: Context): PreferencesManager {
-            if (instance == null) {
-                val sweetPreferences = SweetPreferences.Builder().withDefaultSharedPreferences(context).build()
+    var link : School.Info? by simplePreference.Delegate(
+        key = PreferenceKeys.LINK.key,
+        defValue = null.toString(),
+        converter = InfoConverter
+    )
 
-                instance = PreferencesManager(context, sweetPreferences)
-            }
+    var groups : List<String>? by simplePreference.Delegate(
+        key = PreferenceKeys.GROUPS.key,
+        defValue = null.toString(),
+        converter = StringListConverter
+    )
 
-            return instance!!
-        }
+    var calendarMode : CalendarMode by simplePreference.Delegate(
+        key = PreferenceKeys.CALENDAR_MODE.key,
+        defValue = Json.encodeToString(CalendarMode.default()),
+        converter = CalendarModeConverter
+    )
+
+    var notification : Boolean by simplePreference.Delegate <Boolean>(
+        key = PreferenceKeys.NOTIFICATION.key,
+        defValue = true.toString(),
+        converter = BooleanConverter,
+        getter = ::getBooleanFromPreferences
+    )
+
+    private var firstLaunch : Boolean by simplePreference.Delegate(
+        key = PreferenceKeys.FIRST_LAUNCH.key,
+        defValue = true.toString(),
+        converter = BooleanConverter,
+        getter = ::getBooleanFromPreferences
+    )
+
+    var codeVersion : Int by simplePreference.Delegate(
+        key = PreferenceKeys.CODE_VERSION.key,
+        defValue = 0.toString(),
+        converter = IntConverter,
+        getter = ::getIntegerFromPreferences
+    )
+
+    /**
+     * Used to listen to preferences changes.
+     *
+     * @param observer The preferences observer
+     */
+    fun observe(observer: SharedPreferences.OnSharedPreferenceChangeListener) = observer.let {
+        preferences.registerOnSharedPreferenceChangeListener(it)
     }
 
-    private val preferences = PreferenceManager.getDefaultSharedPreferences(context)
-
-    fun observe(observer: SharedPreferences.OnSharedPreferenceChangeListener) {
-        observer.let {
-            preferences.registerOnSharedPreferenceChangeListener(it)
-        }
+    /**
+     * Setup the theme depending on the
+     * current [theme] set in preferences.
+     *
+     * By default the theme is configured
+     * to follow the smartphone's one.
+     */
+    fun setupTheme() = when (theme) {
+        ThemePreference.SMARTPHONE -> setDefaultNightMode(MODE_NIGHT_FOLLOW_SYSTEM)
+        ThemePreference.DARK -> setDefaultNightMode(MODE_NIGHT_YES)
+        ThemePreference.LIGHT -> setDefaultNightMode(MODE_NIGHT_NO)
     }
 
-    fun setupTheme() {
-        val themePreference = ThemePreference.valueOf(theme)
-        Log.d(this::class.simpleName, "Setting up $themePreference theme")
+    /**
+     * Returned the guessed theme.
+     * By default if the [preference][theme]
+     * is set to [ThemePreference.SMARTPHONE]
+     * and the value is not available, the returned
+     * value will be [Theme.LIGHT].
+     */
+    fun currentTheme() = guessTheme(theme)
 
-        when (themePreference) {
-            ThemePreference.SMARTPHONE -> setDefaultNightMode(MODE_NIGHT_FOLLOW_SYSTEM)
-            ThemePreference.DARK -> setDefaultNightMode(MODE_NIGHT_YES)
-            ThemePreference.LIGHT -> setDefaultNightMode(MODE_NIGHT_NO)
-        }
+    private fun guessTheme(pref: ThemePreference) = when (pref) {
+        ThemePreference.DARK -> Theme.DARK
+        ThemePreference.LIGHT -> Theme.LIGHT
+        ThemePreference.SMARTPHONE -> getThemeDependingOnSmartphone()
     }
 
-    fun currentTheme() : Theme {
-        val themePreference = ThemePreference.valueOf(theme)
-        return guessTheme(themePreference)
-    }
-
-    private fun guessTheme(pref: ThemePreference) : Theme {
-        return when (pref) {
-            ThemePreference.DARK -> Theme.DARK
-            ThemePreference.LIGHT -> Theme.LIGHT
-            ThemePreference.SMARTPHONE -> getThemeDependingOnSmartphone()
-        }
-    }
-
+    /**
+     * Computes the theme depending on the smartphone's one.
+     * By default if the smartphone's theme cannot be guessed,
+     * the returned value is [Theme.LIGHT].
+     *
+     * @return The guessed theme or [Theme.LIGHT] by default.
+     */
     private fun getThemeDependingOnSmartphone(): Theme {
-        val currentNightMode: Int = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK)
+        val currentNightMode: Int =
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK)
+
         return when (currentNightMode) {
             Configuration.UI_MODE_NIGHT_NO -> Theme.LIGHT
             Configuration.UI_MODE_NIGHT_YES -> Theme.DARK
@@ -88,17 +158,23 @@ class PreferencesManager private constructor(private val context: Context, sweet
         }
     }
 
-    @Suppress("IMPLICIT_CAST_TO_ANY")
-    fun setupDefaultPreferences(): Boolean {
-        return if (firstLaunch) {
-            theme = ThemePreference.SMARTPHONE.toString()
-            calendarMode = CalendarMode.default().toJSON().toString()
+    /**
+     * If it is the first launch, initialize the preferences
+     * to their default values and set the [firstLaunch]
+     * preference to false.
+     *
+     * @return true if the preferences has been edited (first launch).
+     */
+    fun setupDefaultPreferences(): Boolean = when (firstLaunch) {
+        true -> {
+            theme = ThemePreference.SMARTPHONE
+            calendarMode = CalendarMode.default()
             notification = true
             firstLaunch = false
 
             true
-        } else {
-            false
         }
+
+        else -> false
     }
 }
