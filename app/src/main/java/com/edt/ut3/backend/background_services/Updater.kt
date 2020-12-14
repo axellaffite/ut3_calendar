@@ -114,10 +114,10 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
 
             updateDatabaseContents(changes)
             displayUpdateNotifications(changes)
-            insertCoursesVisibility(incomingEvents)
+            insertCoursesVisibility(eventViewModel.getEvents())
         } catch (e: Exception) {
             e.printStackTrace()
-//            TODO("Catch exceptions properly")
+            //TODO ("Catch exceptions properly")
             when (e) {
                 is IOException -> {}
                 is SerializationException -> {}
