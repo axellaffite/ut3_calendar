@@ -57,17 +57,17 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.3.1'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.3.1'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.3.2'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.3.2'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.3.1'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.3.1'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.3.2'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.3.2'
     implementation 'androidx.work:work-runtime:2.4.0'
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
-    implementation 'androidx.fragment:fragment-ktx:1.3.0-beta01'
+    implementation 'androidx.fragment:fragment-ktx:1.3.0-beta02'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     testImplementation 'junit:junit:4.13'
-    implementation "androidx.activity:activity-ktx:1.2.0-beta01"
+    implementation "androidx.activity:activity-ktx:1.2.0-beta02"
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
@@ -80,7 +80,7 @@ dependencies {
     implementation "androidx.work:work-runtime-ktx:$work_version"
 
     //Preferences
-    implementation 'androidx.preference:preference:1.1.1'
+    implementation 'androidx.preference:preference-ktx:1.1.1'
 
 
 
@@ -106,7 +106,7 @@ dependencies {
     // Summary : A useful library that allows us to display
     //           schedules on a given view.
     // Github : https://github.com/ElZozor/yoda
-    implementation 'com.github.axellaffite:yoda:2b965999f2'
+    implementation 'com.github.axellaffite:yoda:1.4.1'
 
     // Name : Fast Gallery
     // Summary : A library that allows to display images at their full resolutions
@@ -119,7 +119,7 @@ dependencies {
     //           cache images.
     // Documentation : https://square.github.io/picasso/#features
     implementation 'com.squareup.picasso:picasso:2.71828'
-    implementation "androidx.exifinterface:exifinterface:1.3.1"
+    implementation "androidx.exifinterface:exifinterface:1.3.2"
 
 
 
@@ -160,7 +160,8 @@ dependencies {
     implementation 'com.github.liip:SweetPreferences:1.0.3'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version" // or "kotlin-stdlib-jdk8"
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0-RC" // JVM dependency
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.1" // JVM dependency
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1"
 
     // Name: Dexter
     // Summary : Simplified permissions for Android
