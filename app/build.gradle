@@ -15,8 +15,8 @@ android {
         applicationId "com.edt.ut3"
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 28
-        versionName "2.011"
+        versionCode 29
+        versionName "2.011.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
