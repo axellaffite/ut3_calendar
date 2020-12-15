@@ -1,10 +1,15 @@
 package com.edt.ut3.compatibility
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.pm.PackageInfo
 import android.util.Log
+import androidx.core.content.edit
+import androidx.preference.PreferenceManager
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.PreferencesManager
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 object CompatibilityManager {
 
@@ -21,16 +26,39 @@ object CompatibilityManager {
         get() = packageManager.getPackageInfo(packageName, 0)
 
     private lateinit var preferencesManager: PreferencesManager
+    private lateinit var androidPreferencesManager : SharedPreferences
 
     fun ensureCompatibility(context: Context) {
         preferencesManager = PreferencesManager.getInstance(context)
+        androidPreferencesManager = PreferenceManager.getDefaultSharedPreferences(context)
 
-        var oldVersion = preferencesManager.codeVersion
+        var oldVersion : Int = androidPreferencesManager.run {
+            try {
+                return@run getString(
+                        PreferencesManager.PreferenceKeys.CODE_VERSION.key,
+                        PreferencesManager.PreferenceKeys.CODE_VERSION.defValue.toString()
+                )?.toInt() ?: PreferencesManager.PreferenceKeys.CODE_VERSION.defValue
+            } catch (e: Exception) {
+                try {
+                    return@run getInt(
+                            PreferencesManager.PreferenceKeys.CODE_VERSION.key,
+                            PreferencesManager.PreferenceKeys.CODE_VERSION.defValue
+                    )
+                } catch (e: Exception) {
+                    return@run 0
+                }
+            }
+        }
+
         val newVersion = context.packageInfo.minorVersion
 
         while (oldVersion < newVersion) {
-            oldVersion = migrateFrom(Migration(oldVersion, newVersion))
+            val upgrade = migrateFrom(oldVersion, context)
+            Log.d("COMPATIBILITY MANAGER", "UPGRADE FROM $oldVersion TO $upgrade DONE !")
+            oldVersion = upgrade
         }
+
+        Log.d("COMPATIBILITY MANAGER", "Upgrade to the last version done !")
 
         updateVersionCode(newVersion)
     }
@@ -39,10 +67,13 @@ object CompatibilityManager {
         codeVersion = newVersion
     }
 
-    private fun migrateFrom(migration: Migration): Int = when (migration) {
-        in Migration(0,19)..Migration(0,29) -> {
-            from0To19_29()
-            29
+    private fun migrateFrom(version: Int, context: Context): Int = when (version) {
+        in 0 .. 28 -> {
+            to29(context)
+        }
+
+        29 -> {
+            to30(context)
         }
 
         else -> {
@@ -50,48 +81,70 @@ object CompatibilityManager {
                 "CompatibilityManager",
                 "Versions are the same or " +
                         "compatibility cannot be done: " +
-                        "$migration"
+                        "$version"
             )
 
-            migration.from + 1
+            version + 1
         }
     }
 
-    private fun from0To19_29(): Unit = preferencesManager.run {
-        link = School.default.info.first()
+    private fun to29(context: Context): Int {
+        try {
+            androidPreferencesManager.run {
+                edit {
+                    putString(
+                            PreferencesManager.PreferenceKeys.LINK.key,
+                            Json.encodeToString(School.default.info.first())
+                    )
+                }
+            }
+        } catch (e: Exception) {
+
+        }
+
+        return 29
     }
 
-    data class Migration(val from: Int, val to: Int): Comparable<Migration> {
-        operator fun rangeTo(other: Migration) = MigrationProgression(this, other)
+    fun to30(context: Context): Int = preferencesManager.run {
+        val androidPreferencesManager = PreferenceManager.getDefaultSharedPreferences(context)
+        androidPreferencesManager.run {
+            edit {
+                try {
+                    val notification = PreferencesManager.PreferenceKeys.NOTIFICATION
+                    val notificationValue = preferencesManager.deprecated_notification.toBoolean()
+                    putBoolean(
+                            notification.key,
+                            notificationValue
+                    )
+                } catch (e: Exception) {
 
-        override fun compareTo(other: Migration): Int {
-            return when (val comp = from.compareTo(other.from)) {
-                0 -> to.compareTo(other.to)
-                else -> comp
+                }
+
+                try {
+                    val firstLaunch = PreferencesManager.PreferenceKeys.FIRST_LAUNCH
+                    val firstLaunchValue = preferencesManager.deprecated_firstLaunch.toBoolean()
+                    putBoolean(
+                            firstLaunch.key,
+                            firstLaunchValue
+                    )
+                } catch (e: Exception) {
+
+                }
+
+                try {
+                    val codeVersion = PreferencesManager.PreferenceKeys.CODE_VERSION
+                    putInt(
+                            PreferencesManager.PreferenceKeys.NOTIFICATION.key,
+                            (getString(codeVersion.key, null)
+                                    ?: codeVersion.defValue.toString()).toInt()
+                    )
+                } catch (e: Exception) {
+
+                }
             }
         }
-    }
 
-    class MigrationIterator(
-        val startVersion: Migration,
-        val endVersion: Migration): Iterator<Migration> {
-
-        private var currentDate = startVersion
-
-        override fun hasNext() = (currentDate.to < endVersion.to)
-
-        override fun next() = currentDate.copy().also {
-            currentDate = currentDate.copy(to = currentDate.to + 1)
-        }
-    }
-
-    class MigrationProgression(
-        override val start: Migration,
-        override val endInclusive: Migration
-    ) : Iterable<Migration>, ClosedRange<Migration> {
-
-        override fun iterator(): Iterator<Migration> = MigrationIterator(start, endInclusive)
-
+        30
     }
 
 }

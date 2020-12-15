@@ -110,6 +110,8 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
             val courses = getCourses(link.courses)
             val incomingEvents = getEvents(link, groups, classes, courses)
 
+            Log.d("Updater", courses.toString())
+
             val changes = computeEventUpdate(incomingEvents)
 
             updateDatabaseContents(changes)

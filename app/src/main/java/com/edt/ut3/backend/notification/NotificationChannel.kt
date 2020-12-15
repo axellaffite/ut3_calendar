@@ -19,21 +19,30 @@ sealed class NotificationChannelInformation (
     fun getDescription(context: Context) = context.getString(description)
 
     object UpdateChannel : NotificationChannelInformation(
-        "UPDATE_EDT",
-        0,
-        IMPORTANCE_DEFAULT,
-        NotificationCompat.VISIBILITY_PUBLIC,
-        R.string.channel_course_title,
-        R.string.channel_course_description
+        id = "UPDATE_EDT",
+        summaryID = 0,
+        importance = IMPORTANCE_DEFAULT,
+        visibility = NotificationCompat.VISIBILITY_PUBLIC,
+        title = R.string.channel_course_title,
+        description = R.string.channel_course_description
     )
 
     object ReminderChannel : NotificationChannelInformation (
-        "REMINDER",
-        1,
-        IMPORTANCE_HIGH,
-        NotificationCompat.VISIBILITY_PUBLIC,
-        R.string.channel_reminder_title,
-        R.string.channel_reminder_description
+        id = "REMINDER",
+        summaryID = 1,
+        importance = IMPORTANCE_HIGH,
+        visibility = NotificationCompat.VISIBILITY_PUBLIC,
+        title = R.string.channel_reminder_title,
+        description = R.string.channel_reminder_description
+    )
+
+    object FirebaseChannel : NotificationChannelInformation (
+        id = "FIREBASE",
+        summaryID = 2,
+        importance = IMPORTANCE_DEFAULT,
+        visibility = NotificationCompat.VISIBILITY_PUBLIC,
+        title = R.string.channel_firebase_title,
+        description = R.string.channel_firebase_description
     )
 
 }

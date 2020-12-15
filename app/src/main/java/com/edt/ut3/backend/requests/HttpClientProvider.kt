@@ -64,11 +64,13 @@ suspend fun<T> OkHttpClient.withAuthentication(
         var result: T? = null
         try {
             val cred = credentials ?: CredentialsManager.getInstance(context).getCredentials()
-            cred?.let {
-                auth.connect(host, cred)
+            try {
+                cred?.let {
+                    auth.connect(host, cred)
+                }
+            } finally {
+                result = block(this)
             }
-
-            result = block(this)
         } catch (e: Exception) {
             err = e
         } finally {

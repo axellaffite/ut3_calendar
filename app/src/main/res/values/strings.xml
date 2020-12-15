@@ -136,4 +136,6 @@
     <string name="step_skip">Passer</string>
     <string name="personnal_note">Note personnelle</string>
     <string name="downloading_groups">Téléchargement des groupes..</string>
+    <string name="channel_firebase_title">Message de la part des créateurs</string>
+    <string name="channel_firebase_description">Channel de notification servant à diffuser des informations à l\'ensemble des utilisateurs</string>
 </resources>
