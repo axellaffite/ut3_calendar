@@ -76,6 +76,10 @@ object CompatibilityManager {
             to30(context)
         }
 
+        30 -> {
+            to31(context)
+        }
+
         else -> {
             Log.d(
                 "CompatibilityManager",
@@ -145,6 +149,10 @@ object CompatibilityManager {
         }
 
         30
+    }
+
+    fun to31(context: Context): Int {
+        return 31
     }
 
 }

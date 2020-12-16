@@ -52,9 +52,9 @@ class PreferencesManager private constructor(
         object GROUPS: PreferenceKeys<List<String>?>("groups", null)
         object OLD_GROUPS: PreferenceKeys<List<String>?>("old_groups", null)
         object CALENDAR_MODE: PreferenceKeys<CalendarMode>("calendar_mode", CalendarMode.default())
-        object NOTIFICATION: PreferenceKeys<Boolean>("notification", true)
-        object FIRST_LAUNCH: PreferenceKeys<Boolean>("first_launch", true)
-        object CODE_VERSION: PreferenceKeys<Int>("code_version", 0)
+        object NOTIFICATION: PreferenceKeys<Boolean>("actual_notification", true)
+        object FIRST_LAUNCH: PreferenceKeys<Boolean>("actual_first_launch", true)
+        object CODE_VERSION: PreferenceKeys<Int>("actual_code_version", 0)
 
         object DEPRECATED_FIRST_LAUNCH: PreferenceKeys<Boolean>("first_launch", true)
         object DEPRECATED_NOTIFICATION: PreferenceKeys<Boolean>("notification", true)
