@@ -34,7 +34,7 @@ object CourseSerializer: KSerializer<Map<String, String>> {
         return decoder
             .decodeSerializableValue(serializer)
             .fold(listOf<Pair<String, String>>()) { acc, jsonCourse ->
-                acc + (jsonCourse.id to jsonCourse.text) + (jsonCourse.text to jsonCourse.id)
+                acc + (jsonCourse.id to jsonCourse.text) + (jsonCourse.text to jsonCourse.text)
             }.toMap()
     }
 

@@ -13,6 +13,7 @@ class PreferencesFragment: PreferenceFragmentCompat() {
 
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+        context?.let { PreferencesManager.getInstance(it).setupDefaultPreferences() }
         setPreferencesFromResource(R.xml.preferences, rootKey)
     }
 

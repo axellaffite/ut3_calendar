@@ -10,34 +10,37 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
- * The base class which is used to convert
- * basic types such as [Int], [Boolean], [String] etc.
- *
- * @param T The class to serialize / deserialize
+ * Used to convert a [Boolean].
  */
-abstract class BaseTypeConverter <T>: SimplePreference.Converter<T>() {
-    override fun serialize(value: T) = value.toString()
+object BooleanConverter : SimplePreference.Converter<Boolean, Boolean>() {
+    override fun deserialize(value: Boolean): Boolean = value
+
+    override fun serialize(value: Boolean): Boolean = value
 }
 
 /**
- * Used to convert a [Boolean].
+ * Used to convert a [String].
  */
-object BooleanConverter : BaseTypeConverter<Boolean>() {
-    override fun deserialize(value: String) = value.toBoolean()
+object StringConverter : SimplePreference.Converter<String, String>() {
+    override fun deserialize(value: String): String = value
+
+    override fun serialize(value: String): String = value
 }
 
 /**
  * Used to convert an [Int].
  */
-object IntConverter : BaseTypeConverter<Int>() {
-    override fun deserialize(value: String) = value.toInt()
+object IntConverter : SimplePreference.Converter<Int, Int>() {
+    override fun deserialize(value: Int): Int = value
+
+    override fun serialize(value: Int): Int = value
 }
 
 
 /**
  * Used to convert a [ThemePreference]
  */
-object ThemePreferenceConverter : SimplePreference.Converter<ThemePreference>() {
+object ThemePreferenceConverter : SimplePreference.Converter<ThemePreference, String>() {
     override fun deserialize(value: String) = ThemePreference.valueOf(value)
     override fun serialize(value: ThemePreference) = value.toString()
 }
@@ -45,23 +48,23 @@ object ThemePreferenceConverter : SimplePreference.Converter<ThemePreference>() 
 /**
  * Used to convert a [School.Info].
  */
-object InfoConverter : SimplePreference.Converter<School.Info?>() {
-    override fun deserialize(value: String) = Json.decodeFromString<School.Info?>(value)
+object InfoConverter : SimplePreference.Converter<School.Info?, String?>() {
+    override fun deserialize(value: String?) = Json.decodeFromString<School.Info?>(value.toString())
     override fun serialize(value: School.Info?) = Json.encodeToString(value)
 }
 
 /**
  * Used to convert a list of [String]
  */
-object StringListConverter : SimplePreference.Converter<List<String>?>() {
-    override fun deserialize(value: String) = Json.decodeFromString<List<String>>(value)
+object StringListConverter : SimplePreference.Converter<List<String>?, String>() {
+    override fun deserialize(value: String) = Json.decodeFromString<List<String>?>(value)
     override fun serialize(value: List<String>?) = Json.encodeToString(value)
 }
 
 /**
  * Used to convert a [CalendarMode]
  */
-object CalendarModeConverter: SimplePreference.Converter<CalendarMode>() {
+object CalendarModeConverter: SimplePreference.Converter<CalendarMode, String>() {
     override fun deserialize(value: String) = Json.decodeFromString<CalendarMode>(value)
     override fun serialize(value: CalendarMode) = Json.encodeToString(value)
 }

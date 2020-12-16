@@ -16,3 +16,5 @@
 
 google_maps_api.xml
 /app/google-services.json
+key.jks
+/app/release

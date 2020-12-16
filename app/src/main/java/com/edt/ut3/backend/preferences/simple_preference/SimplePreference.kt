@@ -24,21 +24,19 @@ class SimplePreference(
      * When the value is accessed, it is directly get from the
      * [SharedPreferences].
      *
-     * @param T The type of the preference (non nullable)
+     * @param Origin The type of the preference (non nullable)
      * @property key The key where to store the preference
      * @property defValue The default value to retrieve if the preference is unset. If the
      * specified type is nullable, the [default value][defValue] should be equal to null
      * as some parsers are able to detect that the deserialized object is in fact null. But this
      * is only an advice as the final decision remains on the development context.
-     * @property converter The converter to convert the value from and to the [SharedPreferences]
      * @property getter The way to get the preference
      */
-    inner class Delegate <T> (
+    inner class Delegate <Origin, Converted> (
         private val key: String,
-        private val defValue: String,
-        private val converter: Converter<T>,
-        private val getter: (pref: SharedPreferences, key: String, defValue: String) -> String =
-            { pref, key, def -> pref.getString(key, null) ?: def }
+        private val defValue: Converted,
+        private val converter: Converter<Origin, Converted>,
+        private val manager: GetSetManager<Converted>,
     ) {
         /**
          * How to get the value from the preferences.
@@ -52,10 +50,10 @@ class SimplePreference(
          * provided in the constructor. By default if the value is not present,
          * the [defValue] is returned.
          */
-        operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
-            val value = getter(preferences, key, defValue)
-            return converter.deserialize(value)
+        operator fun getValue(thisRef: Any?, property: KProperty<*>): Origin = synchronized(this) {
+            return converter.deserialize(manager.get(key, defValue, preferences))
         }
+
 
         /**
          * Sets the value into the [SharedPreferences].
@@ -65,10 +63,8 @@ class SimplePreference(
          * @param property The properties of the current variable
          * @param value The value to set into the [SharedPreferences]
          */
-        operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
-            preferences.edit {
-                putString(key, converter.serialize(value))
-            }
+        operator fun setValue(thisRef: Any?, property: KProperty<*>, value: Origin) = synchronized(this) {
+            preferences.edit(commit = true) { manager.set(key, converter.serialize(value), this) }
         }
     }
 
@@ -77,7 +73,7 @@ class SimplePreference(
      *
      * @param T The type the the object to convert.
      */
-    abstract class Converter <T> {
+    abstract class Converter <Origin, Converted> {
         /**
          * This function describes how the object should
          * be deserialized from a [String].
@@ -88,7 +84,7 @@ class SimplePreference(
          *
          * @return T The converted value as a [T] object
          */
-        abstract fun deserialize(value: String): T
+        abstract fun deserialize(value: Converted): Origin
 
         /**
          * This function describes how the object should
@@ -102,7 +98,12 @@ class SimplePreference(
          *
          * @return The serialized object as a [String]
          */
-        abstract fun serialize(value: T): String
+        abstract fun serialize(value: Origin): Converted
+    }
+
+    interface GetSetManager<Converted> {
+        fun get(key: String, defValue: Converted, edit: SharedPreferences) : Converted
+        fun set(key: String, value: Converted, edit: SharedPreferences.Editor)
     }
 
 }

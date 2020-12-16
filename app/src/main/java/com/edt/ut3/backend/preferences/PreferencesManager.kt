@@ -31,7 +31,6 @@ class PreferencesManager private constructor(
     companion object {
         private var instance: PreferencesManager? = null
 
-        @Synchronized
         fun getInstance(context: Context) = synchronized(this) {
             if (instance == null) {
                 instance = PreferencesManager(context, SimplePreference(context))
@@ -47,60 +46,89 @@ class PreferencesManager private constructor(
      * @property key The key that is used to store
      * the preference.
      */
-    enum class PreferenceKeys(val key: String) {
-        THEME("theme"),
-        LINK("link"),
-        GROUPS("groups"),
-        CALENDAR_MODE("calendar_mode"),
-        NOTIFICATION("notification"),
-        FIRST_LAUNCH("first_launch"),
-        CODE_VERSION("code_version")
+    sealed class PreferenceKeys<T>(val key: String, val defValue: T) {
+        object THEME: PreferenceKeys<ThemePreference>("theme", ThemePreference.SMARTPHONE)
+        object LINK: PreferenceKeys<String?>("link", null)
+        object GROUPS: PreferenceKeys<List<String>?>("groups", null)
+        object OLD_GROUPS: PreferenceKeys<List<String>?>("old_groups", null)
+        object CALENDAR_MODE: PreferenceKeys<CalendarMode>("calendar_mode", CalendarMode.default())
+        object NOTIFICATION: PreferenceKeys<Boolean>("notification", true)
+        object FIRST_LAUNCH: PreferenceKeys<Boolean>("first_launch", true)
+        object CODE_VERSION: PreferenceKeys<Int>("code_version", 0)
+
+        object DEPRECATED_FIRST_LAUNCH: PreferenceKeys<Boolean>("first_launch", true)
+        object DEPRECATED_NOTIFICATION: PreferenceKeys<Boolean>("notification", true)
     }
 
 
     var theme : ThemePreference by simplePreference.Delegate(
         key = PreferenceKeys.THEME.key,
-        defValue = ThemePreference.SMARTPHONE.toString(),
-        converter = ThemePreferenceConverter
+        defValue = PreferenceKeys.THEME.defValue.toString(),
+        converter = ThemePreferenceConverter,
+        manager = ThemePreferenceManager
     )
 
     var link : School.Info? by simplePreference.Delegate(
         key = PreferenceKeys.LINK.key,
-        defValue = null.toString(),
-        converter = InfoConverter
+        defValue = PreferenceKeys.LINK.defValue,
+        converter = InfoConverter,
+        manager = InfoManager
     )
 
-    var groups : List<String>? by simplePreference.Delegate(
+    var groups : List<String>? by simplePreference.Delegate <List<String>?, String>(
         key = PreferenceKeys.GROUPS.key,
-        defValue = null.toString(),
-        converter = StringListConverter
+        defValue = PreferenceKeys.GROUPS.defValue.toString(),
+        converter = StringListConverter,
+        manager = NullableStringListManager
+    )
+
+    var oldGroups : List<String>? by simplePreference.Delegate(
+        key = PreferenceKeys.OLD_GROUPS.key,
+        defValue = PreferenceKeys.OLD_GROUPS.defValue.toString(),
+        converter = StringListConverter,
+        manager = NullableStringListManager
     )
 
     var calendarMode : CalendarMode by simplePreference.Delegate(
         key = PreferenceKeys.CALENDAR_MODE.key,
-        defValue = Json.encodeToString(CalendarMode.default()),
-        converter = CalendarModeConverter
+        defValue = Json.encodeToString(PreferenceKeys.CALENDAR_MODE.defValue),
+        converter = CalendarModeConverter,
+        manager = CalendarModeManager
     )
 
-    var notification : Boolean by simplePreference.Delegate <Boolean>(
+    var notification : Boolean by simplePreference.Delegate(
         key = PreferenceKeys.NOTIFICATION.key,
-        defValue = true.toString(),
+        defValue = PreferenceKeys.NOTIFICATION.defValue,
         converter = BooleanConverter,
-        getter = ::getBooleanFromPreferences
+        manager = BooleanManager
     )
 
     private var firstLaunch : Boolean by simplePreference.Delegate(
         key = PreferenceKeys.FIRST_LAUNCH.key,
-        defValue = true.toString(),
+        defValue = PreferenceKeys.FIRST_LAUNCH.defValue,
         converter = BooleanConverter,
-        getter = ::getBooleanFromPreferences
+        manager = BooleanManager
     )
 
     var codeVersion : Int by simplePreference.Delegate(
         key = PreferenceKeys.CODE_VERSION.key,
-        defValue = 0.toString(),
+        defValue = PreferenceKeys.CODE_VERSION.defValue,
         converter = IntConverter,
-        getter = ::getIntegerFromPreferences
+        manager = IntManager
+    )
+
+    var deprecated_notification : String by simplePreference.Delegate(
+        key = PreferenceKeys.DEPRECATED_NOTIFICATION.key,
+        defValue = PreferenceKeys.DEPRECATED_NOTIFICATION.defValue.toString(),
+        converter = StringConverter,
+        manager = StringManager
+    )
+
+    var deprecated_firstLaunch : String by simplePreference.Delegate(
+        key = PreferenceKeys.DEPRECATED_FIRST_LAUNCH.key,
+        defValue = PreferenceKeys.DEPRECATED_FIRST_LAUNCH.defValue.toString(),
+        converter = StringConverter,
+        manager = StringManager
     )
 
     /**

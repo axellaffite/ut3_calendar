@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.edt.ut3.backend.credentials.CredentialsManager
+import com.edt.ut3.backend.firebase_services.FirebaseMessagingHandler
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.authentication_services.Authenticator
@@ -194,17 +195,24 @@ class FormationSelectionViewModel: ViewModel() {
 
     fun saveGroups(context: Context) {
         PreferencesManager.getInstance(context).apply {
-            groups = this@FormationSelectionViewModel._selectedGroups.value?.map { it.id }
+            val oldGroupsTemp = this.groups ?: listOf()
+            val newGroupsTemp = _selectedGroups.value?.map { it.id } ?: listOf()
+
+            oldGroups = oldGroupsTemp - newGroupsTemp
+            groups = newGroupsTemp
             link = School.default.info.first()
         }
+
+        FirebaseMessagingHandler.ensureGroupRegistration(context)
     }
 
     fun checkConfiguration(it: Context) = PreferencesManager.getInstance(it).run {
-        ((link == null || groups.isNullOrEmpty()) == false).also {
-            if (it == false) {
-                _authenticationFailure.value = AuthenticationFailure.ConfigurationNotFinished
-            }
+        val configurationValid = (link != null && !groups.isNullOrEmpty())
+        if (!configurationValid) {
+            _authenticationFailure.value = AuthenticationFailure.ConfigurationNotFinished
         }
+
+        configurationValid
     }
 
     fun triggerAuthenticationButton() = _authenticationState.trigger()
