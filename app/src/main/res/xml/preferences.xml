@@ -6,14 +6,14 @@
         app:title="@string/application">
 
         <ListPreference
-            android:key="theme"
+            android:key="@string/key_theme"
             app:title="@string/theme"
             android:entryValues="@array/themesAlias"
             android:entries="@array/themes"
             android:icon="@drawable/ic_theme"/>
 
         <SwitchPreference
-            android:key="actual_notification"
+            android:key="@string/key_notification"
             android:title="@string/enable_update_notifications"
             android:summary="@string/summary_notifications"
             android:icon="@drawable/ic_notifications" />
@@ -24,7 +24,7 @@
         app:title="@string/title_calendar">
 
         <Preference
-            android:key="section"
+            android:key="@string/key_section"
             app:title="@string/calendar_link"
             android:summary="@string/summary_link"
             android:icon="@drawable/ic_group"/>
@@ -36,7 +36,7 @@
 
         <Preference
             android:title="@string/about_us"
-            android:key="about_us"/>
+            android:key="@string/key_about_us"/>
 
     </PreferenceCategory>
 

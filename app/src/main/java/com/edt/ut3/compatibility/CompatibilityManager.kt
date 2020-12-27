@@ -35,13 +35,13 @@ object CompatibilityManager {
         var oldVersion : Int = androidPreferencesManager.run {
             try {
                 return@run getString(
-                        PreferencesManager.PreferenceKeys.CODE_VERSION.key,
+                        PreferencesManager.PreferenceKeys.CODE_VERSION.getKey(context),
                         PreferencesManager.PreferenceKeys.CODE_VERSION.defValue.toString()
                 )?.toInt() ?: PreferencesManager.PreferenceKeys.CODE_VERSION.defValue
             } catch (e: Exception) {
                 try {
                     return@run getInt(
-                            PreferencesManager.PreferenceKeys.CODE_VERSION.key,
+                            PreferencesManager.PreferenceKeys.CODE_VERSION.getKey(context),
                             PreferencesManager.PreferenceKeys.CODE_VERSION.defValue
                     )
                 } catch (e: Exception) {
@@ -97,7 +97,7 @@ object CompatibilityManager {
             androidPreferencesManager.run {
                 edit {
                     putString(
-                            PreferencesManager.PreferenceKeys.LINK.key,
+                            PreferencesManager.PreferenceKeys.LINK.getKey(context),
                             Json.encodeToString(School.default.info.first())
                     )
                 }
@@ -117,7 +117,7 @@ object CompatibilityManager {
                     val notification = PreferencesManager.PreferenceKeys.NOTIFICATION
                     val notificationValue = preferencesManager.deprecated_notification.toBoolean()
                     putBoolean(
-                            notification.key,
+                            notification.getKey(context),
                             notificationValue
                     )
                 } catch (e: Exception) {
@@ -128,7 +128,7 @@ object CompatibilityManager {
                     val firstLaunch = PreferencesManager.PreferenceKeys.FIRST_LAUNCH
                     val firstLaunchValue = preferencesManager.deprecated_firstLaunch.toBoolean()
                     putBoolean(
-                            firstLaunch.key,
+                            firstLaunch.getKey(context),
                             firstLaunchValue
                     )
                 } catch (e: Exception) {
@@ -138,8 +138,8 @@ object CompatibilityManager {
                 try {
                     val codeVersion = PreferencesManager.PreferenceKeys.CODE_VERSION
                     putInt(
-                            PreferencesManager.PreferenceKeys.NOTIFICATION.key,
-                            (getString(codeVersion.key, null)
+                            PreferencesManager.PreferenceKeys.NOTIFICATION.getKey(context),
+                            (getString(codeVersion.getKey(context), null)
                                     ?: codeVersion.defValue.toString()).toInt()
                     )
                 } catch (e: Exception) {
