@@ -23,7 +23,6 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         setContentView(R.layout.activity_main)
 
         CompatibilityManager.ensureCompatibility(this)
-        CompatibilityManager.to30(this)
         val shouldConfigure: Boolean
         PreferencesManager.getInstance(this).apply {
             shouldConfigure = (link == null || groups.isNullOrEmpty())
