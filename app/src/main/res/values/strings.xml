@@ -150,4 +150,6 @@
     <string name="key_code_version">actual_code_version</string>
     <string name="old_key_first_launch">first_launch</string>
     <string name="old_key_notification">notification</string>
+    <string name="course_status_remaining">%d cours restants</string>
+    <string name="course_status_default_title">Nom de matière manquant</string>
 </resources>

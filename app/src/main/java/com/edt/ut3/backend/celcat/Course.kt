@@ -16,3 +16,17 @@ data class Course(
     @PrimaryKey var title : String,
     var visible : Boolean = true
 )
+
+/**
+ * Used to set the data
+ * on the current View.
+ *
+ * @property title The course title
+ * @property remaining The amount of remaining
+ * lessons from the current date.
+ */
+data class CourseStatusData (
+    val title : String,
+    val visible : Boolean,
+    val remaining: Int
+)

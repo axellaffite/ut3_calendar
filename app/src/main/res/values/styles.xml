@@ -4,6 +4,11 @@
         <attr name="placeHolder" format="string"/>
     </declare-styleable>
 
+    <declare-styleable name="CourseStatus">
+        <attr name="title" format="string"/>
+        <attr name="remaining" format="integer"/>
+    </declare-styleable>
+
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
 
 
@@ -32,6 +37,8 @@
         <item name="colorButtonNormal">@color/colorAccent</item>
         <item name="buttonStyle">@style/ButtonStyle</item>
         <item name="materialButtonStyle">@style/MaterialButtonStyle</item>
+
+        <item name="alertDialogTheme">@style/AlertDialogTheme</item>
     </style>
 
     <style name="OutlinedBox" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
@@ -92,6 +99,19 @@
 
     <style name="takePictureStyleLight" parent="CardView">
         <item name="cardBackgroundColor">#DCDCDC</item>
+    </style>
+
+    <style name="AlertDialogTheme" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
+        <item name="buttonBarNegativeButtonStyle">@style/NegativeButtonStyle</item>
+        <item name="buttonBarPositiveButtonStyle">@style/PositiveButtonStyle</item>
+    </style>
+
+    <style name="NegativeButtonStyle" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/textColorMedium</item>
+    </style>
+
+    <style name="PositiveButtonStyle" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/textColorHigh</item>
     </style>
 
 </resources>

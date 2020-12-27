@@ -15,15 +15,21 @@
     <color name="calendarFloatingButtonColor">@color/colorAccent</color>
     <color name="mapsFloatingButtonColor">#FFFFFF</color>
     <color name="mapsFloatingButtonIconColor">#FFFFFF</color>
-    <color name="textColor">@android:color/black</color>
+    <color name="textColor">@color/textColorHigh</color>
     <color name="iconTint">@android:color/black</color>
 
     <color name="mapLabelBackground">@android:color/transparent</color>
 
-    <color name="textSecondary">@android:color/secondary_text_light</color>
+    <color name="textSecondary">@color/textColorMedium</color>
 
     <color name="maps_cards">@android:color/white</color>
 
     <color name="mtrl_textinput_default_box_stroke_color" tools:override="true" >@color/textColor</color>
+
+    <color name="textColorDisabled">#60000000</color>
+    <color name="textColorMedium">#99000000</color>
+    <color name="textColorHigh">#DF000000</color>
+    <color name="softDivider">#12000000</color>
+
 
 </resources>
