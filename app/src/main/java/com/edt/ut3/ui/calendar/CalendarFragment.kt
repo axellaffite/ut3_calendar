@@ -56,12 +56,14 @@ class CalendarFragment : BottomSheetFragment(),
 
     private val preferenceChangeListener =
         SharedPreferences.OnSharedPreferenceChangeListener { pref: SharedPreferences, key: String ->
-            when (key) {
-                PreferencesManager.PreferenceKeys.CALENDAR_MODE.key -> {
-                    val newPreference = preferences.calendarMode
-                    updateBarText(calendarViewModel.selectedDate.value!!, newPreference)
+            context?.let { validContext ->
+                when (key) {
+                    PreferencesManager.PreferenceKeys.CALENDAR_MODE.getKey(validContext) -> {
+                        val newPreference = preferences.calendarMode
+                        updateBarText(calendarViewModel.selectedDate.value!!, newPreference)
 
-                    pager?.notifyDataSetChanged()
+                        pager?.notifyDataSetChanged()
+                    }
                 }
             }
         }

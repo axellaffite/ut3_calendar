@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatDelegate.*
 import androidx.preference.PreferenceManager
+import com.edt.ut3.R
 import com.edt.ut3.backend.calendar.CalendarMode
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.simple_preference.SimplePreference
@@ -43,89 +44,95 @@ class PreferencesManager private constructor(
     /**
      * Describes the different preferences keys.
      *
-     * @property key The key that is used to store
-     * the preference.
+     * @property _key The key that is used to store
+     * the preference. It must be a StringResource.
      */
-    sealed class PreferenceKeys<T>(val key: String, val defValue: T) {
-        object THEME: PreferenceKeys<ThemePreference>("theme", ThemePreference.SMARTPHONE)
-        object LINK: PreferenceKeys<String?>("link", null)
-        object GROUPS: PreferenceKeys<List<String>?>("groups", null)
-        object OLD_GROUPS: PreferenceKeys<List<String>?>("old_groups", null)
-        object CALENDAR_MODE: PreferenceKeys<CalendarMode>("calendar_mode", CalendarMode.default())
-        object NOTIFICATION: PreferenceKeys<Boolean>("actual_notification", true)
-        object FIRST_LAUNCH: PreferenceKeys<Boolean>("actual_first_launch", true)
-        object CODE_VERSION: PreferenceKeys<Int>("actual_code_version", 0)
+    sealed class PreferenceKeys<T>(private val _key: Int, val defValue: T) {
+        fun getKey(context: Context): String = context.getString(_key)
 
-        object DEPRECATED_FIRST_LAUNCH: PreferenceKeys<Boolean>("first_launch", true)
-        object DEPRECATED_NOTIFICATION: PreferenceKeys<Boolean>("notification", true)
+        object THEME: PreferenceKeys<ThemePreference>(R.string.key_theme, ThemePreference.SMARTPHONE)
+        object LINK: PreferenceKeys<String?>(R.string.key_link, null)
+        object GROUPS: PreferenceKeys<List<String>?>(R.string.key_group, null)
+        object OLD_GROUPS: PreferenceKeys<List<String>?>(R.string.old_key_group, null)
+        object CALENDAR_MODE: PreferenceKeys<CalendarMode>(R.string.key_calendar_mode, CalendarMode.default())
+        object NOTIFICATION: PreferenceKeys<Boolean>(R.string.key_notification, true)
+        object FIRST_LAUNCH: PreferenceKeys<Boolean>(R.string.key_first_launch, true)
+        object CODE_VERSION: PreferenceKeys<Int>(R.string.key_code_version, 0)
+
+        /**
+         * All of the following objects are deprecated and should not be used.
+         * They are kept here to ensure compatibility via the [CompatibilityManager][com.edt.ut3.compatibility.CompatibilityManager].
+         */
+        object DEPRECATED_FIRST_LAUNCH: PreferenceKeys<Boolean>(R.string.old_key_first_launch, true)
+        object DEPRECATED_NOTIFICATION: PreferenceKeys<Boolean>(R.string.old_key_notification, true)
     }
 
 
     var theme : ThemePreference by simplePreference.Delegate(
-        key = PreferenceKeys.THEME.key,
+        key = PreferenceKeys.THEME.getKey(context),
         defValue = PreferenceKeys.THEME.defValue.toString(),
         converter = ThemePreferenceConverter,
         manager = ThemePreferenceManager
     )
 
     var link : School.Info? by simplePreference.Delegate(
-        key = PreferenceKeys.LINK.key,
+        key = PreferenceKeys.LINK.getKey(context),
         defValue = PreferenceKeys.LINK.defValue,
         converter = InfoConverter,
         manager = InfoManager
     )
 
     var groups : List<String>? by simplePreference.Delegate <List<String>?, String>(
-        key = PreferenceKeys.GROUPS.key,
+        key = PreferenceKeys.GROUPS.getKey(context),
         defValue = PreferenceKeys.GROUPS.defValue.toString(),
         converter = StringListConverter,
         manager = NullableStringListManager
     )
 
     var oldGroups : List<String>? by simplePreference.Delegate(
-        key = PreferenceKeys.OLD_GROUPS.key,
+        key = PreferenceKeys.OLD_GROUPS.getKey(context),
         defValue = PreferenceKeys.OLD_GROUPS.defValue.toString(),
         converter = StringListConverter,
         manager = NullableStringListManager
     )
 
     var calendarMode : CalendarMode by simplePreference.Delegate(
-        key = PreferenceKeys.CALENDAR_MODE.key,
+        key = PreferenceKeys.CALENDAR_MODE.getKey(context),
         defValue = Json.encodeToString(PreferenceKeys.CALENDAR_MODE.defValue),
         converter = CalendarModeConverter,
         manager = CalendarModeManager
     )
 
     var notification : Boolean by simplePreference.Delegate(
-        key = PreferenceKeys.NOTIFICATION.key,
+        key = PreferenceKeys.NOTIFICATION.getKey(context),
         defValue = PreferenceKeys.NOTIFICATION.defValue,
         converter = BooleanConverter,
         manager = BooleanManager
     )
 
     private var firstLaunch : Boolean by simplePreference.Delegate(
-        key = PreferenceKeys.FIRST_LAUNCH.key,
+        key = PreferenceKeys.FIRST_LAUNCH.getKey(context),
         defValue = PreferenceKeys.FIRST_LAUNCH.defValue,
         converter = BooleanConverter,
         manager = BooleanManager
     )
 
     var codeVersion : Int by simplePreference.Delegate(
-        key = PreferenceKeys.CODE_VERSION.key,
+        key = PreferenceKeys.CODE_VERSION.getKey(context),
         defValue = PreferenceKeys.CODE_VERSION.defValue,
         converter = IntConverter,
         manager = IntManager
     )
 
     var deprecated_notification : String by simplePreference.Delegate(
-        key = PreferenceKeys.DEPRECATED_NOTIFICATION.key,
+        key = PreferenceKeys.DEPRECATED_NOTIFICATION.getKey(context),
         defValue = PreferenceKeys.DEPRECATED_NOTIFICATION.defValue.toString(),
         converter = StringConverter,
         manager = StringManager
     )
 
     var deprecated_firstLaunch : String by simplePreference.Delegate(
-        key = PreferenceKeys.DEPRECATED_FIRST_LAUNCH.key,
+        key = PreferenceKeys.DEPRECATED_FIRST_LAUNCH.getKey(context),
         defValue = PreferenceKeys.DEPRECATED_FIRST_LAUNCH.defValue.toString(),
         converter = StringConverter,
         manager = StringManager
