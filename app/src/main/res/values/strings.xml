@@ -138,18 +138,18 @@
     <string name="downloading_groups">Téléchargement des groupes..</string>
     <string name="channel_firebase_title">Message de la part des créateurs</string>
     <string name="channel_firebase_description">Channel de notification servant à diffuser des informations à l\'ensemble des utilisateurs</string>
-    <string name="key_theme">theme</string>
-    <string name="key_notification">actual_notification</string>
-    <string name="key_section">section</string>
-    <string name="key_about_us">about_us</string>
-    <string name="key_link">link</string>
-    <string name="key_group">groups</string>
-    <string name="old_key_group">old_groups</string>
-    <string name="key_calendar_mode">calendar_mode</string>
-    <string name="key_first_launch">actual_first_launch</string>
-    <string name="key_code_version">actual_code_version</string>
-    <string name="old_key_first_launch">first_launch</string>
-    <string name="old_key_notification">notification</string>
+    <string name="key_theme" translatable="false">theme</string>
+    <string name="key_notification" translatable="false">actual_notification</string>
+    <string name="key_section" translatable="false">section</string>
+    <string name="key_about_us" translatable="false">about_us</string>
+    <string name="key_link" translatable="false">link</string>
+    <string name="key_group" translatable="false">groups</string>
+    <string name="old_key_group" translatable="false">old_groups</string>
+    <string name="key_calendar_mode" translatable="false">calendar_mode</string>
+    <string name="key_first_launch" translatable="false">actual_first_launch</string>
+    <string name="key_code_version" translatable="false">actual_code_version</string>
+    <string name="old_key_first_launch" translatable="false">first_launch</string>
+    <string name="old_key_notification" translatable="false">notification</string>
     <string name="course_status_remaining">%d cours restants</string>
     <string name="course_status_default_title">Nom de matière manquant</string>
 </resources>

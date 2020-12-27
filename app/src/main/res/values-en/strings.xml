@@ -134,4 +134,6 @@
     <string name="downloading_groups">Downloading groups..</string>
     <string name="course_status_default_title">Missing course name</string>
     <string name="course_status_remaining">%d lessons remaining</string>
+    <string name="channel_firebase_title">Message from the creators</string>
+    <string name="channel_firebase_description">Notification channel used to send notifications to all the users</string>
 </resources>
