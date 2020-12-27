@@ -104,17 +104,12 @@
         app:cardBackgroundColor="@color/foregroundColor"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
-        <androidx.core.widget.NestedScrollView
+        <fragment
+            android:id="@+id/options"
+            android:name="com.edt.ut3.ui.calendar.courses_visibility.CoursesVisibilityFragment"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content" />
 
-            <fragment
-                android:id="@+id/options"
-                android:name="com.edt.ut3.ui.calendar.courses_visibility.CoursesVisibilityFragment"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-        </androidx.core.widget.NestedScrollView>
 
     </androidx.cardview.widget.CardView>
 

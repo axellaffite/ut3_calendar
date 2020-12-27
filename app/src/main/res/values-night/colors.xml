@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="textColorDisabled">#60FFFFFF</color>
+    <color name="textColorMedium">#9AFFFFFF</color>
+    <color name="textColorHigh">#DFFFFFFF</color>
+
+
     <!-- Customize your theme here. -->
     <color name="colorPrimary">#122A40</color>
     <color name="colorPrimaryDark">#0A1926</color>
@@ -18,10 +23,11 @@
     <color name="textColor">#EEEEEE</color>
     <color name="iconTint">#EEEEEE</color>
 
-    <color name="textSecondary">@android:color/secondary_text_dark</color>
+    <color name="textSecondary">@color/textColorMedium</color>
 
     <color name="mapLabelBackground">@android:color/black</color>
 
     <color name="maps_cards">@color/colorPrimaryDark</color>
 
+    <color name="softDivider">#12FFFFFF</color>
 </resources>

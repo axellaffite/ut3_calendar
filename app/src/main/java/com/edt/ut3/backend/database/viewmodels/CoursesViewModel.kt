@@ -15,6 +15,14 @@ class CoursesViewModel(context: Context): ViewModel() {
     fun getCoursesLD() = dao.selectAllLD()
 
     /**
+     * Returns all the courses into a LiveData variable.
+     * The courses are grouped with how many lessons
+     * are remaining since now.
+     *
+     */
+    fun getCoursesLDWithRemaining() = dao.selectAllLDWithRemaining()
+
+    /**
      * Returns all the courses visibilities.
      */
     suspend fun getCoursesVisibility() = dao.selectAll()

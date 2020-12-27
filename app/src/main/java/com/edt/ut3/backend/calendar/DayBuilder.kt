@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import com.edt.ut3.backend.celcat.Course
+import com.edt.ut3.backend.celcat.CourseStatusData
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.misc.extensions.add
@@ -39,7 +40,7 @@ class DayBuilder(
     private val currentPosition: Int,
     private val dayPosition: Int,
     private val container: FrameLayout,
-    private val courseVisibility: List<Course>,
+    private val courseVisibility: List<CourseStatusData>,
     private val dayBuilder: (context: Context, eventWrapper: EventWrapper, x: Int, y: Int, w:Int, h: Int) -> Pair<Boolean, View>,
     private val emptyDayBuilder: () -> View,
     private val allDayBuilder: (events: List<EventWrapper>) -> View,

@@ -14,11 +14,14 @@
             android:textColor="@color/iconTint"
             android:focusable="true"/>
 
-        <LinearLayout
-            android:id="@+id/group_list"
+        <ListView
+            android:id="@+id/CoursesStatusList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"/>
+            android:nestedScrollingEnabled="true"
+            android:orientation="vertical"
+            android:divider="@drawable/list_divider"
+            android:dividerHeight="1px"/>
 
 
 </LinearLayout>
