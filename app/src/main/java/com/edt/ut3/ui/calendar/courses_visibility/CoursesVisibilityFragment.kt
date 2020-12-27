@@ -1,4 +1,4 @@
-package com.edt.ut3.ui.calendar.options
+package com.edt.ut3.ui.calendar.courses_visibility
 
 import android.content.Context
 import android.graphics.Color
@@ -22,7 +22,7 @@ import com.edt.ut3.ui.preferences.Theme
 import kotlinx.android.synthetic.main.fragment_calendar_options.*
 import kotlinx.coroutines.launch
 
-class CalendarOptionsFragment: Fragment() {
+class CoursesVisibilityFragment: Fragment() {
 
     private val viewModel: CalendarViewModel by activityViewModels()
 

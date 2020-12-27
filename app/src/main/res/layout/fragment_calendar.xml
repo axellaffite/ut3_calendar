@@ -110,7 +110,7 @@
 
             <fragment
                 android:id="@+id/options"
-                android:name="com.edt.ut3.ui.calendar.options.CalendarOptionsFragment"
+                android:name="com.edt.ut3.ui.calendar.courses_visibility.CoursesVisibilityFragment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
