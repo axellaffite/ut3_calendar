@@ -3,7 +3,7 @@ package com.edt.ut3.ui.preferences.formation
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.edt.ut3.R
-import com.edt.ut3.backend.background_services.Updater
+import com.edt.ut3.backend.background_services.UpdateScheduler
 import com.edt.ut3.ui.preferences.formation.authentication.FragmentAuthentication
 import com.edt.ut3.ui.preferences.formation.state_fragment.StateFragment
 import com.edt.ut3.ui.preferences.formation.which_groups.FragmentWhichGroups
@@ -18,7 +18,7 @@ class FormationSelectionFragment: StateFragment() {
             builder = { FragmentAuthentication() },
             onRequestNext = {
                 context?.let {
-                    viewModel.validateCredentials(it)
+                    viewModel.validateCredentials()
                 } ?: false
             },
             onRequestBack = {
@@ -56,7 +56,7 @@ class FormationSelectionFragment: StateFragment() {
     override fun onFinish() {
         context?.let {
             viewModel.saveGroups(it)
-            Updater.forceUpdate(it, firstUpdate = true)
+            UpdateScheduler.launchUpdate(it, firstUpdate = true)
             findNavController().popBackStack()
         }
     }

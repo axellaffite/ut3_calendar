@@ -2,6 +2,7 @@ package com.edt.ut3.backend.requests.celcat
 
 import android.content.Context
 import android.util.Log
+import com.edt.ut3.backend.credentials.CredentialsManager
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.requests.HttpClientProvider
 import com.edt.ut3.backend.requests.JsonWebDeserializer
@@ -29,7 +30,12 @@ import java.util.*
 object CelcatService {
 
     @Throws(SocketTimeoutException::class, IOException::class, Authenticator.InvalidCredentialsException::class)
-    suspend fun getEvents(context: Context, firstUpdate: Boolean, link: String, formations: List<String>): Response = withContext(IO) {
+    suspend fun getEvents(
+        context: Context,
+        firstUpdate: Boolean,
+        link: String,
+        formations: List<String>
+    ): Response = withContext(IO) {
         val today = Date().timeCleaned()
 
         val body = RequestsUtils.EventBody().apply {
@@ -57,13 +63,16 @@ object CelcatService {
 
 
         return@withContext HttpClientProvider.generateNewClient()
-            .withAuthentication(context, request.url) {
-            newCall(request).execute()
-        }
+            .withAuthentication(
+                request.url,
+                credentials = CredentialsManager.getInstance(context).getCredentials()
+            ) {
+                newCall(request).execute()
+            }
     }
 
 
-    @Throws(IOException::class, SerializationException::class)
+    @Throws(SocketTimeoutException::class, IOException::class, SerializationException::class, Authenticator.InvalidCredentialsException::class)
     suspend fun getClasses(context: Context, link: String) = withContext(IO) {
         Log.d(this@CelcatService::class.simpleName, "Downloading classes: $link")
         val request = Request.Builder()
@@ -71,16 +80,21 @@ object CelcatService {
             .get()
             .build()
 
-        val response = HttpClientProvider.generateNewClient().withAuthentication(context, request.url) {
-            newCall(request).execute()
-        }
+        val response = HttpClientProvider
+            .generateNewClient()
+            .withAuthentication(
+                request.url,
+                credentials = CredentialsManager.getInstance(context).getCredentials()
+            ) {
+                newCall(request).execute()
+            }
 
         val body = response.body?.string() ?: throw IOException()
 
         JsonWebDeserializer.decodeFromString<ClassesRequest>(body).results
     }
 
-    @Throws(IOException::class, SerializationException::class)
+    @Throws(SocketTimeoutException::class, IOException::class, SerializationException::class, Authenticator.InvalidCredentialsException::class)
     suspend fun getCoursesNames(context: Context, link: String) = withContext(IO) {
         Log.d(this@CelcatService::class.simpleName, "Downloading courses: $link")
         val request = Request.Builder()
@@ -88,23 +102,32 @@ object CelcatService {
             .get()
             .build()
 
-        val response = HttpClientProvider.generateNewClient().withAuthentication(context, request.url) {
-            newCall(request).execute()
-        }
+        val response = HttpClientProvider
+            .generateNewClient()
+            .withAuthentication(
+                request.url,
+                credentials = CredentialsManager.getInstance(context).getCredentials()
+            ) {
+                newCall(request).execute()
+            }
 
         val body = response.body?.string() ?: throw IOException()
 
         JsonWebDeserializer.decodeFromString<CoursesRequest>(body).results.toMap()
     }
 
-    @Throws(IOException::class, SerializationException::class)
+    @Throws(SocketTimeoutException::class, IOException::class, SerializationException::class)
     suspend fun getSchoolsURLs(): List<School> = withContext(IO) {
         val request = Request.Builder()
             .url("https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/data/formations/urls.json")
             .get()
             .build()
 
-        val response = HttpClientProvider.generateNewClient().newCall(request).execute()
+        val response = HttpClientProvider
+            .generateNewClient()
+            .newCall(request)
+            .execute()
+
         val body = response.body?.string() ?: throw IOException()
 
         JsonWebDeserializer.decodeFromString<SchoolsRequest>(body).entries
@@ -118,9 +141,14 @@ object CelcatService {
             .get()
             .build()
 
-        val response = HttpClientProvider.generateNewClient().withAuthentication(context, request.url) {
-            newCall(request).execute()
-        }
+        val response = HttpClientProvider
+            .generateNewClient()
+            .withAuthentication(
+                request.url,
+                credentials = CredentialsManager.getInstance(context).getCredentials()
+            ) {
+                newCall(request).execute()
+            }
 
         val body = response.body?.string() ?: throw IOException()
 

@@ -25,6 +25,7 @@ abstract class Authenticator {
     @Throws(SocketTimeoutException::class, IOException::class, InvalidCredentialsException::class)
     abstract suspend fun ensureAuthentication(host: String, provider: CookieProvider, credentials: Credentials)
 
+
     /**
      * This function will try to log
      * the user into the given host.
@@ -41,20 +42,43 @@ abstract class Authenticator {
     abstract suspend fun authenticate(host: String, provider: CookieProvider, credentials: Credentials)
 
 
-    class InvalidCredentialsException(reason: String? = null): IllegalStateException(reason)
-
     data class Credentials (
         val username: String,
         val password: String
     ) {
+
         companion object {
+            /**
+             * Returns the credentials created from the provided
+             * [username] and [password].
+             *
+             * If one of these two parameters is null, the result of
+             * this function will be null too.
+             *
+             * @param username The credential's username
+             * @param password The credential's password
+             * @return The built credentials or null if the
+             * username or the password is null.
+             */
             fun from(username: String?, password: String?): Credentials? {
-                return if (username != null && password != null) {
-                    Credentials(username, password)
-                } else {
-                    null
+                return when {
+                    username == null -> null
+                    password == null -> null
+                    else -> Credentials(username, password)
                 }
             }
+
         }
+
     }
+
+
+    /**
+     * This [Exception] is used to throw an error
+     * when there is an Authentication problem.
+     *
+     * @param reason Why the exception has been thrown.
+     */
+    class InvalidCredentialsException(reason: String? = null): IllegalStateException(reason)
+
 }

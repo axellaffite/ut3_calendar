@@ -58,6 +58,7 @@ class PreferencesManager private constructor(
         object NOTIFICATION: PreferenceKeys<Boolean>(R.string.key_notification, true)
         object FIRST_LAUNCH: PreferenceKeys<Boolean>(R.string.key_first_launch, true)
         object CODE_VERSION: PreferenceKeys<Int>(R.string.key_code_version, 0)
+        object UPDATE_METHOD: PreferenceKeys<String?>(R.string.key_update_method, null)
 
         /**
          * All of the following objects are deprecated and should not be used.
@@ -134,6 +135,13 @@ class PreferencesManager private constructor(
     var deprecated_firstLaunch : String by simplePreference.Delegate(
         key = PreferenceKeys.DEPRECATED_FIRST_LAUNCH.getKey(context),
         defValue = PreferenceKeys.DEPRECATED_FIRST_LAUNCH.defValue.toString(),
+        converter = StringConverter,
+        manager = StringManager
+    )
+
+    var update_method : String by simplePreference.Delegate(
+        key = PreferenceKeys.UPDATE_METHOD.getKey(context),
+        defValue = PreferenceKeys.UPDATE_METHOD.defValue.toString(),
         converter = StringConverter,
         manager = StringManager
     )

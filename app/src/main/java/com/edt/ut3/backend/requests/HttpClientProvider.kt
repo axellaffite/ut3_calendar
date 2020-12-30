@@ -1,7 +1,5 @@
 package com.edt.ut3.backend.requests
 
-import android.content.Context
-import com.edt.ut3.backend.credentials.CredentialsManager
 import com.edt.ut3.backend.requests.authentication_services.Authenticator
 import com.edt.ut3.backend.requests.authentication_services.CelcatAuthenticator
 import kotlinx.coroutines.sync.Mutex
@@ -51,36 +49,35 @@ class HttpClientProvider {
 }
 
 val authMutex = Mutex()
+
+/**
+ * This function executes the provided [block] of code
+ * authenticated with the provided [authenticator].
+ * By default, the [authenticator] is a [CelcatAuthenticator].
+ *
+ * If the provided credentials are null the authentication will
+ * not be performed.
+ *
+ * @param host The host to which the request must be authenticated.
+ * @param authenticator The authenticator used to perform the authentication.
+ * @param credentials The credentials used to perform the authentication.
+ * @param block The block of code (the request) to execute while authenticated.
+ * @return The result of the execution of the provided [block of code][block].
+ */
 @Throws(SocketTimeoutException::class, IOException::class, Authenticator.InvalidCredentialsException::class)
 suspend fun<T> OkHttpClient.withAuthentication(
-    context: Context,
     host: HttpUrl,
-    auth: CelcatAuthenticator = CelcatAuthenticator(),
-    credentials: Authenticator.Credentials? = null,
+    authenticator: CelcatAuthenticator = CelcatAuthenticator(),
+    credentials: Authenticator.Credentials?,
     block: OkHttpClient.() -> T
 ): T {
     return authMutex.withLock {
-        var err: Exception? = null
-        var result: T? = null
         try {
-            val cred = credentials ?: CredentialsManager.getInstance(context).getCredentials()
-            try {
-                cred?.let {
-                    auth.connect(host, cred)
-                }
-            } finally {
-                result = block(this)
-            }
-        } catch (e: Exception) {
-            err = e
+            credentials?.let { authenticator.connect(host, credentials) }
+
+            block(this)
         } finally {
-            auth.disconnect(host)
+            authenticator.disconnect(host)
         }
-
-        if (err != null) {
-            throw err
-        }
-
-        result!!
     }
 }
