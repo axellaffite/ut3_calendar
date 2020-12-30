@@ -152,4 +152,11 @@
     <string name="old_key_notification" translatable="false">notification</string>
     <string name="course_status_remaining">%d cours restants</string>
     <string name="course_status_default_title">Nom de matière manquant</string>
+    <string name="error_groups_not_configured">Veuillez choisir un groupe</string>
+    <string name="error_link_not_configured">Veuillez choisir un ou plusieurs groupes dans les paramètres</string>
+    <string name="error_get_classes">Impossible de récupérer les salles de cours</string>
+    <string name="error_get_courses">Impossible de récupérer le nom des cours</string>
+    <string name="error_parse_events">Impossible de traiter les données du calendrier</string>
+    <string name="error_updater_unknown">Impossible de mettre à jour les données du calendrier</string>
+    <string name="key_update_method">update_method</string>
 </resources>

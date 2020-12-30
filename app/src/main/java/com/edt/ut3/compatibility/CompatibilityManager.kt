@@ -8,6 +8,7 @@ import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.backend.request_refactoring.updater.UpdaterMethod
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -78,6 +79,10 @@ object CompatibilityManager {
 
         30 -> {
             to31(context)
+        }
+
+        31 -> {
+            to32(context)
         }
 
         else -> {
@@ -153,6 +158,14 @@ object CompatibilityManager {
 
     fun to31(context: Context): Int {
         return 31
+    }
+
+    fun to32(context: Context): Int {
+        if (preferencesManager.groups != null && preferencesManager.link != null) {
+            preferencesManager.update_method = UpdaterMethod.CELCAT;
+        }
+
+        return 32
     }
 
 }
