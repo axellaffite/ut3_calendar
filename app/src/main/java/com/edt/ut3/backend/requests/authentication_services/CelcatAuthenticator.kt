@@ -29,11 +29,11 @@ class CelcatAuthenticator {
 
 
     @Throws(SocketTimeoutException::class, IOException::class, Authenticator.InvalidCredentialsException::class)
-    suspend fun checkCredentials(context: Context, credentials: Authenticator.Credentials) {
+    suspend fun checkCredentials(credentials: Authenticator.Credentials) {
         val client = HttpClientProvider.generateNewClient()
         val url = "https://edt.univ-tlse3.fr"
         val request = Request.Builder().url(url).build()
-        client.withAuthentication(context, request.url, CelcatAuthenticator(), credentials) {
+        client.withAuthentication(request.url, CelcatAuthenticator(), credentials) {
             // Do nothing here, we just want to
             // check if credentials are valid
         }

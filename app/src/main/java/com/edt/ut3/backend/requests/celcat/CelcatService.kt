@@ -29,7 +29,7 @@ import java.util.*
 object CelcatService {
 
     @Throws(SocketTimeoutException::class, IOException::class, Authenticator.InvalidCredentialsException::class)
-    suspend fun getEvents(context: Context, firstUpdate: Boolean, link: String, formations: List<String>): Response = withContext(IO) {
+    suspend fun getEvents(firstUpdate: Boolean, link: String, formations: List<String>): Response = withContext(IO) {
         val today = Date().timeCleaned()
 
         val body = RequestsUtils.EventBody().apply {
@@ -57,14 +57,14 @@ object CelcatService {
 
 
         return@withContext HttpClientProvider.generateNewClient()
-            .withAuthentication(context, request.url) {
+            .withAuthentication(request.url) {
             newCall(request).execute()
         }
     }
 
 
     @Throws(SocketTimeoutException::class, IOException::class, SerializationException::class, Authenticator.InvalidCredentialsException::class)
-    suspend fun getClasses(context: Context, link: String) = withContext(IO) {
+    suspend fun getClasses(link: String) = withContext(IO) {
         Log.d(this@CelcatService::class.simpleName, "Downloading classes: $link")
         val request = Request.Builder()
             .url(link)
@@ -73,7 +73,7 @@ object CelcatService {
 
         val response = HttpClientProvider
             .generateNewClient()
-            .withAuthentication(context, request.url) {
+            .withAuthentication(request.url) {
                 newCall(request).execute()
             }
 
@@ -83,7 +83,7 @@ object CelcatService {
     }
 
     @Throws(SocketTimeoutException::class, IOException::class, SerializationException::class, Authenticator.InvalidCredentialsException::class)
-    suspend fun getCoursesNames(context: Context, link: String) = withContext(IO) {
+    suspend fun getCoursesNames(link: String) = withContext(IO) {
         Log.d(this@CelcatService::class.simpleName, "Downloading courses: $link")
         val request = Request.Builder()
             .url(link)
@@ -92,7 +92,7 @@ object CelcatService {
 
         val response = HttpClientProvider
             .generateNewClient()
-            .withAuthentication(context, request.url) {
+            .withAuthentication(request.url) {
                 newCall(request).execute()
             }
 
@@ -119,7 +119,7 @@ object CelcatService {
     }
 
     @Throws(SocketTimeoutException::class, IOException::class, Authenticator.InvalidCredentialsException::class, SerializationException::class)
-    suspend fun getGroups(context: Context, url: String): List<School.Info.Group> = withContext(IO) {
+    suspend fun getGroups(url: String): List<School.Info.Group> = withContext(IO) {
         Log.i(this@CelcatService::class.simpleName, "Getting groups: $url")
         val request = Request.Builder()
             .url(url)
@@ -128,7 +128,7 @@ object CelcatService {
 
         val response = HttpClientProvider
             .generateNewClient()
-            .withAuthentication(context, request.url) {
+            .withAuthentication(request.url) {
                 newCall(request).execute()
             }
 

@@ -18,7 +18,7 @@ class FormationSelectionFragment: StateFragment() {
             builder = { FragmentAuthentication() },
             onRequestNext = {
                 context?.let {
-                    viewModel.validateCredentials(it)
+                    viewModel.validateCredentials()
                 } ?: false
             },
             onRequestBack = {

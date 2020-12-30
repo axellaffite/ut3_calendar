@@ -78,14 +78,14 @@ class FormationSelectionViewModel: ViewModel() {
         _authenticationState.value = AuthenticationState.Unauthenticated
     }
 
-    suspend fun validateCredentials(context: Context): Boolean {
+    suspend fun validateCredentials(): Boolean {
         val credentials = _credentials.value
         return if (credentials == null || _authenticationState.value is AuthenticationState.Authenticated) {
             true
         } else {
             _authenticationState.value = AuthenticationState.Authenticating
             try {
-                CelcatAuthenticator().checkCredentials(context, credentials)
+                CelcatAuthenticator().checkCredentials(credentials)
                 _authenticationState.value = AuthenticationState.Authenticated
                 true
             } catch (e: Exception) {
@@ -109,7 +109,7 @@ class FormationSelectionViewModel: ViewModel() {
         groupsDownloadJob = viewModelScope.launch {
             _groupsStatus.value = WhichGroupsState.Downloading
             val success: Boolean = try {
-                val newGroups = CelcatService.getGroups(context, School.default.info.first().groups)
+                val newGroups = CelcatService.getGroups(School.default.info.first().groups)
                 synchronized(groups) {
                     _groups.clear()
                     _groups.addAll(newGroups)
