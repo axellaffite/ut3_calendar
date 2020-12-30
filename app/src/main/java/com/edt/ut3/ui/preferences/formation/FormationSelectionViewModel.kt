@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.edt.ut3.backend.background_services.updater.UpdaterMethod
 import com.edt.ut3.backend.credentials.CredentialsManager
 import com.edt.ut3.backend.firebase_services.FirebaseMessagingHandler
 import com.edt.ut3.backend.formation_choice.School
@@ -62,6 +63,8 @@ class FormationSelectionViewModel: ViewModel() {
     private val _selectedGroups = MutableLiveData<Set<School.Info.Group>>(setOf())
     val selectedGroups : LiveData<Set<School.Info.Group>>
         get() = _selectedGroups
+
+    private val _updateMethod: String = UpdaterMethod.CELCAT
 
     var firstCredentialsGet = true
     fun getCredentials(context: Context): LiveData<Authenticator.Credentials?> = synchronized(this) {
@@ -201,6 +204,7 @@ class FormationSelectionViewModel: ViewModel() {
             oldGroups = oldGroupsTemp - newGroupsTemp
             groups = newGroupsTemp
             link = School.default.info.first()
+            update_method = _updateMethod
         }
 
         FirebaseMessagingHandler.ensureGroupRegistration(context)
