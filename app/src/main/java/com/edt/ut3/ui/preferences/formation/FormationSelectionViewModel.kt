@@ -112,7 +112,7 @@ class FormationSelectionViewModel: ViewModel() {
         groupsDownloadJob = viewModelScope.launch {
             _groupsStatus.value = WhichGroupsState.Downloading
             val success: Boolean = try {
-                val newGroups = CelcatService.getGroups(School.default.info.first().groups)
+                val newGroups = CelcatService.getGroups(context, School.default.info.first().groups)
                 synchronized(groups) {
                     _groups.clear()
                     _groups.addAll(newGroups)

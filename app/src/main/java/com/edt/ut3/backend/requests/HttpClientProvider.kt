@@ -68,7 +68,7 @@ val authMutex = Mutex()
 suspend fun<T> OkHttpClient.withAuthentication(
     host: HttpUrl,
     authenticator: CelcatAuthenticator = CelcatAuthenticator(),
-    credentials: Authenticator.Credentials? = null,
+    credentials: Authenticator.Credentials?,
     block: OkHttpClient.() -> T
 ): T {
     return authMutex.withLock {

@@ -43,6 +43,7 @@ class CelcatUpdater: Updater {
         val classes = getClasses(context, link.rooms)
         val courses = getCourses(context, link.courses)
         val incomingEvents = getEvents(
+            context = context,
             firstUpdate = firstUpdate,
             link = link,
             groups = groups,
@@ -72,7 +73,7 @@ class CelcatUpdater: Updater {
     private suspend fun getClasses(context: Context, link: String): HashSet<String> {
         return try {
             val classes = withContext(Dispatchers.IO) {
-                CelcatService.getClasses(link).toHashSet()
+                CelcatService.getClasses(context, link).toHashSet()
             }
 
             classes
@@ -90,7 +91,7 @@ class CelcatUpdater: Updater {
     private suspend fun getCourses(context: Context, link: String): Map<String, String> {
         return try {
             val coursesNames = withContext(Dispatchers.IO) {
-                CelcatService.getCoursesNames(link)
+                CelcatService.getCoursesNames(context, link)
             }
 
             coursesNames
@@ -112,6 +113,7 @@ class CelcatUpdater: Updater {
      */
     @Throws(Updater.Failure::class)
     private suspend fun getEvents(
+        context: Context,
         firstUpdate: Boolean,
         link: School.Info,
         groups: List<String>,
@@ -121,7 +123,7 @@ class CelcatUpdater: Updater {
         return try {
             val eventsJSONArray = withContext(Dispatchers.IO) {
                 CelcatService.run {
-                    getEvents(firstUpdate, link.url, groups).body
+                    getEvents(context, firstUpdate, link.url, groups).body
                 }?.string()
             } ?: throw IOException()
 
