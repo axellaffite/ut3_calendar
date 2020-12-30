@@ -7,8 +7,8 @@ import androidx.lifecycle.Observer
 import androidx.work.*
 import com.edt.ut3.R
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.backend.request_refactoring.updater.Updater
-import com.edt.ut3.backend.request_refactoring.updater.UpdaterFactory
+import com.edt.ut3.backend.background_services.updater.Updater
+import com.edt.ut3.backend.background_services.updater.UpdaterFactory
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope

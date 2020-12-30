@@ -1,4 +1,4 @@
-package com.edt.ut3.backend.request_refactoring.updater.celcat
+package com.edt.ut3.backend.background_services.updater.celcat
 
 import android.content.Context
 import android.util.Log
@@ -12,7 +12,7 @@ import com.edt.ut3.backend.database.viewmodels.EventViewModel
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.backend.request_refactoring.updater.Updater
+import com.edt.ut3.backend.background_services.updater.Updater
 import com.edt.ut3.backend.requests.authentication_services.Authenticator
 import com.edt.ut3.backend.requests.celcat.CelcatService
 import com.edt.ut3.misc.extensions.timeCleaned

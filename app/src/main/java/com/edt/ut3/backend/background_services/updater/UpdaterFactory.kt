@@ -1,6 +1,6 @@
-package com.edt.ut3.backend.request_refactoring.updater
+package com.edt.ut3.backend.background_services.updater
 
-import com.edt.ut3.backend.request_refactoring.updater.celcat.CelcatUpdater
+import com.edt.ut3.backend.background_services.updater.celcat.CelcatUpdater
 import java.lang.IllegalStateException
 
 object UpdaterFactory {

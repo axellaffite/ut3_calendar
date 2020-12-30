@@ -1,4 +1,4 @@
-package com.edt.ut3.backend.request_refactoring.updater
+package com.edt.ut3.backend.background_services.updater
 
 object UpdaterMethod {
 

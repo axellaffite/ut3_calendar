@@ -8,7 +8,7 @@ import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.backend.request_refactoring.updater.UpdaterMethod
+import com.edt.ut3.backend.background_services.updater.UpdaterMethod
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
