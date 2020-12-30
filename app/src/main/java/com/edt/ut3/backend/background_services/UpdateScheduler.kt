@@ -59,7 +59,7 @@ class UpdateScheduler(
          * which will observe the Worker *optional*
          * @param observer An observer *optional*
          */
-        fun forceUpdate(
+        fun launchUpdate(
             context: Context,
             firstUpdate : Boolean = false,
             viewLifecycleOwner: LifecycleOwner? = null,

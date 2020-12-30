@@ -56,7 +56,7 @@ class FormationSelectionFragment: StateFragment() {
     override fun onFinish() {
         context?.let {
             viewModel.saveGroups(it)
-            UpdateScheduler.forceUpdate(it, firstUpdate = true)
+            UpdateScheduler.launchUpdate(it, firstUpdate = true)
             findNavController().popBackStack()
         }
     }

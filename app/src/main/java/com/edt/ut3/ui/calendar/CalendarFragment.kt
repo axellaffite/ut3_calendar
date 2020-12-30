@@ -317,7 +317,7 @@ class CalendarFragment : BottomSheetFragment(),
      *
      */
     private fun forceUpdate() {
-        UpdateScheduler.forceUpdate(requireContext(), false, viewLifecycleOwner, { workInfo ->
+        UpdateScheduler.launchUpdate(requireContext(), false, viewLifecycleOwner, { workInfo ->
             val swipeCallback = object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
                 override fun onDismissed(
                     transientBottomBar: Snackbar?,
