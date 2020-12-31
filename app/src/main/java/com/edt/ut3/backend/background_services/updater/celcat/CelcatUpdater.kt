@@ -30,18 +30,29 @@ class CelcatUpdater: Updater {
 
     private val _progression = MutableLiveData(0)
 
+    override fun getProgression() = _progression
+
+    override fun getUpdateNotificationTitle(context: Context) =
+        context.getString(R.string.title_notification_calendar_update)
+
     @Throws(Updater.Failure::class)
     override suspend fun doUpdate(parameters: Updater.Parameters): ListenableWorker.Result {
         val (firstUpdate, context, preferences) = parameters
 
         val groups = parameters.preferences.groups
-            ?: throw Updater.Failure(R.string.error_groups_not_configured)
+            ?: throw Updater.Failure(R.string.error_groups_not_configured, true)
 
         val link = parameters.preferences.link
-            ?: throw Updater.Failure(R.string.error_link_not_configured)
+            ?: throw Updater.Failure(R.string.error_link_not_configured, true)
+
+        _progression.postValue(5)
 
         val classes = getClasses(context, link.rooms)
+        _progression.postValue(20)
+
         val courses = getCourses(context, link.courses)
+        _progression.postValue(30)
+
         val incomingEvents = getEvents(
             context = context,
             firstUpdate = firstUpdate,
@@ -50,21 +61,26 @@ class CelcatUpdater: Updater {
             classes = classes,
             courses = courses
         )
+        _progression.postValue(50)
 
         val changes = computeEventUpdate(
             incomingEvents = incomingEvents,
             firstUpdate = firstUpdate,
             context = context
         )
+        _progression.postValue(70)
 
         updateDatabaseContents(context, changes)
-        displayUpdateNotifications(preferences, firstUpdate, context, changes)
+        _progression.postValue(85)
+
         insertCoursesVisibilities(context, EventViewModel(context).getEvents())
+        _progression.postValue(100)
+
+        displayUpdateNotifications(preferences, firstUpdate, context, changes)
 
         return ListenableWorker.Result.success()
     }
 
-    override fun getProgression() = _progression
 
     /**
      * Returns the classes parsed properly.
@@ -78,9 +94,11 @@ class CelcatUpdater: Updater {
 
             classes
         } catch (e: IOException) {
-            throw Updater.Failure(R.string.error_check_internet)
+            throw Updater.Failure(R.string.error_check_internet, false)
+        } catch (e: Authenticator.InvalidCredentialsException) {
+            throw Updater.Failure(R.string.error_update_wrong_credentials, true)
         } catch (e: Exception) {
-            throw Updater.Failure(R.string.error_get_classes)
+            throw Updater.Failure(R.string.error_get_classes, true)
         }
     }
 
@@ -96,9 +114,11 @@ class CelcatUpdater: Updater {
 
             coursesNames
         } catch (e: IOException) {
-            throw Updater.Failure(R.string.error_check_internet)
+            throw Updater.Failure(R.string.error_check_internet, false)
+        } catch (e: Authenticator.InvalidCredentialsException) {
+            throw Updater.Failure(R.string.error_update_wrong_credentials, true)
         } catch (e: Exception) {
-            throw Updater.Failure(R.string.error_get_courses)
+            throw Updater.Failure(R.string.error_get_courses, true)
         }
     }
 
@@ -140,13 +160,13 @@ class CelcatUpdater: Updater {
 
             parsedEvent
         } catch (e: SocketTimeoutException) {
-            throw Updater.Failure(R.string.error_check_internet)
+            throw Updater.Failure(R.string.error_check_internet, false)
         } catch (e: SerializationException) {
-            throw Updater.Failure(R.string.error_parse_events)
+            throw Updater.Failure(R.string.error_parse_events, true)
         } catch (e: Authenticator.InvalidCredentialsException) {
-            throw Updater.Failure(R.string.error_wrong_credentials)
+            throw Updater.Failure(R.string.error_update_wrong_credentials, true)
         } catch (e: Exception) {
-            throw Updater.Failure(R.string.error_updater_unknown)
+            throw Updater.Failure(R.string.error_updater_unknown, false)
         }
     }
 

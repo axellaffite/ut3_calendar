@@ -7,10 +7,12 @@ import com.edt.ut3.backend.preferences.PreferencesManager
 
 interface Updater {
 
+    fun getProgression(): LiveData<Int>
+
+    fun getUpdateNotificationTitle(context: Context): String
+
     @Throws(Failure::class)
     suspend fun doUpdate(parameters: Parameters): ListenableWorker.Result
-
-    fun getProgression(): LiveData<Int>
 
     data class Parameters(
         val firstUpdate: Boolean,
@@ -18,7 +20,10 @@ interface Updater {
         val preferences: PreferencesManager
     )
 
-    class Failure(reason: Int): Exception() {
+    class Failure(
+        reason: Int,
+        val shouldBeNotified: Boolean
+    ): Exception() {
         private val _reason: Int = reason
 
         fun getReason() = _reason

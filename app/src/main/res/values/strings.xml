@@ -159,4 +159,9 @@
     <string name="error_parse_events">Impossible de traiter les données du calendrier</string>
     <string name="error_updater_unknown">Impossible de mettre à jour les données du calendrier</string>
     <string name="key_update_method">update_method</string>
+    <string name="title_notification_calendar_update">Mise à jour du calendrier..</string>
+    <string name="channel_update_progression_title">Mise à jour du calendrier en cours...</string>
+    <string name="channel_update_progression_description">Utilisé pour afficher la progression d\'opérations effectuées en fond de tâche.</string>
+    <string name="error_update_wrong_credentials">Identifiants incorrects, veuillez les vérifier dans les paramètres.</string>
+    <string name="title_update_error">Erreur lors de la mise à jour</string>
 </resources>

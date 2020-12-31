@@ -1,9 +1,9 @@
 package com.edt.ut3.backend.notification
 
+import android.app.Notification
 import android.content.Context
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat.IMPORTANCE_DEFAULT
-import androidx.core.app.NotificationManagerCompat.IMPORTANCE_HIGH
+import androidx.core.app.NotificationManagerCompat.*
 import com.edt.ut3.R
 
 sealed class NotificationChannelInformation (
@@ -43,6 +43,15 @@ sealed class NotificationChannelInformation (
         visibility = NotificationCompat.VISIBILITY_PUBLIC,
         title = R.string.channel_firebase_title,
         description = R.string.channel_firebase_description
+    )
+
+    object UpdateProgressionChannel : NotificationChannelInformation (
+        id = "UPDATE_PROGRESSION",
+        summaryID = 3,
+        importance = IMPORTANCE_LOW,
+        visibility = Notification.VISIBILITY_PUBLIC,
+        title = R.string.channel_update_progression_title,
+        description = R.string.channel_update_progression_description
     )
 
 }

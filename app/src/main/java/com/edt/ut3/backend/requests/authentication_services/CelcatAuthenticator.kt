@@ -1,6 +1,5 @@
 package com.edt.ut3.backend.requests.authentication_services
 
-import android.content.Context
 import com.edt.ut3.backend.requests.CookieProvider
 import com.edt.ut3.backend.requests.HttpClientProvider
 import com.edt.ut3.backend.requests.withAuthentication
