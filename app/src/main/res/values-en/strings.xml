@@ -136,4 +136,15 @@
     <string name="course_status_remaining">%d lessons remaining</string>
     <string name="channel_firebase_title">Message from the creators</string>
     <string name="channel_firebase_description">Notification channel used to send notifications to all the users</string>
+    <string name="error_groups_not_configured">Please choose a group</string>
+    <string name="error_link_not_configured">Please choose one or more group in the parameters</string>
+    <string name="title_update_error">An error occured while updating</string>
+    <string name="error_update_wrong_credentials">Wrong credentials, please check them in the parameters.</string>
+    <string name="channel_update_progression_description">Use to display the progression of background tasks</string>
+    <string name="channel_update_progression_title">Calendar update in progress...</string>
+    <string name="title_notification_calendar_update">Updating calendar..</string>
+    <string name="error_updater_unknown">Unable to update the calendar data</string>
+    <string name="error_parse_events">Unable to parse calendar data</string>
+    <string name="error_get_courses">Unable to retrieve the lessons names</string>
+    <string name="error_get_classes">Unable to retrieve the classrooms names</string>
 </resources>
