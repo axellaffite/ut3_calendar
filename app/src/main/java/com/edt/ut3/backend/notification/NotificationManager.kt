@@ -39,6 +39,7 @@ class NotificationManager private constructor(val context: Context) {
         createReminderChannel()
         createUpdateChannel()
         createFirebaseChannel()
+        createUpdateProgressionChannel()
     }
 
     /**
@@ -85,6 +86,12 @@ class NotificationManager private constructor(val context: Context) {
      * channel is created.
      */
     private fun createFirebaseChannel() = createUpdateNotificationChannel(NotificationChannelInformation.FirebaseChannel)
+
+    /**
+     * Ensure that the update progression
+     * channel is created.
+     */
+    private fun createUpdateProgressionChannel() = createUpdateNotificationChannel(NotificationChannelInformation.UpdateProgressionChannel)
 
 
     /**
@@ -314,4 +321,41 @@ class NotificationManager private constructor(val context: Context) {
             notify(Objects.hash(firebaseNotification.body, firebaseNotification.title), notification)
         }
     }
+
+    fun displayUpdateProgressBar(notificationTitle: String, progression: Int, id: Int) {
+        val channel = NotificationChannelInformation.UpdateProgressionChannel
+
+        NotificationManagerCompat.from(context).run {
+            val notification = NotificationCompat.Builder(context, channel.id)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(notificationTitle)
+                .setGroup(channel.id)
+                .setProgress(100, progression, false)
+                .build()
+
+            notify(id, notification)
+        }
+    }
+
+    fun removeUpdateProgressBar(id: Int) {
+        NotificationManagerCompat.from(context).run {
+            cancel(id)
+        }
+    }
+
+    fun displayUpdateError(reason: String) {
+        val channel = NotificationChannelInformation.UpdateProgressionChannel
+
+        NotificationManagerCompat.from(context).run {
+            val notification = NotificationCompat.Builder(context, channel.id)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(context.getString(R.string.title_update_error))
+                .setContentText(reason)
+                .setGroup(channel.id)
+                .build()
+
+            notify(0, notification)
+        }
+    }
+
 }

@@ -6,15 +6,17 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.work.*
 import com.edt.ut3.R
-import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.background_services.updater.Updater
 import com.edt.ut3.backend.background_services.updater.UpdaterFactory
+import com.edt.ut3.backend.notification.NotificationManager
+import com.edt.ut3.backend.preferences.PreferencesManager
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
 
 /**
@@ -79,12 +81,21 @@ class UpdateScheduler(
     }
 
     private val preferences = PreferencesManager.getInstance(applicationContext)
-    private val observer = SchedulerObserver()
+    private val notificationManager = NotificationManager.getInstance(applicationContext)
+    private val notificationID = synchronized(Random::class) {
+        Random(System.currentTimeMillis()).nextInt()
+    }
+
+    private lateinit var observer: SchedulerObserver
 
     override suspend fun doWork(): Result = coroutineScope {
         try {
             val firstUpdate = inputData.getBoolean("firstUpdate", false)
             val updater = UpdaterFactory.createUpdater(preferences.update_method)
+
+            observer = SchedulerObserver(
+                notificationTitle = updater.getUpdateNotificationTitle(applicationContext)
+            )
 
             try {
                 withContext(Main) {
@@ -103,6 +114,8 @@ class UpdateScheduler(
             }
 
         } catch (e: Updater.Failure) {
+            displayUpdateError(e)
+
             return@coroutineScope Result.failure(
                 Data.Builder()
                     .putString("error", e.getReasonMessage(applicationContext))
@@ -114,17 +127,73 @@ class UpdateScheduler(
                     .putString("error", applicationContext.getString(R.string.error_updater_unknown))
                     .build()
             )
+        } finally {
+            removeNotificationProgress()
         }
 
         Result.success()
     }
 
-    private inner class SchedulerObserver: Observer<Int> {
+    /**
+     * Used to display the notification progress.
+     * There is no need to create the notification channel
+     * as the [NotificationManager] will do it for us
+     * when created.
+     *
+     * @param notificationTitle The title to display for
+     * the notification. This title is usually provided
+     * by the [Updater] itself.
+     *
+     * @param progression The progression to display. It
+     * MUST be between 0 and 100 (included).
+     */
+    private fun displayNotificationProgress(notificationTitle: String, progression: Int) {
+        notificationManager.displayUpdateProgressBar(notificationTitle, progression, notificationID)
+    }
+
+
+    /**
+     * Used to remove the notification
+     * that displays the progress bar.
+     *
+     * This function MUST be called at the end of the
+     * doWork() function of the scheduler.
+     *
+     * For example, a good practice is to place
+     * the function call into a finally catch
+     * when a try-catch block is used (which
+     * is probably the case here).
+     */
+    private fun removeNotificationProgress() {
+        notificationManager.removeUpdateProgressBar(notificationID)
+    }
+
+
+    /**
+     * Used to display an update error.
+     * The
+     *
+     * @param reason
+     */
+    private fun displayUpdateError(exception: Updater.Failure) {
+        if (exception.shouldBeNotified) {
+            notificationManager.displayUpdateError(
+                exception.getReasonMessage(applicationContext)
+            )
+        }
+    }
+
+
+    private inner class SchedulerObserver(
+        val notificationTitle: String,
+    ): Observer<Int> {
 
         override fun onChanged(progression: Int) {
             GlobalScope.launch {
                 setProgress(workDataOf(Progress to progression))
             }
+
+            displayNotificationProgress(notificationTitle, progression)
         }
 
     }
