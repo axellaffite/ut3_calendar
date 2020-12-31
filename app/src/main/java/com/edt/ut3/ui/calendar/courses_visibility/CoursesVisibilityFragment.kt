@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Course
 import com.edt.ut3.backend.celcat.CourseStatusData
@@ -42,7 +44,9 @@ class CoursesVisibilityFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        CoursesStatusList.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         CoursesStatusList.adapter = coursesAdapter
+        CoursesStatusList.setHasFixedSize(false)
 
         viewModel.getCoursesVisibility(view.context).observe(viewLifecycleOwner, coursesAdapter::dataSet::set)
     }
@@ -59,24 +63,27 @@ class CoursesVisibilityFragment: Fragment() {
      * [BaseAdapter.notifyDataSetChanged] by itself
      * to update the displayed data.
      */
-    class CourseAdapter : BaseAdapter() {
+    class CourseAdapter : RecyclerView.Adapter<CourseViewHolder>() {
         var dataSet: List<CourseStatusData> = listOf()
             set(value) {
                 field = value
                 notifyDataSetChanged()
             }
 
-        override fun getCount() = dataSet.size
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CourseViewHolder {
+            return CourseViewHolder(
+                LayoutInflater.from(parent.context)
+                    .inflate(
+                        R.layout.layout_course_status_view_holder,
+                        parent,
+                        false
+                    ) as CourseStatus
+            )
+        }
 
-        override fun getItem(position: Int) = dataSet[position]
-
-        override fun getItemId(position: Int) = 0L
-
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-            val root = (convertView as? CourseStatus) ?: CourseStatus(parent!!.context)
-
-            return root.apply {
-                val course = getItem(position)
+        override fun onBindViewHolder(holder: CourseViewHolder, position: Int) {
+            holder.course.apply {
+                val course = dataSet[position]
 
                 setCourse(course) { _, visible ->
                     GlobalScope.launch {
@@ -88,7 +95,10 @@ class CoursesVisibilityFragment: Fragment() {
             }
         }
 
+        override fun getItemCount() = dataSet.size
     }
+
+    class CourseViewHolder(val course: CourseStatus): RecyclerView.ViewHolder(course)
 
 }
 

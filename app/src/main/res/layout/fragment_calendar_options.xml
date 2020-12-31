@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
@@ -14,14 +15,13 @@
             android:textColor="@color/iconTint"
             android:focusable="true"/>
 
-        <ListView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/CoursesStatusList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:nestedScrollingEnabled="true"
             android:orientation="vertical"
-            android:divider="@drawable/list_divider"
-            android:dividerHeight="1px"/>
+            tools:listitem="@layout/layout_course_status" />
 
 
 </LinearLayout>
