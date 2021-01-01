@@ -6,6 +6,7 @@ import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.requests.JsonWebDeserializer
 import com.edt.ut3.backend.requests.authentication_services.Authenticator
 import kotlinx.coroutines.Dispatchers.Default
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
@@ -54,8 +55,10 @@ object CelcatDataRetriever {
         classes: HashSet<String>,
         courses: Map<String, String>
     ): List<Event> {
-        val response = CelcatService.getEvents(context, firstUpdate, link.url, groups)
-        val body = response.body?.string() ?: throw IOException()
+        val body = withContext(IO) {
+            val response = CelcatService.getEvents(context, firstUpdate, link.url, groups)
+            response.body?.string() ?: throw IOException()
+        }
 
 
         return withContext(Default) {
@@ -94,8 +97,10 @@ object CelcatDataRetriever {
         SerializationException::class
     )
     suspend fun getClasses(context: Context, link: String): List<String> {
-        val response = CelcatService.getClasses(context, link)
-        val body = response.body?.string() ?: throw IOException()
+        val body = withContext(IO) {
+            val response = CelcatService.getClasses(context, link)
+            response.body?.string() ?: throw IOException()
+        }
 
         return withContext(Default) {
             JsonWebDeserializer.decodeFromString<ClassesRequest>(body).results
@@ -121,8 +126,10 @@ object CelcatDataRetriever {
         SerializationException::class
     )
     suspend fun getSchoolsURLs(): List<School> {
-        val response = CelcatService.getSchoolsURLs()
-        val body = response.body?.string() ?: throw IOException()
+        val body = withContext(IO) {
+            val response = CelcatService.getSchoolsURLs()
+            response.body?.string() ?: throw IOException()
+        }
 
         return withContext(Default) {
             JsonWebDeserializer.decodeFromString<SchoolsRequest>(body).entries
@@ -154,8 +161,10 @@ object CelcatDataRetriever {
         SerializationException::class
     )
     suspend fun getCoursesNames(context: Context, link: String): Map<String, String> {
-        val response = CelcatService.getCoursesNames(context, link)
-        val body = response.body?.string() ?: throw IOException()
+        val body = withContext(IO) {
+            val response = CelcatService.getCoursesNames(context, link)
+            response.body?.string() ?: throw IOException()
+        }
 
         return withContext(Default) {
             JsonWebDeserializer.decodeFromString<CoursesRequest>(body).results.toMap()
@@ -186,8 +195,10 @@ object CelcatDataRetriever {
         SerializationException::class
     )
     suspend fun getGroups(context: Context, url: String): List<School.Info.Group> {
-        val response = CelcatService.getGroups(context, url)
-        val body = response.body?.string() ?: throw IOException()
+        val body = withContext(IO) {
+            val response = CelcatService.getGroups(context, url)
+            response.body?.string() ?: throw IOException()
+        }
 
         return withContext(Default) {
             JsonWebDeserializer.decodeFromString<GroupsRequest>(body).results

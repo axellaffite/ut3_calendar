@@ -128,6 +128,7 @@ class FormationSelectionViewModel: ViewModel() {
                 _groupsFailure.value = WhichGroupsFailure.WrongCredentials
                 false
             } catch (e: Exception) {
+                e.printStackTrace()
                 _groupsFailure.value = WhichGroupsFailure.UnknownError
                 false
             }
