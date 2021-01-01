@@ -16,23 +16,19 @@ class FormationSelectionFragment: StateFragment() {
             title = R.string.title_authentication,
             summary = R.string.summary_authentication,
             builder = { FragmentAuthentication() },
-            onRequestNext = {
-                context?.let {
-                    viewModel.validateCredentials()
-                } ?: false
-            },
+            onRequestNext = { viewModel.validateCredentials() },
             onRequestBack = {
-                context?.let {
-                    viewModel.checkConfiguration(it)
+                context?.let { context ->
+                    viewModel.checkConfiguration(context)
                 } ?: false
             },
             onBack = { onCancel() },
             onNext = {
                 nextTo(null)
-                context?.let {
+                context?.let { context ->
                     viewModel.run {
-                        saveCredentials(it)
-                        updateGroups(it)
+                        saveCredentials(context)
+                        updateGroups(context)
                     }
                 }
             }
