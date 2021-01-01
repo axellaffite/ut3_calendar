@@ -12,7 +12,7 @@ import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.authentication_services.Authenticator
 import com.edt.ut3.backend.requests.authentication_services.CelcatAuthenticator
-import com.edt.ut3.backend.requests.celcat.CelcatService
+import com.edt.ut3.backend.requests.celcat.CelcatDataRetriever
 import com.edt.ut3.misc.BaseState
 import com.edt.ut3.misc.extensions.isTrue
 import com.edt.ut3.misc.extensions.toList
@@ -112,7 +112,7 @@ class FormationSelectionViewModel: ViewModel() {
         groupsDownloadJob = viewModelScope.launch {
             _groupsStatus.value = WhichGroupsState.Downloading
             val success: Boolean = try {
-                val newGroups = CelcatService.getGroups(context, School.default.info.first().groups)
+                val newGroups = CelcatDataRetriever.getGroups(context, School.default.info.first().groups)
                 synchronized(groups) {
                     _groups.clear()
                     _groups.addAll(newGroups)
