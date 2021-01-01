@@ -12,7 +12,6 @@ import android.widget.TextView
 import androidx.core.view.children
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.edt.ut3.R
 import com.edt.ut3.backend.goulin_room_finder.Building
@@ -24,11 +23,12 @@ import com.edt.ut3.misc.extensions.toDp
 import com.edt.ut3.ui.room_finder.RoomFinderState.*
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.room_finder_fragment.*
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import java.util.*
 
     class RoomFinderFragment : Fragment() {
 
-    private val viewModel: RoomFinderViewModel by activityViewModels()
+    private val viewModel: RoomFinderViewModel by sharedViewModel()
 
 
     override fun onCreateView(

@@ -17,7 +17,7 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 
 
-class RoomFinderViewModel : ViewModel() {
+class RoomFinderViewModel(val repository: RoomFinderRepository) : ViewModel() {
 
     private var downloadJob: Job? = null
     private var searchJob: Job? = null
