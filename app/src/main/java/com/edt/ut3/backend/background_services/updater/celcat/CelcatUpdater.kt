@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.work.ListenableWorker
 import com.edt.ut3.R
+import com.edt.ut3.backend.background_services.updater.Updater
 import com.edt.ut3.backend.celcat.Course
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.viewmodels.CoursesViewModel
@@ -12,20 +13,17 @@ import com.edt.ut3.backend.database.viewmodels.EventViewModel
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.backend.background_services.updater.Updater
 import com.edt.ut3.backend.requests.authentication_services.Authenticator
-import com.edt.ut3.backend.requests.celcat.CelcatService
+import com.edt.ut3.backend.requests.celcat.CelcatDataRetriever
 import com.edt.ut3.misc.extensions.timeCleaned
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.util.*
 
+@Suppress("BlockingMethodInNonBlockingContext")
 class CelcatUpdater: Updater {
 
     private val _progression = MutableLiveData(0)
@@ -88,11 +86,7 @@ class CelcatUpdater: Updater {
     @Throws(Updater.Failure::class)
     private suspend fun getClasses(context: Context, link: String): HashSet<String> {
         return try {
-            val classes = withContext(Dispatchers.IO) {
-                CelcatService.getClasses(context, link).toHashSet()
-            }
-
-            classes
+            CelcatDataRetriever.getClasses(context, link).toHashSet()
         } catch (e: IOException) {
             throw Updater.Failure(R.string.error_check_internet, false)
         } catch (e: Authenticator.InvalidCredentialsException) {
@@ -108,11 +102,7 @@ class CelcatUpdater: Updater {
     @Throws(IOException::class)
     private suspend fun getCourses(context: Context, link: String): Map<String, String> {
         return try {
-            val coursesNames = withContext(Dispatchers.IO) {
-                CelcatService.getCoursesNames(context, link)
-            }
-
-            coursesNames
+            CelcatDataRetriever.getCoursesNames(context, link)
         } catch (e: IOException) {
             throw Updater.Failure(R.string.error_check_internet, false)
         } catch (e: Authenticator.InvalidCredentialsException) {
@@ -138,27 +128,10 @@ class CelcatUpdater: Updater {
         link: School.Info,
         groups: List<String>,
         classes: HashSet<String>,
-        courses: Map<String, String>,
+        courses: Map<String, String>
     ) : List<Event> {
         return try {
-            val eventsJSONArray = withContext(Dispatchers.IO) {
-                CelcatService.run {
-                    getEvents(context, firstUpdate, link.url, groups).body
-                }?.string()
-            } ?: throw IOException()
-
-            val parsedEvent = withContext(Dispatchers.Default) {
-                Json.parseToJsonElement(eventsJSONArray).jsonArray.fold(listOf<Event>()) { acc, e ->
-                    try {
-                        acc + Event.fromJSON(e.jsonObject, classes, courses)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        acc
-                    }
-                }
-            }
-
-            parsedEvent
+            CelcatDataRetriever.getEvents(context, firstUpdate, link, groups, classes, courses)
         } catch (e: SocketTimeoutException) {
             throw Updater.Failure(R.string.error_check_internet, false)
         } catch (e: SerializationException) {
