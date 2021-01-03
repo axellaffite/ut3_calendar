@@ -39,6 +39,7 @@
         <item name="materialButtonStyle">@style/MaterialButtonStyle</item>
 
         <item name="alertDialogTheme">@style/AlertDialogTheme</item>
+
     </style>
 
     <style name="OutlinedBox" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">

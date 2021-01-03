@@ -164,4 +164,5 @@
     <string name="channel_update_progression_description">Utilisé pour afficher la progression d\'opérations effectuées en fond de tâche.</string>
     <string name="error_update_wrong_credentials">Identifiants incorrects, veuillez les vérifier dans les paramètres.</string>
     <string name="title_update_error">Erreur lors de la mise à jour</string>
+    <string name="choose_a_building">Choisissez un bâtiment</string>
 </resources>

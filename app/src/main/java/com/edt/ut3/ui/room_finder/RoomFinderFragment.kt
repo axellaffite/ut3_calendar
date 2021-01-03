@@ -6,11 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.View.*
 import android.view.ViewGroup
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.TextView
 import androidx.core.view.children
-import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.edt.ut3.R
@@ -60,25 +57,19 @@ import java.util.*
             state.observe(viewLifecycleOwner, ::handleStateChange)
             error.observe(viewLifecycleOwner, ::handleError)
             searchResult.observe(viewLifecycleOwner, ::handleSearchUpdate)
-            searchBarText.observe(viewLifecycleOwner, ::handleTextChanged)
             buildings.observe(viewLifecycleOwner, ::handleBuildingUpdate)
         }
 
-
-        hints.setOnItemClickListener { _: AdapterView<*>, view: View, _: Int, _: Long ->
-            if (view is TextView) {
-                viewModel.selectBuilding(view.text.toString())
+        hints.setOnItemClickListener { parent, view, position, id ->
+            val item = hints.adapter.getItem(position)
+            if (item is Building) {
+                viewModel.selectBuilding(item)
+                search_bar?.text = item.name
             }
         }
 
-        search_bar.apply {
-            doOnTextChanged { text, _, _, _ ->
-                viewModel.updateBarText(text.toString())
-            }
-
-            setOnClickListener {
-                invertHintsVisibility()
-            }
+        search_bar.setOnClickListener {
+            invertHintsVisibility()
         }
 
         addOnBackPressedListener {
@@ -119,12 +110,12 @@ import java.util.*
                 visibility = VISIBLE
                 search_bar_container?.cardElevation = 8.toDp(context)
             } else {
-                hideHints()
+                clearSearchBarState()
             }
         }
     }
 
-    private fun hideHints() {
+    private fun clearSearchBarState() {
         search_bar_container?.cardElevation = 0f
         hints?.visibility = GONE
 
@@ -162,20 +153,20 @@ import java.util.*
     private fun handleStateChange(state: RoomFinderState) = when (state) {
         is Presentation -> {
             thanks.visibility = VISIBLE
-            hints.visibility = GONE
             loading_container.visibility = INVISIBLE
             result.visibility = INVISIBLE
 
+            clearSearchBarState()
             search_bar.clearFocus()
             hideKeyboard()
         }
 
         is Result -> {
-            thanks.visibility = INVISIBLE
+            thanks.visibility = GONE
             loading_container.visibility = INVISIBLE
             result.visibility = VISIBLE
 
-            hideHints()
+            clearSearchBarState()
             search_bar.clearFocus()
             hideKeyboard()
         }
@@ -184,16 +175,16 @@ import java.util.*
             thanks.visibility = INVISIBLE
             loading_container.visibility = VISIBLE
             result.visibility = INVISIBLE
-            hideHints()
+
+            clearSearchBarState()
         }
 
         is Downloading -> {
-            hints.visibility = GONE
             thanks.visibility = INVISIBLE
             loading_container.visibility = INVISIBLE
             result.visibility = INVISIBLE
         }
-    }
+    }.also { println("STATE: $state") }
 
     /**
      * Handles all the errors that can occur in this Fragment.
@@ -206,7 +197,7 @@ import java.util.*
             is RoomFinderFailure.SearchFailure ->  {
                 viewModel.state.value = Presentation
                 displayInternetError {
-                    viewModel.updateSearchResults(true)
+                    viewModel.updateSearchResults()
                 }
             }
 
@@ -240,20 +231,6 @@ import java.util.*
         result.adapter = RoomAdapter(rooms)
     }
 
-    /**
-     * Update the displayed text if it is different
-     * from the given [text]
-     *
-     * @param text The text to display
-     */
-    private fun handleTextChanged(text: String?) {
-        when (text) {
-            search_bar?.text, null -> {}
-            else -> {
-                search_bar?.text = text
-            }
-        }
-    }
 
     /**
      * Update the building adapter with the incoming data.
@@ -261,8 +238,13 @@ import java.util.*
      * @param buildings The new buildings
      */
     private fun handleBuildingUpdate(buildings: Set<Building>) {
-        hints.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, buildings.map { it.name })
+        hints.adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_list_item_1,
+            buildings.toList()
+        )
     }
+
 
 }
 
