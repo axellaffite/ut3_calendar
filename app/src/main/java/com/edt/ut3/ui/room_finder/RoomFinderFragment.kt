@@ -152,6 +152,8 @@ import java.util.*
      */
     private fun handleStateChange(state: RoomFinderState) = when (state) {
         is Presentation -> {
+            loading_label?.setText(R.string.fragment_room_finder_presentation_text)
+
             thanks.visibility = VISIBLE
             loading_container.visibility = INVISIBLE
             result.visibility = INVISIBLE
@@ -180,8 +182,10 @@ import java.util.*
         }
 
         is Downloading -> {
+            loading_label?.setText(R.string.fragment_room_finder_downloading_buildings)
+
             thanks.visibility = INVISIBLE
-            loading_container.visibility = INVISIBLE
+            loading_container.visibility = VISIBLE
             result.visibility = INVISIBLE
         }
     }.also { println("STATE: $state") }
