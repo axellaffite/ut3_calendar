@@ -44,7 +44,7 @@
     <string name="course_visibility">Visibility of courses</string>
     <string name="you_must_restart">You must restart the application for this change to take effect</string>
     <string name="title_room_finder">Free room</string>
-    <string name="searching_room">Looking for an empty room for you ❤️</string>
+    <string name="fragment_room_finder_presentation_text">Looking for an empty room for you ❤️</string>
     <string name="find_a_free_room">Find a free room thanks to\nhttps://rooms-finder.goulin.fr</string>
     <string name="from_to_format">From %s to %s</string>
     <string name="smartphone_theme">Smartphone theme</string>
@@ -147,4 +147,6 @@
     <string name="error_parse_events">Unable to parse calendar data</string>
     <string name="error_get_courses">Unable to retrieve the lessons names</string>
     <string name="error_get_classes">Unable to retrieve the classrooms names</string>
+    <string name="fragment_room_finder_downloading_buildings">Downloading buildings..</string>
+    <string name="choose_a_building">Choose a building</string>
 </resources>

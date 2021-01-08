@@ -46,7 +46,7 @@
     <string name="you_must_restart">Vous devez redémarrer l\'application pour que cette modification prenne effet</string>
     <string name="title_room_finder">Salle libre</string>
     <string name="building_search">Sélectionnez un bâtiment</string>
-    <string name="searching_room">À la recherche d\'une salle vide pour toi ❤️</string>
+    <string name="fragment_room_finder_presentation_text">À la recherche d\'une salle vide pour toi ❤️</string>
     <string name="find_a_free_room">Trouves une salle de libre grâce à\nhttps://rooms-finder.goulin.fr</string>
     <string name="hour_format" translatable="false">HH:mm</string>
     <string name="from_to_format">De %s à %s</string>
@@ -164,4 +164,6 @@
     <string name="channel_update_progression_description">Utilisé pour afficher la progression d\'opérations effectuées en fond de tâche.</string>
     <string name="error_update_wrong_credentials">Identifiants incorrects, veuillez les vérifier dans les paramètres.</string>
     <string name="title_update_error">Erreur lors de la mise à jour</string>
+    <string name="choose_a_building">Choisissez un bâtiment</string>
+    <string name="fragment_room_finder_downloading_buildings">Téléchargement des bâtiments..</string>
 </resources>

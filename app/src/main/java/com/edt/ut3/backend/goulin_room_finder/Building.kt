@@ -7,4 +7,6 @@ package com.edt.ut3.backend.goulin_room_finder
  *
  * @property name
  */
-data class Building (val name: String)
+data class Building (val name: String) {
+    override fun toString(): String = name
+}

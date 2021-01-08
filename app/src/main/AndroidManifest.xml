@@ -22,7 +22,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
-        android:fullBackupContent="@xml/auto_backup_restrictions">
+        android:fullBackupContent="@xml/auto_backup_restrictions"
+        android:name=".EDTUT3Application">
 
 
         <receiver

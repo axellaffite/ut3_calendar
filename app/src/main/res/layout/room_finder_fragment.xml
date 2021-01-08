@@ -148,7 +148,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_margin="8dp"
-                android:text="@string/searching_room" />
+                android:text="@string/fragment_room_finder_presentation_text" />
 
         </LinearLayout>
 
