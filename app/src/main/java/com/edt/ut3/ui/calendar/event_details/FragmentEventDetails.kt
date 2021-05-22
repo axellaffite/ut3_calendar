@@ -410,7 +410,9 @@ class FragmentEventDetails : Fragment() {
         updateLocationJob = lifecycleScope.launch {
             whenCreated {
                 val matchingPlaces = withContext(Default) {
-                    val parsedPlaces = places.map { it.apply { title = title.toLowerCase(Locale.FRENCH) } }
+                    val parsedPlaces = places.map { it.apply { title =
+                        title.lowercase(Locale.FRENCH)
+                    } }
 
                     computeMatchingLocations(parsedPlaces)
                 }
@@ -443,7 +445,7 @@ class FragmentEventDetails : Fragment() {
     private suspend fun computeMatchingLocations(places: List<Place>) = withContext(Default) {
         val matchingPlaces =
             event.locations.map { location ->
-                val lowerCaseLocation = location.toLowerCase(Locale.FRENCH)
+                val lowerCaseLocation = location.lowercase(Locale.FRENCH)
                 val correspondingPlace = places.find { place ->
                     lowerCaseLocation.contains(place.title)
                 }
@@ -519,18 +521,25 @@ class FragmentEventDetails : Fragment() {
     private fun generateDateText(): String {
         val date =
             SimpleDateFormat("EEEE dd/MM/yyyy", Locale.getDefault()).format(event.start)
-                .capitalize(Locale.getDefault())
+                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 
         val time =
             if (event.allday) {
                 getString(R.string.all_day)
             } else {
-                val start = "%02dh%02d".format(event.start.get(Calendar.HOUR_OF_DAY), event.start.get(Calendar.MINUTE))
-                val end = "%02dh%02d".format(event.end?.get(Calendar.HOUR_OF_DAY), event.end?.get(Calendar.MINUTE))
+                val start = "%02dh%02d".format(
+                    event.start.get(Calendar.HOUR_OF_DAY),
+                    event.start.get(Calendar.MINUTE)
+                )
+                val end = "%02dh%02d".format(
+                    event.end?.get(Calendar.HOUR_OF_DAY),
+                    event.end?.get(Calendar.MINUTE)
+                )
 
                 val fromToFormat = getString(R.string.from_to_format)
 
-                fromToFormat.format(start, end).capitalize(Locale.getDefault())
+                fromToFormat.format(start, end)
+                    .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
             }
 
         return "$date\n$time"
@@ -702,9 +711,13 @@ class FragmentEventDetails : Fragment() {
 
             setOnClickListener {
                 activity?.let {
-                    MapsUtils.routeFromTo(it, null, place.geolocalisation, place.title) {
+                    MapsUtils.routeFromTo(it, place.geolocalisation, place.title) {
                         view?.event_details_main?.let { mainView ->
-                            Snackbar.make(mainView, R.string.unable_to_launch_googlemaps, Snackbar.LENGTH_LONG).show()
+                            Snackbar.make(
+                                mainView,
+                                R.string.unable_to_launch_googlemaps,
+                                Snackbar.LENGTH_LONG
+                            ).show()
                         }
                     }
                 }
@@ -712,7 +725,7 @@ class FragmentEventDetails : Fragment() {
 
             setChipBackgroundColorResource(R.color.foregroundColor)
 
-            text = place.title.toUpperCase(Locale.FRENCH)
+            text = place.title.uppercase(Locale.FRENCH)
         }
     }
 }

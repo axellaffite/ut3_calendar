@@ -14,21 +14,16 @@ object MapsUtils {
      *
      *
      * @param activity The current activity
-     * @param from The current position, if null means the current position
      * @param to The destination point
      * @param toTitle The destination point title
      * @param onError If the Intent cannot be launched
      */
-    fun routeFromTo(activity: Activity, from: GeoPoint?, to: GeoPoint, toTitle: String, onError: (() -> Unit)? = null) {
+    fun routeFromTo(activity: Activity, to: GeoPoint, toTitle: String, onError: (() -> Unit)? = null) {
         try {
-            var requestLink = ("https://www.google.com/maps/dir/?api=1" +
+            val requestLink = ("https://www.google.com/maps/dir/?api=1" +
                     "&destination=${to.latitude.toFloat()},${to.longitude.toFloat()}" +
                     "&destination_place_id=$toTitle" +
                     "&travelmode=walking")
-
-            from?.run {
-                requestLink += "&origin=${latitude.toFloat()},${longitude.toFloat()}"
-            }
 
             // Create a Uri from an intent string. Use the result to create an Intent.
             val gmmIntentUri = Uri.parse(requestLink)

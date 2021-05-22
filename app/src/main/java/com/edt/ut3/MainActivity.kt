@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        CompatibilityManager.ensureCompatibility(this)
+        CompatibilityManager().ensureCompatibility(this)
         val shouldConfigure: Boolean
         PreferencesManager.getInstance(this).apply {
             shouldConfigure = (link == null || groups.isNullOrEmpty())

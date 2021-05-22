@@ -50,7 +50,7 @@
             android:padding="16dp"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_nav_before"
-            android:tint="@color/iconTint"
+            app:tint="@color/iconTint"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 

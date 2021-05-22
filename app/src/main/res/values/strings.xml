@@ -138,4 +138,6 @@
     <string name="downloading_groups">Téléchargement des groupes..</string>
     <string name="channel_firebase_title">Message de la part des créateurs</string>
     <string name="channel_firebase_description">Channel de notification servant à diffuser des informations à l\'ensemble des utilisateurs</string>
+    <string name="event_not_found">Événement introuvable</string>
+    <string name="delete_note">Voulez-vous supprimer la note ?</string>
 </resources>

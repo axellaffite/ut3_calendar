@@ -1,7 +1,10 @@
 package com.edt.ut3.ui.notes
 
+import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
@@ -12,13 +15,20 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.edt.ut3.R
+import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.viewmodels.EventViewModel
+import com.edt.ut3.backend.database.viewmodels.NotesViewModel
 import com.edt.ut3.backend.note.Note
 import com.edt.ut3.ui.calendar.BottomSheetFragment
 import com.edt.ut3.ui.calendar.event_details.FragmentEventDetails
+import com.edt.ut3.ui.calendar.view_builders.EventView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import kotlinx.android.synthetic.main.fragment_notes.*
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.lang.IllegalStateException
 
 class NotesFragment : BottomSheetFragment() {
 
@@ -102,12 +112,28 @@ class NotesFragment : BottomSheetFragment() {
             notes_container.adapter = NoteAdapter(notes).apply {
                 onItemClickListener = { note ->
                     val eventID = note.eventID
-                    val ctx = context
 
-                    if (eventID is String && ctx is Context) {
-                        lifecycleScope.launchWhenResumed {
-                            val event = EventViewModel(ctx).getEventsByIDs(eventID).firstOrNull()
-                            notesViewModel.selectedEvent.value = event
+                    lifecycleScope.launchWhenResumed {
+                        try {
+                            if (eventID is String) {
+                                val context = context ?: return@launchWhenResumed
+                                val event =
+                                    EventViewModel(context).getEventsByIDs(eventID).firstOrNull()
+
+                                if (event is Event) {
+                                    withContext(Main) {
+                                        notesViewModel.selectedEvent.value = event
+                                    }
+                                } else {
+                                    throw IllegalStateException()
+                                }
+                            } else {
+                                throw IllegalStateException()
+                            }
+                        } catch (e: IllegalStateException) {
+                            withContext(Main) {
+                                askToDeleteNote(note)
+                            }
                         }
                     }
                 }
@@ -115,6 +141,23 @@ class NotesFragment : BottomSheetFragment() {
         }
 
         notes_container.adapter?.notifyDataSetChanged()
+    }
+
+    private fun askToDeleteNote(note: Note) {
+        context?.let { context ->
+            AlertDialog.Builder(context)
+                .setTitle(R.string.event_not_found)
+                .setMessage(R.string.delete_note)
+                .setPositiveButton(android.R.string.ok) { dialog, which ->
+                    lifecycleScope.launchWhenResumed {
+                        NotesViewModel(context).delete(note)
+                    }
+                }
+                .setNegativeButton(android.R.string.cancel) { dialog, which ->
+                    // Do nothing here
+                }
+                .show()
+        }
     }
 
 }

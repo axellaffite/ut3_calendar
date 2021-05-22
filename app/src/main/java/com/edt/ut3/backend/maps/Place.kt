@@ -32,7 +32,7 @@ data class Place (
     var photo: String? = null,
     var contact: String? = null
 ) {
-    fun getIcon() = when (type.toLowerCase(Locale.getDefault())) {
+    fun getIcon() = when (type.lowercase(Locale.getDefault())) {
         "batiment" -> R.drawable.ic_building
         "épicerie" -> R.drawable.ic_grocery
         "foodtruck" -> R.drawable.ic_foodtruck

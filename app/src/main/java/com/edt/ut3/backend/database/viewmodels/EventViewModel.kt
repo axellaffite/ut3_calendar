@@ -18,6 +18,8 @@ class EventViewModel(context: Context) {
 
     suspend fun delete(vararg events: Event) = dao.delete(*events)
 
+    suspend fun deleteID(eventID: String) = dao.deleteID(eventID)
+
     suspend fun update(vararg events: Event) = dao.update(*events)
 
 }

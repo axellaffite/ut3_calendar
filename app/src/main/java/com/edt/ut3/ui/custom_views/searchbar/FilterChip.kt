@@ -7,7 +7,7 @@ import com.edt.ut3.R
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipDrawable
 
-open class FilterChip<Data>(context: Context, attrs: AttributeSet? = null): Chip(context, attrs) {
+class FilterChip<Data>(context: Context, attrs: AttributeSet? = null): Chip(context, attrs) {
 
     var filter: Filter<Data>? = null
 

@@ -132,4 +132,8 @@
     <string name="first_launch_message">Hi there and welcome to EDT UT3 !\n\nBefore we start, we need to ask you some information such as the groups you belong to.\n\nBefore you start, please note that your credentials will be stored on your phone, not on a remote server. Furthermore, the authentication step is optional :)</string>
     <string name="personnal_note">Personal notes</string>
     <string name="downloading_groups">Downloading groups..</string>
+    <string name="channel_firebase_title">Message from the creators</string>
+    <string name="channel_firebase_description">Channel used to diffuse information to all the users</string>
+    <string name="event_not_found">Event not found</string>
+    <string name="delete_note">Do you want to delete the note ?</string>
 </resources>

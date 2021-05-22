@@ -11,7 +11,7 @@ import com.edt.ut3.backend.preferences.PreferencesManager
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-object CompatibilityManager {
+class CompatibilityManager {
 
     private val PackageInfo.minorVersion: Int
         get() {
@@ -68,17 +68,11 @@ object CompatibilityManager {
     }
 
     private fun migrateFrom(version: Int, context: Context): Int = when (version) {
-        in 0 .. 28 -> {
-            to29(context)
-        }
+        in 0 .. 28 -> to29(context)
 
-        29 -> {
-            to30(context)
-        }
+        29 -> to30(context)
 
-        30 -> {
-            to31(context)
-        }
+        in 30 .. 32 -> to33(context)
 
         else -> {
             Log.d(
@@ -109,7 +103,7 @@ object CompatibilityManager {
         return 29
     }
 
-    fun to30(context: Context): Int = preferencesManager.run {
+    private fun to30(context: Context): Int = preferencesManager.run {
         val androidPreferencesManager = PreferenceManager.getDefaultSharedPreferences(context)
         androidPreferencesManager.run {
             edit {
@@ -151,8 +145,8 @@ object CompatibilityManager {
         30
     }
 
-    fun to31(context: Context): Int {
-        return 31
+    private fun to33(context: Context): Int {
+        return 33
     }
 
 }

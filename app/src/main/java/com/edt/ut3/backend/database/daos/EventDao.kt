@@ -15,6 +15,9 @@ interface EventDao {
     @Delete
     suspend fun delete(vararg events: Event)
 
+    @Query("DELETE FROM event where id = :eventID")
+    suspend fun deleteID(eventID: String)
+
     @Query("DELETE FROM event")
     suspend fun wipe()
 

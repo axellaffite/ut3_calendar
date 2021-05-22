@@ -140,12 +140,12 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
                 .fold(FilterChip.GlobalFilter<Data>(null)) { acc, filter -> acc + filter }
 
         val localFilters = filters.filterIsInstance<FilterChip.LocalFilter<Data>>()
-        val upperText = query.toUpperCase(Locale.FRENCH)
+        val upperText = query.uppercase(Locale.FRENCH)
 
 
         val filtered = withContext(Default) {
             dataSetToFilter.filter {
-                search(dataConverter(it).toUpperCase(Locale.FRENCH), upperText)
+                search(dataConverter(it).uppercase(Locale.FRENCH), upperText)
             }.let {
                 localFilters.fold(it) { acc, filter -> filter(acc) }
             }.let {

@@ -1,16 +1,8 @@
 package com.edt.ut3.ui.map
 
-import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Context
-import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
-import android.location.LocationManager.PASSIVE_PROVIDER
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -20,9 +12,7 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import androidx.activity.addCallback
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -40,7 +30,6 @@ import com.edt.ut3.ui.custom_views.searchbar.FilterChip
 import com.edt.ut3.ui.custom_views.searchbar.SearchBar
 import com.edt.ut3.ui.custom_views.searchbar.SearchBarAdapter
 import com.edt.ut3.ui.custom_views.searchbar.SearchHandler
-import com.edt.ut3.ui.map.custom_makers.LocationMarker
 import com.edt.ut3.ui.map.custom_makers.PlaceMarker
 import com.edt.ut3.ui.preferences.Theme
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
@@ -85,74 +74,17 @@ class MapsFragment : Fragment() {
 
     private var theSearchBar: (SearchBar<Place, MapsSearchBarAdapter>)? = null
 
-    private var locationListener: LocationListener? = null
-    private var locationManager: LocationManager? = null
-
-    private val locationListenerPermission = object: PermittedAction(Manifest.permission.ACCESS_FINE_LOCATION) {
-        override fun shouldAskPermission() : Boolean {
-            return viewModel.shouldAskPositionPermission()
-        }
-
-        @SuppressLint("MissingPermission")
-        override fun ifGranted(): Unit {
-            activity?.run {
-                locationListener = MapsLocationListener()
-
-                locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-                locationManager?.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER,
-                    0L,
-                    0f,
-                    locationListener!!
-                )
-            }
-        }
-
-        override fun ifDenied() {
-            maps_info?.let {
-                Snackbar.make(it, R.string.cannot_access_location, Snackbar.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private val centerOnLocationPermission = object: PermittedAction(Manifest.permission.ACCESS_FINE_LOCATION) {
-        override fun shouldAskPermission() = true
-
-        @SuppressLint("MissingPermission")
-        override fun ifGranted() {
-            removeLocationListener()
-            setupLocationListener()
-            locationManager?.getLastKnownLocation(PASSIVE_PROVIDER)?.also {
-                smoothMoveTo(GeoPoint(it))
-            }
-        }
-
-        override fun ifDenied() {
-            maps_info?.let {
-                Snackbar.make(it, R.string.cannot_access_location, Snackbar.LENGTH_SHORT).show()
-            }
-        }
-    }
-
 
     override fun onPause() {
         super.onPause()
         // Do not remove this line until we use osmdroid
         map.onPause()
-
-        view?.post {
-            removeLocationListener()
-        }
     }
 
     override fun onResume() {
         super.onResume()
         // Do not remove this line until we use omsdroid
         map.onResume()
-
-        view?.post {
-            setupLocationListener()
-        }
     }
 
     override fun onCreateView(
@@ -328,33 +260,6 @@ class MapsFragment : Fragment() {
     }
 
     /**
-     * This function will set the location listener
-     * that will track the user's location and
-     * display it on the map.
-     *
-     * The suppress lint is put there as
-     * the requestLocationPermissionIfNecessary is
-     * called and check it before executing it
-     */
-    private fun setupLocationListener() {
-        context?.let {
-            locationListenerPermission.execute(it)
-        }
-    }
-
-    private fun removeLocationListener() {
-        locationListener?.let {
-            locationManager?.removeUpdates(it)
-        }
-    }
-
-    private fun centerOnLocation() {
-        context?.let {
-            centerOnLocationPermission.execute(it)
-        }
-    }
-
-    /**
      * Setup all the listeners to handle user's actions.
      */
     private fun setupListeners() {
@@ -377,40 +282,9 @@ class MapsFragment : Fragment() {
 
         setupBackButtonPressCallback()
 
-        my_location.setOnClickListener {
-            centerOnLocation()
-        }
-
         viewModel.getPlaces(requireContext()).observe(viewLifecycleOwner, { newPlaces ->
             setupCategoriesAndPlaces(newPlaces)
         })
-    }
-
-    private fun executeIfLocationPermissionIsGranted(callback: () -> Unit) {
-        // We check if the permissions are granted
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // If not we request it
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ),
-                0
-            )
-
-            return
-        }
-
-        // Otherwise we execute the callback
-        callback()
     }
 
     /**
@@ -649,11 +523,9 @@ class MapsFragment : Fragment() {
             place_info.descriptionText = selected.short_desc ?: getString(R.string.no_description_available)
             place_info.picture = selected.photo
             place_info.go_to.setOnClickListener {
-                val me = map.overlays.find { it is LocationMarker } as LocationMarker?
                 activity?.let {
                     MapsUtils.routeFromTo(
                         it,
-                        me?.position,
                         GeoPoint(selected.geolocalisation),
                         selected.title
                     ) {
@@ -745,63 +617,4 @@ class MapsFragment : Fragment() {
         class ViewHolder(val v: ConstraintLayout) : RecyclerView.ViewHolder(v)
     }
 
-    private inner class MapsLocationListener : LocationListener {
-        override fun onLocationChanged(p0: Location) {
-            view?.run {
-                map.overlays.removeAll { it is LocationMarker }
-                map.overlays.add(LocationMarker(map).apply {
-                    title = "position"
-                    position = GeoPoint(p0)
-                })
-            }
-        }
-
-        /**
-         * Unused but necessary to avoid crash
-         * due to function deprecation
-         */
-        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
-
-        /**
-         * Unused but necessary to avoid crash
-         * due to function deprecation
-         */
-        override fun onProviderEnabled(provider: String) {}
-
-        /**
-         * Unused but necessary to avoid crash
-         * due to function deprecation
-         */
-        override fun onProviderDisabled(provider: String) {}
-    }
-
-    abstract inner class PermittedAction(private val permission: String) {
-        private val permissionChecker =
-            registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-                if (isGranted) {
-                    ifGranted()
-                } else {
-                    ifDenied()
-                }
-            }
-
-        abstract fun shouldAskPermission(): Boolean
-        abstract fun ifGranted()
-        abstract fun ifDenied()
-
-        fun execute(context: Context) = when (checkPermission(context)) {
-            PackageManager.PERMISSION_GRANTED -> {
-                ifGranted()
-            }
-
-            else -> if (shouldAskPermission()) {
-                permissionChecker.launch(permission)
-            } else {
-                ifDenied()
-            }
-        }
-
-        private fun checkPermission(context: Context) =
-            ContextCompat.checkSelfPermission(context, permission)
-    }
 }
