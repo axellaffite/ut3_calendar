@@ -1,4 +1,4 @@
-package com.edt.ut3.backend.requests
+package com.edt.ut3.backend.requests.room_finder
 
 import com.edt.ut3.backend.goulin_room_finder.Building
 import com.edt.ut3.backend.goulin_room_finder.Room
