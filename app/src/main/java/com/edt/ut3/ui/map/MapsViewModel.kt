@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.edt.ut3.backend.database.viewmodels.PlaceViewModel
 import com.edt.ut3.backend.maps.Place
+import com.edt.ut3.backend.network.getClient
 import com.edt.ut3.backend.requests.maps.MapsService
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
@@ -49,7 +50,7 @@ class MapsViewModel: ViewModel() {
         // First download for Paul Sabatier places
         // (from our github)
         try {
-            val paulSabatierPlaces = withContext(IO) { MapsService.getPaulSabatierPlaces() }
+            val paulSabatierPlaces = withContext(IO) { MapsService(getClient()).getPaulSabatierPlaces() }
             newPlaces.addAll(paulSabatierPlaces)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -61,7 +62,7 @@ class MapsViewModel: ViewModel() {
         // Second download for Crous places
         // (from the government website)
         try {
-            val crousPlaces = withContext(IO) { MapsService.getCrousPlaces() }
+            val crousPlaces = withContext(IO) { MapsService(getClient()).getCrousPlaces() }
             newPlaces.addAll(crousPlaces)
         } catch (e: Exception) {
             e.printStackTrace()

@@ -1,118 +1,123 @@
 package com.edt.ut3.backend.requests.authentication_services
 
 import android.util.Log
-import com.edt.ut3.backend.requests.CookieProvider
-import com.edt.ut3.backend.requests.HttpClientProvider
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.withContext
-import okhttp3.Cookie
-import okhttp3.ResponseBody
-import retrofit2.Retrofit
-import retrofit2.http.Field
-import retrofit2.http.FormUrlEncoded
-import retrofit2.http.GET
-import retrofit2.http.POST
+import com.edt.ut3.R
+import com.edt.ut3.backend.network.getClient
+import io.ktor.client.*
+import io.ktor.client.features.*
+import io.ktor.client.features.cookies.*
+import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import java.io.IOException
 import java.util.concurrent.TimeoutException
 
-class AuthenticatorUT3: Authenticator() {
+class AuthenticatorUT3(
+    val client: HttpClient,
+    host: String = "https://edt.univ-tlse3.fr/calendar2"
+) : Authenticator(host) {
 
-    @Throws(IOException::class, TimeoutException::class, InvalidCredentialsException::class)
-    override suspend fun ensureAuthentication(host: String, provider: CookieProvider, credentials: Credentials) {
+    @Throws(AuthenticationException::class)
+    override suspend fun connect(credentials: Credentials?) {
+        try {
+            if (credentials == null) {
+                throw AuthenticationException(R.string.error_missing_credentials)
+            }
+
+            ensureAuthentication(credentials)
+        } catch (e: IOException) {
+            throw AuthenticationException(R.string.error_check_internet)
+        } catch (e: TimeoutException) {
+            throw AuthenticationException(R.string.error_check_internet)
+        }
+    }
+
+    @Throws(AuthenticationException::class)
+    override suspend fun checkCredentials(credentials: Credentials) {
+        ensureAuthentication(credentials, getClient())
+    }
+
+
+    @Throws(IOException::class, TimeoutException::class, AuthenticationException::class)
+    override suspend fun ensureAuthentication(credentials: Credentials) {
+        ensureAuthentication(credentials, client)
+    }
+
+
+    @Throws(IOException::class, TimeoutException::class, AuthenticationException::class)
+    private suspend fun ensureAuthentication(credentials: Credentials, targetClient: HttpClient) {
         Log.d(this::class.simpleName, "Checking authentication..")
         // Here we look for authentication cookies
         // If there are no cookie available for authentication
         // the resulting cookie is null.
-        val cookies = CookieProvider.getCookiesFor(host)?.filter {
-            it.name.matches(".*AspNetCore.Cookies.*".toRegex())
-        }
+        val registeredCookies = targetClient.cookies(host)
 
 
         // The authentication is considered successful
         // if there is a cookie that is persistent
-        val authenticated = containsValidAuthenticationCookie(cookies ?: listOf())
+        val authenticated = containsValidAuthenticationCookie(registeredCookies)
 
 
         // If we're not logged in,
         // we try to authenticate
         Log.d(this::class.simpleName, "Already authenticated: $authenticated")
         if (!authenticated) {
-            authenticate(host, provider, credentials)
+            authenticate(credentials)
         }
     }
 
-    @Throws(IOException::class, TimeoutException::class, InvalidCredentialsException::class)
-    override suspend fun authenticate(host: String, provider: CookieProvider, credentials: Credentials) = withContext(IO) {
+
+    @Throws(IOException::class, TimeoutException::class, AuthenticationException::class)
+    override suspend fun authenticate(credentials: Credentials) = authenticate(credentials, client)
+
+
+    @Throws(IOException::class, TimeoutException::class, AuthenticationException::class)
+    private suspend fun authenticate(credentials: Credentials, targetClient: HttpClient) {
         Log.d(this@AuthenticatorUT3::class.simpleName, "Trying authentication to https://$host")
 
+        val response = targetClient.get<String>("$host/LdapLogin")
 
-        // Building everything to start
-        // the authentication.
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://$host")
-            .client(HttpClientProvider.generateNewClient())
-            .build()
-        val service = retrofit.create(AuthUT3::class.java)
+        val token = getTokenFromResponse(response)
+        if (token == null) {
+            throw AuthenticationException(R.string.error_unable_to_treat_server_response)
+        }
 
-        // Here we launch the request
-        // and extract the token from the response
-        val response = service.getToken().execute().body()
-        val nullableToken = getTokenFromResponse(response)
 
-        // As the token can be not present
-        // in the response, we must ensure that
-        // it as been found.
-        // Otherwise, the authentication cannot
-        // be proceed as Celcat authentication
-        // requires an anti-CSRF token.
-        val authenticationSuccessful = nullableToken?.let { token ->
+        val authenticationSuccessful = token.let { token ->
             // We launch the authentication
             // The request doesn't return cookies as they
             // are handled by the CookieProvider.
-            service.auth(
-                name = credentials.username,
-                password = credentials.password,
-                token = token
-            ).execute()
+            targetClient.submitForm<Unit>(
+                url = "$host/LdapLogin/Logon",
+                formParameters = Parameters.build {
+                    append("Name", credentials.username)
+                    append("Password", credentials.password)
+                    append("__RequestVerificationToken", token)
+                }
+            )
 
-            // We extract them from the cookie provider
-            // and test if they are valid authentication cookies
-            val cookies = provider.getCookiesFor(host)
-            println(cookies)
-            cookies?.let {
-                containsValidAuthenticationCookie(it.toList())
-            } ?: false
-        } ?: false
+            containsValidAuthenticationCookie(targetClient.cookies(host))
+        }
 
         Log.d(this@AuthenticatorUT3::class.simpleName, "Authentication successful: $authenticationSuccessful")
         if (!authenticationSuccessful) {
-            throw InvalidCredentialsException()
+            throw AuthenticationException(R.string.error_wrong_credentials)
         }
     }
 
-    @Throws(IOException::class)
-    private fun getTokenFromResponse(body: ResponseBody?) = body?.run {
-        val reg = Regex("<input name=\"__RequestVerificationToken\" type=\"hidden\" value=\"(.*)\" />")
 
-        reg.find(body.string())?.groups?.get(1)?.value
+    @Throws(IOException::class)
+    private fun getTokenFromResponse(body: String) = body.run {
+        val reg =
+            Regex("<input name=\"__RequestVerificationToken\" type=\"hidden\" value=\"(.*)\" />")
+
+        reg.find(body)?.groups?.get(1)?.value
     }
+
 
     private fun containsValidAuthenticationCookie(cookies: List<Cookie>) : Boolean {
-        return cookies.find { it.name.matches(Regex(".AspNetCore.Cookies")) } != null
-    }
-
-
-    interface AuthUT3 {
-        @GET("/calendar2/LdapLogin")
-        fun getToken(): retrofit2.Call<ResponseBody>
-
-        @FormUrlEncoded
-        @POST("/calendar2/LdapLogin/Logon")
-        fun auth(
-            @Field("Name") name: String,
-            @Field("Password") password: String,
-            @Field("__RequestVerificationToken") token: String
-        ): retrofit2.Call<ResponseBody>
+        return cookies.find { it.name.matches(Regex(".Calendar.Cookies")) } != null
     }
 
 }

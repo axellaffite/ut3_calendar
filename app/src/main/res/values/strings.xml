@@ -140,4 +140,6 @@
     <string name="channel_firebase_description">Channel de notification servant à diffuser des informations à l\'ensemble des utilisateurs</string>
     <string name="event_not_found">Événement introuvable</string>
     <string name="delete_note">Voulez-vous supprimer la note ?</string>
+    <string name="error_missing_credentials">Vos identifiants doivent etre précisés pour vous connecter</string>
+    <string name="error_unable_to_treat_server_response">Impossible de traiter la réponse du serveur</string>
 </resources>

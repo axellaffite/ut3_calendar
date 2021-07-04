@@ -52,32 +52,31 @@ android {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.core:core-ktx:1.5.0'
+    implementation 'androidx.core:core-ktx:1.6.0'
     implementation 'androidx.appcompat:appcompat:1.3.0'
-    implementation 'com.google.android.material:material:1.3.0'
+    implementation 'com.google.android.material:material:1.4.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     implementation 'androidx.navigation:navigation-fragment-ktx:2.3.5'
     implementation 'androidx.navigation:navigation-ui-ktx:2.3.5'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     implementation 'androidx.navigation:navigation-fragment-ktx:2.3.5'
     implementation 'androidx.navigation:navigation-ui-ktx:2.3.5'
-    implementation 'androidx.work:work-runtime:2.6.0-alpha02'
+    implementation 'androidx.work:work-runtime:2.6.0-beta01'
     implementation 'com.google.android.gms:play-services-maps:17.0.1'
-    implementation 'androidx.fragment:fragment-ktx:1.3.4'
+    implementation 'androidx.fragment:fragment-ktx:1.3.5'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.google.firebase:firebase-inappmessaging-display:20.0.0'
     implementation 'com.google.firebase:firebase-messaging:22.0.0'
-    testImplementation 'junit:junit:4.13'
     implementation "androidx.activity:activity-ktx:1.2.3"
-    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     def coroutine_version = "2.3.1"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$coroutine_version"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$coroutine_version"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$coroutine_version"
 
-    implementation "androidx.work:work-runtime-ktx:2.5.0"
+    implementation "androidx.work:work-runtime-ktx:2.6.0-beta01"
 
     //Preferences
     implementation 'androidx.preference:preference-ktx:1.1.1'
@@ -135,22 +134,10 @@ dependencies {
     // Documentation : https://github.com/stfalcon-studio/StfalconImageViewer
     implementation 'com.github.stfalcon:stfalcon-imageviewer:1.0.1'
 
-//    implementation 'com.davemorrissey.labs:subsampling-scale-image-view:3.10.0'
-
-    // Name : Retrofit
-    implementation 'com.squareup.retrofit2:retrofit:2.7.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.7.0'
-
-    // Name : Gson
-    implementation 'com.google.code.gson:gson:2.8.6'
-
     // Name : Android-SpinKit
     // Summary : Display loading animations
     // Documentation : https://github.com/ybq/Android-SpinKit
     implementation 'com.github.ybq:Android-SpinKit:1.4.0'
-
-    // Name : OKHttp
-    implementation "com.squareup.okhttp3:okhttp:4.9.0"
 
     // Name : AnimatedBottomBar
     // Summary : A customizable and easy to use bottom bar view with sleek animations.
@@ -177,4 +164,31 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics-ktx'
     implementation 'com.google.firebase:firebase-messaging-ktx'
 
+
+
+    def koin_version = "3.1.2"
+    // Koin main features for Android (Scope,ViewModel ...)
+    implementation "io.insert-koin:koin-android:$koin_version"
+    // Koin Java Compatibility
+    implementation "io.insert-koin:koin-android-compat:$koin_version"
+    // Koin for Jetpack WorkManager
+    implementation "io.insert-koin:koin-androidx-workmanager:$koin_version"
+    // Koin for Jetpack Compose
+    implementation "io.insert-koin:koin-androidx-compose:$koin_version"
+
+
+    def ktor_version = "1.6.1"
+    implementation "io.ktor:ktor-client-core:$ktor_version"
+    implementation "io.ktor:ktor-client-cio:$ktor_version"
+    implementation "io.ktor:ktor-client-serialization:$ktor_version"
+    implementation "io.ktor:ktor-client-logging:$ktor_version"
+    implementation "ch.qos.logback:logback-classic:1.2.3"
+
+
+    // Required -- JUnit 4 framework
+    testImplementation 'junit:junit:4.13'
+    // Optional -- Robolectric environment
+    testImplementation 'androidx.test:core:1.4.0'
+    // Optional -- Mockito framework
+    testImplementation 'org.mockito:mockito-core:1.10.19'
 }

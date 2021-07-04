@@ -1,130 +1,70 @@
 package com.edt.ut3.backend.requests.celcat
 
-import android.content.Context
-import android.util.Log
+import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.formation_choice.School
-import com.edt.ut3.backend.requests.HttpClientProvider
-import com.edt.ut3.backend.requests.JsonWebDeserializer
-import com.edt.ut3.backend.requests.RequestsUtils
-import com.edt.ut3.backend.requests.authentication_services.Authenticator
-import com.edt.ut3.backend.requests.withAuthentication
-import com.edt.ut3.misc.extensions.add
-import com.edt.ut3.misc.extensions.minus
-import com.edt.ut3.misc.extensions.timeCleaned
 import com.edt.ut3.misc.extensions.toCelcatDateStr
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.decodeFromString
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
-import java.io.IOException
-import java.net.SocketTimeoutException
+import com.elzozor.yoda.utils.DateExtensions.add
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
+import io.ktor.http.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.jsonObject
 import java.util.*
 
+class CelcatService(val client: HttpClient) {
 
-@Suppress("BlockingMethodInNonBlockingContext")
-object CelcatService {
-
-    @Throws(SocketTimeoutException::class, IOException::class, Authenticator.InvalidCredentialsException::class)
-    suspend fun getEvents(context: Context, firstUpdate: Boolean, link: String, formations: List<String>): Response = withContext(IO) {
-        val today = Date().timeCleaned()
-
-        val body = RequestsUtils.EventBody().apply {
-            val startDate =
-                if (firstUpdate) { today.minus(Calendar.YEAR, 1) }
-                else { today }
-
-            add("start", (startDate).toCelcatDateStr())
-            add("end", (today.add(Calendar.YEAR, 1)).toCelcatDateStr())
-            formations.forEach {
-                add("federationIds%5B%5D", it)
-            }
+    private inline fun Parameters.Companion.buildCelcatParameters(init: ParametersBuilder.() -> Unit): Parameters {
+        return ParametersBuilder().apply {
+            append("resType", "103")
+            append("calView", "agendaDay")
+            append("colourScheme", "3")
+            init()
         }.build()
-
-
-        val encodedBody = body.toRequestBody("application/x-www-form-urlencoded; charset=UTF-8".toMediaType())
-
-        val request = Request.Builder()
-            .url("$link/Home/GetCalendarData")
-            .addHeader("Accept", "application/json, text/javascript")
-            .addHeader("X-Requested-With", "XMLHttpRequest")
-            .addHeader("Content-Length", encodedBody.contentLength().toString())
-            .post(encodedBody)
-            .build()
-
-
-        return@withContext HttpClientProvider.generateNewClient()
-            .withAuthentication(context, request.url) {
-            newCall(request).execute()
-        }
     }
 
+    suspend fun getEvents(
+        link: String,
+        start: Date,
+        formations: List<String>,
+        classes: Set<String>,
+        courses: Map<String, String>
+    ): List<Event> {
+        val events: JsonArray = client.submitForm(
+            url = "$link/Home/GetCalendarData",
+            formParameters = Parameters.buildCelcatParameters {
+                append("start", start.toCelcatDateStr())
+                append("end", Date().add(Calendar.YEAR, 1).toCelcatDateStr())
 
-    @Throws(IOException::class, SerializationException::class)
-    suspend fun getClasses(context: Context, link: String) = withContext(IO) {
-        Log.d(this@CelcatService::class.simpleName, "Downloading classes: $link")
-        val request = Request.Builder()
-            .url(link)
-            .get()
-            .build()
+                formations.forEach { append("federationIds[]", it) }
+            },
+            block = {
+                header(HttpHeaders.Accept, ContentType.Application.Json)
+            }
+        )
 
-        val response = HttpClientProvider.generateNewClient().withAuthentication(context, request.url) {
-            newCall(request).execute()
-        }
-
-        val body = response.body?.string() ?: throw IOException()
-
-        JsonWebDeserializer.decodeFromString<ClassesRequest>(body).results
+        return events.map { Event.fromJSON(it.jsonObject, classes, courses) }
     }
 
-    @Throws(IOException::class, SerializationException::class)
-    suspend fun getCoursesNames(context: Context, link: String) = withContext(IO) {
-        Log.d(this@CelcatService::class.simpleName, "Downloading courses: $link")
-        val request = Request.Builder()
-            .url(link)
-            .get()
-            .build()
-
-        val response = HttpClientProvider.generateNewClient().withAuthentication(context, request.url) {
-            newCall(request).execute()
-        }
-
-        val body = response.body?.string() ?: throw IOException()
-
-        JsonWebDeserializer.decodeFromString<CoursesRequest>(body).results.toMap()
+    suspend fun getClasses(link: String): List<String> {
+        return client.get<ClassesRequest>(link) {
+            header(HttpHeaders.Accept, ContentType.Application.Json.withCharset(Charsets.UTF_8))
+        }.results
     }
 
-    @Throws(IOException::class, SerializationException::class)
-    suspend fun getSchoolsURLs(): List<School> = withContext(IO) {
-        val request = Request.Builder()
-            .url("https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/data/formations/urls.json")
-            .get()
-            .build()
-
-        val response = HttpClientProvider.generateNewClient().newCall(request).execute()
-        val body = response.body?.string() ?: throw IOException()
-
-        JsonWebDeserializer.decodeFromString<SchoolsRequest>(body).entries
+    suspend fun getCoursesNames(link: String): Map<String, String> {
+        return client.get<CoursesRequest>(link).results
     }
 
-    @Throws(SocketTimeoutException::class, IOException::class, Authenticator.InvalidCredentialsException::class, SerializationException::class)
-    suspend fun getGroups(context: Context, url: String): List<School.Info.Group> = withContext(IO) {
-        Log.i(this@CelcatService::class.simpleName, "Getting groups: $url")
-        val request = Request.Builder()
-            .url(url)
-            .get()
-            .build()
+    suspend fun getSchoolsURLs(): List<School> {
+        return client.get<SchoolsRequest>(
+            "https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/data/formations/urls.json"
+        ).entries
+    }
 
-        val response = HttpClientProvider.generateNewClient().withAuthentication(context, request.url) {
-            newCall(request).execute()
-        }
-
-        val body = response.body?.string() ?: throw IOException()
-
-        JsonWebDeserializer.decodeFromString<GroupsRequest>(body).results
+    suspend fun getGroups(link: String): List<School.Info.Group> {
+        return client.get<GroupsRequest>(link).results
     }
 
 }
+

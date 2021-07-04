@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.edt.ut3.backend.goulin_room_finder.Building
 import com.edt.ut3.backend.goulin_room_finder.Room
-import com.edt.ut3.backend.requests.ServiceBuilder
+import com.edt.ut3.backend.requests.RoomFinderService
 import com.edt.ut3.misc.extensions.isNullOrFalse
 import com.edt.ut3.ui.room_finder.RoomFinderState.Presentation
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -23,7 +23,7 @@ class RoomFinderViewModel : ViewModel() {
     private var searchJob: Job? = null
 
     private var rooms = listOf<Room>()
-    private val service = ServiceBuilder.buildRoomFinderService()
+    private val service = RoomFinderService()
 
     private val _buildings = MutableLiveData<Set<Building>>()
     val buildings : LiveData<Set<Building>>

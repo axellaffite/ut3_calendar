@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
-import com.edt.ut3.backend.requests.authentication_services.Authenticator
+import com.edt.ut3.backend.requests.authentication_services.Credentials
 
 
 /**
@@ -16,16 +16,9 @@ import com.edt.ut3.backend.requests.authentication_services.Authenticator
 class CredentialsManager private constructor(val context: Context) {
 
     companion object {
-        private var instance: CredentialsManager? = null
 
         fun getInstance(applicationContext: Context): CredentialsManager {
-            synchronized(this) {
-                if (instance == null) {
-                    instance = CredentialsManager(applicationContext)
-                }
-
-                return instance!!
-            }
+            return CredentialsManager(applicationContext)
         }
     }
 
@@ -52,7 +45,7 @@ class CredentialsManager private constructor(val context: Context) {
      *
      * @param credentials The user credentials
      */
-    fun saveCredentials(credentials: Authenticator.Credentials) = synchronized(this) {
+    fun saveCredentials(credentials: Credentials) = synchronized(this) {
         getCredentialsPreferenceFile().edit {
             putString("username", credentials.username)
             putString("password", credentials.password)
@@ -65,12 +58,12 @@ class CredentialsManager private constructor(val context: Context) {
      *
      * @return The credentials or null
      */
-    fun getCredentials(): Authenticator.Credentials? = synchronized(this) {
+    fun getCredentials(): Credentials? = synchronized(this) {
         getCredentialsPreferenceFile().run {
             val username = getString("username", null)
             val password = getString("password", null)
 
-            Authenticator.Credentials.from(username, password)
+            Credentials.from(username, password)
         }
     }
 

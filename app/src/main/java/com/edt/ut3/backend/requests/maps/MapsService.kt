@@ -1,17 +1,22 @@
 package com.edt.ut3.backend.requests.maps
 
 import com.edt.ut3.backend.maps.Place
-import com.edt.ut3.backend.requests.HttpClientProvider
-import com.edt.ut3.backend.requests.JsonWebDeserializer
+import com.edt.ut3.backend.network.JsonSerializer
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.http.*
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
-import okhttp3.Request
 import java.io.IOException
 
-object MapsService {
+class MapsService(val client: HttpClient) {
 
-    private const val CROUS_API_LINK = "https://data.enseignementsup-recherche.gouv.fr/api/records/1.0/search/?dataset=fr_crous_restauration_france_entiere&q=&rows=-1&facet=type&facet=zone&refine.zone=Toulouse"
-    private const val PAUL_SABATIER_PLACES_LINK = "https://raw.githubusercontent.com/ElZozor/ut3_calendar/master/maps_data/data.json"
+    companion object {
+        private const val CROUS_API_LINK =
+            "https://data.enseignementsup-recherche.gouv.fr/api/records/1.0/search/?dataset=fr_crous_restauration_france_entiere&q=&rows=-1&facet=type&facet=zone&refine.zone=Toulouse"
+        private const val PAUL_SABATIER_PLACES_LINK =
+            "https://raw.githubusercontent.com/ElZozor/ut3_calendar/master/maps_data/data.json"
+    }
 
     /**
      * This will retrieve the crous data which contains some information
@@ -28,16 +33,12 @@ object MapsService {
      * @return The data as a Response
      */
     @Throws(IOException::class, SerializationException::class)
-    fun getCrousPlaces(): List<Place> {
-        val request = Request.Builder()
-            .url(CROUS_API_LINK)
-            .get()
-            .build()
+    suspend fun getCrousPlaces(): List<Place> {
+        val response = client.get<String>(CROUS_API_LINK) {
+            header(HttpHeaders.Accept, ContentType.Text)
+        }
 
-        val response = HttpClientProvider.generateNewClient().newCall(request).execute()
-        val body = response.body?.string() ?: throw IOException()
-
-        return JsonWebDeserializer.decodeFromString<PlacesRequest>(body).records.map { it.fields }
+        return JsonSerializer.decodeFromString<PlacesRequest>(response).records.map { it.fields }
     }
 
     /**
@@ -50,16 +51,10 @@ object MapsService {
      * @return A response that contains places
      */
     @Throws(java.io.IOException::class)
-    fun getPaulSabatierPlaces() : List<Place> {
-        val request = Request.Builder()
-            .url(PAUL_SABATIER_PLACES_LINK)
-            .get()
-            .build()
+    suspend fun getPaulSabatierPlaces(): List<Place> {
+        val response =  client.get<String>(PAUL_SABATIER_PLACES_LINK)
 
-        val response = HttpClientProvider.generateNewClient().newCall(request).execute()
-        val body = response.body?.string() ?: throw IOException()
-
-        return JsonWebDeserializer.decodeFromString<PlacesRequest>(body).records.map { it.fields }
+        return JsonSerializer.decodeFromString<PlacesRequest>(response).records.map { it.fields }
     }
 
 }

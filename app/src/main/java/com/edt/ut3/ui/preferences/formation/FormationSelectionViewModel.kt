@@ -8,10 +8,12 @@ import androidx.lifecycle.viewModelScope
 import com.edt.ut3.backend.credentials.CredentialsManager
 import com.edt.ut3.backend.firebase_services.FirebaseMessagingHandler
 import com.edt.ut3.backend.formation_choice.School
-import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.backend.requests.authentication_services.Authenticator
-import com.edt.ut3.backend.requests.authentication_services.CelcatAuthenticator
 import com.edt.ut3.backend.requests.celcat.CelcatService
+import com.edt.ut3.backend.network.getClient
+import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.backend.requests.authentication_services.AuthenticationException
+import com.edt.ut3.backend.requests.authentication_services.AuthenticatorUT3
+import com.edt.ut3.backend.requests.authentication_services.Credentials
 import com.edt.ut3.misc.BaseState
 import com.edt.ut3.misc.extensions.isTrue
 import com.edt.ut3.misc.extensions.toList
@@ -49,7 +51,7 @@ class FormationSelectionViewModel: ViewModel() {
     val groupsStatus : LiveData<WhichGroupsState>
         get() = _groupsStatus
 
-    private val _credentials = MutableLiveData<Authenticator.Credentials?>()
+    private val _credentials = MutableLiveData<Credentials?>()
 
     private val _groups = mutableListOf<School.Info.Group>()
     val groups : List<School.Info.Group>
@@ -64,7 +66,7 @@ class FormationSelectionViewModel: ViewModel() {
         get() = _selectedGroups
 
     var firstCredentialsGet = true
-    fun getCredentials(context: Context): LiveData<Authenticator.Credentials?> = synchronized(this) {
+    fun getCredentials(context: Context): LiveData<Credentials?> = synchronized(this) {
         if (firstCredentialsGet) {
             firstCredentialsGet = false
             _credentials.value = CredentialsManager.getInstance(context).getCredentials()
@@ -73,7 +75,7 @@ class FormationSelectionViewModel: ViewModel() {
         return _credentials
     }
 
-    fun updateCredentials(credentials: Authenticator.Credentials?) {
+    fun updateCredentials(credentials: Credentials?) {
         _credentials.value = credentials
         _authenticationState.value = AuthenticationState.Unauthenticated
     }
@@ -85,12 +87,12 @@ class FormationSelectionViewModel: ViewModel() {
         } else {
             _authenticationState.value = AuthenticationState.Authenticating
             try {
-                CelcatAuthenticator().checkCredentials(context, credentials)
+                AuthenticatorUT3(getClient()).checkCredentials(credentials)
                 _authenticationState.value = AuthenticationState.Authenticated
                 true
             } catch (e: Exception) {
                 _authenticationFailure.value = when (e) {
-                    is Authenticator.InvalidCredentialsException -> AuthenticationFailure.WrongCredentials
+                    is AuthenticationException -> AuthenticationFailure.WrongCredentials
                     is IOException -> AuthenticationFailure.InternetFailure
                     else -> AuthenticationFailure.UnknownError
                 }
@@ -109,7 +111,7 @@ class FormationSelectionViewModel: ViewModel() {
         groupsDownloadJob = viewModelScope.launch {
             _groupsStatus.value = WhichGroupsState.Downloading
             val success: Boolean = try {
-                val newGroups = CelcatService.getGroups(context, School.default.info.first().groups)
+                val newGroups = CelcatService(getClient()).getGroups(School.default.info.first().groups)
                 synchronized(groups) {
                     _groups.clear()
                     _groups.addAll(newGroups)
@@ -121,7 +123,7 @@ class FormationSelectionViewModel: ViewModel() {
             } catch (e: IOException) {
                 _groupsFailure.value = WhichGroupsFailure.GroupUpdateFailure
                 false
-            } catch (e: Authenticator.InvalidCredentialsException) {
+            } catch (e: AuthenticationException) {
                 _groupsFailure.value = WhichGroupsFailure.WrongCredentials
                 false
             } catch (e: Exception) {

@@ -1,10 +1,29 @@
 package com.edt.ut3.backend.requests.authentication_services
 
-import com.edt.ut3.backend.requests.CookieProvider
-import java.io.IOException
-import java.net.SocketTimeoutException
+import android.content.Context
+import androidx.annotation.StringRes
 
-abstract class Authenticator {
+abstract class Authenticator(val host: String) {
+
+    /**
+     * Connects the client to the [host] provided in the constructor.
+     *
+     * @param credentials The credentials to use in order to get connected to the host.
+     */
+    @Throws(AuthenticationException::class)
+    abstract suspend fun connect(credentials: Credentials?)
+
+
+    /**
+     * Check whether the credentials are valid or not.
+     * The cookies shouldn't be saved in the same Cookie jar as
+     * the client used for classic connections.
+     *
+     * @param credentials The credentials to use in order to get connected to the host.
+     */
+    @Throws(AuthenticationException::class)
+    abstract suspend fun checkCredentials(credentials: Credentials)
+
 
     /**
      * This function takes a request and ensure
@@ -14,46 +33,54 @@ abstract class Authenticator {
      * If the user isn't logged in it will try to
      * log in with the provided credentials.
      *
-     * @throws SocketTimeoutException If the server can't be reached
-     * @throws IOException If something fails during the request
-     * @throws InvalidCredentialsException If the credentials are not valid
+     * @throws AuthenticationException If an error occurs during credentials
+     * exception or if credentials are invalid
      *
-     * @param host The host to authenticate with
-     * @param provider The cookie provider that stores all the cookies
      * @param credentials The user's credentials
      */
-    @Throws(SocketTimeoutException::class, IOException::class, InvalidCredentialsException::class)
-    abstract suspend fun ensureAuthentication(host: String, provider: CookieProvider, credentials: Credentials)
+    @Throws(AuthenticationException::class)
+    abstract suspend fun ensureAuthentication(credentials: Credentials)
 
     /**
      * This function will try to log
      * the user into the given host.
      *
-     * @throws SocketTimeoutException If the server can't be reached
-     * @throws IOException If something fails during the request
-     * @throws InvalidCredentialsException If the credentials are not valid
+     * @throws AuthenticationException If an error occurs during credentials
+     * exception or if credentials are invalid
      *
-     * @param host The host to authenticate with
-     * @param provider The cookie provider that stores all the cookies
      * @param credentials The user's credentials
      */
-    @Throws(SocketTimeoutException::class, IOException::class, InvalidCredentialsException::class)
-    abstract suspend fun authenticate(host: String, provider: CookieProvider, credentials: Credentials)
+    @Throws(AuthenticationException::class)
+    abstract suspend fun authenticate(credentials: Credentials)
+}
 
 
-    class InvalidCredentialsException(reason: String? = null): IllegalStateException(reason)
+class AuthenticationException(
+    @StringRes val resource: Int,
+    val builder: AuthenticationException.(context: Context) -> String = ::defaultResourceResolver
+) : Exception() {
 
-    data class Credentials (
-        val username: String,
-        val password: String
-    ) {
-        companion object {
-            fun from(username: String?, password: String?): Credentials? {
-                return if (username != null && password != null) {
-                    Credentials(username, password)
-                } else {
-                    null
-                }
+    fun getMessage(context: Context) = builder(this, context)
+
+    companion object {
+        fun defaultResourceResolver(exception: AuthenticationException, context: Context): String {
+            return context.getString(exception.resource)
+        }
+    }
+
+}
+
+
+data class Credentials(
+    val username: String,
+    val password: String
+) {
+    companion object {
+        fun from(username: String?, password: String?): Credentials? {
+            return if (username != null && password != null) {
+                Credentials(username, password)
+            } else {
+                null
             }
         }
     }

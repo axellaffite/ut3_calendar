@@ -6,27 +6,22 @@ import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.work.*
+import com.edt.ut3.backend.background_services.updaters.getUpdater
 import com.edt.ut3.backend.celcat.Course
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.viewmodels.CoursesViewModel
 import com.edt.ut3.backend.database.viewmodels.EventViewModel
-import com.edt.ut3.backend.formation_choice.School
+import com.edt.ut3.backend.network.authenticateIfNeeded
 import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.backend.requests.authentication_services.Authenticator
-import com.edt.ut3.backend.requests.celcat.CelcatService
+import com.edt.ut3.backend.requests.authentication_services.AuthenticationException
+import com.edt.ut3.backend.requests.authentication_services.AuthenticatorUT3
 import com.edt.ut3.misc.extensions.timeCleaned
-import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import org.json.JSONException
 import java.io.IOException
-import java.net.SocketTimeoutException
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
@@ -39,7 +34,7 @@ import kotlin.properties.Delegates
  * @param workerParams The worker's parameters
  */
 @Suppress("BlockingMethodInNonBlockingContext")
-class Updater(appContext: Context, workerParams: WorkerParameters):
+class BackgroundUpdater(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
 
     companion object {
@@ -55,7 +50,7 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
          * @param context A valid context
          */
         fun scheduleUpdate(context: Context) {
-            val worker = PeriodicWorkRequestBuilder<Updater>(1, TimeUnit.HOURS).build()
+            val worker = PeriodicWorkRequestBuilder<BackgroundUpdater>(1, TimeUnit.HOURS).build()
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 "event_update",
                 ExistingPeriodicWorkPolicy.KEEP,
@@ -80,7 +75,8 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
         ) {
             val inputData = Data.Builder().putBoolean("firstUpdate", firstUpdate).build()
 
-            val worker = OneTimeWorkRequestBuilder<Updater>().setInputData(inputData).build()
+            val worker =
+                OneTimeWorkRequestBuilder<BackgroundUpdater>().setInputData(inputData).build()
             WorkManager.getInstance(context).run {
                 enqueueUniqueWork("event_update_force", ExistingWorkPolicy.KEEP, worker)
 
@@ -99,79 +95,50 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
     override suspend fun doWork(): Result = coroutineScope {
         setProgress(workDataOf(Progress to 0))
 
+
         firstUpdate = inputData.getBoolean("firstUpdate", false)
 
-        var result = Result.success()
+
         try {
             val groups = prefManager.groups ?: throw IllegalStateException("Groups must be set")
             val link = prefManager.link ?: throw IllegalStateException("Link must be set")
 
-            val classes = getClasses(link.rooms).toHashSet()
-            val courses = getCourses(link.courses)
-            val incomingEvents = getEvents(link, groups, classes, courses)
+            val updater = getUpdater {
+                authenticateIfNeeded(applicationContext, AuthenticatorUT3(this, link.url))
+            }
 
-            Log.d("Updater", courses.toString())
-
+            val classes = updater.getClasses(link.rooms).toSet()
+            val courses = updater.getCoursesNames(link.courses)
+            val incomingEvents = updater.getEvents(link, groups, classes, courses, firstUpdate)
             val changes = computeEventUpdate(incomingEvents)
 
             updateDatabaseContents(changes)
             displayUpdateNotifications(changes)
             insertCoursesVisibility(eventViewModel.getEvents())
+
+            Result.success()
         } catch (e: Exception) {
             e.printStackTrace()
             //TODO ("Catch exceptions properly")
             when (e) {
-                is IOException -> {}
-                is SerializationException -> {}
-                is Authenticator.InvalidCredentialsException -> {}
-                is IllegalStateException -> {}
-                else -> {}
+                is IOException -> {
+                }
+                is SerializationException -> {
+                }
+                is AuthenticationException -> {
+                    
+                }
+                is IllegalStateException -> {
+                }
+                else -> {
+                }
             }
 
             e.printStackTrace()
 
-            result = Result.failure()
-        }
-
-        setProgress(workDataOf(Progress to 100))
-        result
-    }
-
-    /**
-     * Retrieves the incoming events
-     * and parse them into a list of [Event].
-     *
-     * @param link The link from which the events should be downloaded
-     * @param groups The groups to download
-     * @param classes All the classes available
-     * @param courses All the courses available
-     */
-    @Throws(
-        JSONException::class,
-        SocketTimeoutException::class,
-        IOException::class,
-        Authenticator.InvalidCredentialsException::class
-    )
-    private suspend fun getEvents(
-        link: School.Info,
-        groups: List<String>,
-        classes: HashSet<String>,
-        courses: Map<String, String>
-    ) = withContext(Default) {
-        val eventsJSONArray = withContext(IO) {
-            CelcatService
-                .getEvents(applicationContext, firstUpdate, link.url, groups)
-                .body
-                ?.string()
-        } ?: throw IOException()
-
-        Json.parseToJsonElement(eventsJSONArray).jsonArray.fold(listOf<Event>()) { acc, e ->
-            try {
-                acc + Event.fromJSON(e.jsonObject, classes, courses)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                acc
-            }
+            Result.failure()
+        } finally {
+            setProgress(workDataOf(Progress to 100))
         }
     }
 
@@ -239,22 +206,6 @@ class Updater(appContext: Context, workerParams: WorkerParameters):
         }
     }
 
-    /**
-     * Returns the classes parsed properly.
-     */
-    @Throws(IOException::class)
-    private suspend fun getClasses(link: String) = withContext(IO) {
-        CelcatService.getClasses(applicationContext, link)
-    }
-
-
-    /**
-     * Returns the courses parsed properly.
-     */
-    @Throws(IOException::class)
-    private suspend fun getCourses(link: String): Map<String, String> = withContext(IO) {
-        CelcatService.getCoursesNames(applicationContext, link)
-    }
 
     /**
      * Update the course table which
