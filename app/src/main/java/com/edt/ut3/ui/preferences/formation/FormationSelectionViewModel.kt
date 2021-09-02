@@ -9,7 +9,7 @@ import com.edt.ut3.backend.credentials.CredentialsManager
 import com.edt.ut3.backend.firebase_services.FirebaseMessagingHandler
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.requests.celcat.CelcatService
-import com.edt.ut3.backend.network.getClient
+import com.edt.ut3.backend.requests.getClient
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.authentication_services.AuthenticationException
 import com.edt.ut3.backend.requests.authentication_services.AuthenticatorUT3

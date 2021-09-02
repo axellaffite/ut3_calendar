@@ -31,9 +31,7 @@ class CalendarOptionsFragment: Fragment() {
                               savedInstanceState: Bundle?): View?
     {
         return inflater.inflate(R.layout.fragment_calendar_options, container, false).also {
-            viewModel.getCoursesVisibility(requireContext()).observe(viewLifecycleOwner) {
-                generateCoursesChips(it)
-            }
+            viewModel.getCoursesVisibility(requireContext()).observe(viewLifecycleOwner, ::generateCoursesChips)
         }
     }
 
@@ -72,10 +70,8 @@ class CalendarOptionsFragment: Fragment() {
             else { R.drawable.ic_checked_round_empty }
 
         ContextCompat.getDrawable(requireContext(), icon)?.apply {
-            val color = when (PreferencesManager.getInstance(requireContext()).currentTheme()) {
-                Theme.LIGHT -> Color.BLACK
-                else -> Color.WHITE
-            }
+            val phoneTheme = PreferencesManager.getInstance(requireContext()).currentTheme()
+            val color = if (phoneTheme == Theme.LIGHT) { Color.BLACK } else { Color.WHITE }
 
             DrawableCompat.setTint(this, color)
         }
@@ -84,9 +80,7 @@ class CalendarOptionsFragment: Fragment() {
 
 
 
-    private class CourseButton(context: Context, var course: Course)
-        : AppCompatButton(context) {
-
+    private class CourseButton(context: Context, var course: Course) : AppCompatButton(context) {
         val padding = 8.toDp(context).toInt()
 
         init {

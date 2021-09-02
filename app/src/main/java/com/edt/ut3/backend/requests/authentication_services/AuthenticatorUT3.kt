@@ -2,13 +2,11 @@ package com.edt.ut3.backend.requests.authentication_services
 
 import android.util.Log
 import com.edt.ut3.R
-import com.edt.ut3.backend.network.getClient
+import com.edt.ut3.backend.requests.getClient
 import io.ktor.client.*
-import io.ktor.client.features.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import java.io.IOException
 import java.util.concurrent.TimeoutException

@@ -11,7 +11,7 @@ import com.edt.ut3.backend.celcat.Course
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.viewmodels.CoursesViewModel
 import com.edt.ut3.backend.database.viewmodels.EventViewModel
-import com.edt.ut3.backend.network.authenticateIfNeeded
+import com.edt.ut3.backend.requests.authenticateIfNeeded
 import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.authentication_services.AuthenticationException

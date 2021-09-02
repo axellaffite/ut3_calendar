@@ -1,4 +1,4 @@
-package com.edt.ut3.backend.network
+package com.edt.ut3.backend.requests
 
 import android.content.Context
 import com.edt.ut3.backend.credentials.CredentialsManager

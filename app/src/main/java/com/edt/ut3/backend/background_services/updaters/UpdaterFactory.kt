@@ -1,6 +1,6 @@
 package com.edt.ut3.backend.background_services.updaters
 
-import com.edt.ut3.backend.network.getClient
+import com.edt.ut3.backend.requests.getClient
 import io.ktor.client.*
 
 

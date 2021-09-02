@@ -1,7 +1,7 @@
 package com.edt.ut3.backend.requests.maps
 
 import com.edt.ut3.backend.maps.Place
-import com.edt.ut3.backend.network.JsonSerializer
+import com.edt.ut3.backend.requests.JsonSerializer
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -52,7 +52,9 @@ class MapsService(val client: HttpClient) {
      */
     @Throws(java.io.IOException::class)
     suspend fun getPaulSabatierPlaces(): List<Place> {
-        val response =  client.get<String>(PAUL_SABATIER_PLACES_LINK)
+        val response =  client.get<String>(PAUL_SABATIER_PLACES_LINK) {
+            header(HttpHeaders.Accept, ContentType.Text)
+        }
 
         return JsonSerializer.decodeFromString<PlacesRequest>(response).records.map { it.fields }
     }

@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.edt.ut3.backend.database.viewmodels.PlaceViewModel
 import com.edt.ut3.backend.maps.Place
-import com.edt.ut3.backend.network.getClient
+import com.edt.ut3.backend.requests.getClient
 import com.edt.ut3.backend.requests.maps.MapsService
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext

@@ -15,6 +15,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.lang.Exception
 
 
 class RoomFinderViewModel : ViewModel() {
@@ -26,22 +27,18 @@ class RoomFinderViewModel : ViewModel() {
     private val service = RoomFinderService()
 
     private val _buildings = MutableLiveData<Set<Building>>()
-    val buildings : LiveData<Set<Building>>
-        get() = _buildings
+    val buildings : LiveData<Set<Building>> get() = _buildings
 
     val state = MutableLiveData<RoomFinderState>(Presentation)
 
     private val _error = MutableLiveData<RoomFinderFailure?>(null)
-    val error : LiveData<RoomFinderFailure?>
-        get() = _error
+    val error : LiveData<RoomFinderFailure?> get() = _error
 
     private val _searchResult = MutableLiveData(listOf<Room>())
-    val searchResult: LiveData<List<Room>>
-        get() = _searchResult
+    val searchResult: LiveData<List<Room>> get() = _searchResult
 
     private val _searchBarText = MutableLiveData("")
-    val searchBarText: LiveData<String>
-        get() = _searchBarText
+    val searchBarText: LiveData<String> get() = _searchBarText
 
     var ready = false
 
@@ -86,7 +83,7 @@ class RoomFinderViewModel : ViewModel() {
                 val rooms = filterResult(getFreeRooms(searchBarText.value!!, forceRefresh))
                 _searchResult.value = rooms
                 state.value = RoomFinderState.Result
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 _error.value = RoomFinderFailure.SearchFailure
             }
         }
