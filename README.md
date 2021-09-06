@@ -7,10 +7,7 @@ Disponible pour Android --> [ici](https://play.google.com/store/apps/details?id=
 Nous avons ouvert un Discord pour les bêtas afin que les testeurs puissent nous contacter plus facilement.  
 Il est possible que l'application soit portée sur IOS, nous sommes donc à la recherche de développeurs qui pourraient nous aider à le concevoir en Flutter. N'hésitez donc pas à rejoindre le serveur pour nous en parler :)
 
-### Soutenez nous !
-
-Tout ce travail est harassant, nous aurions bien besoin d'un remontant, alors n'hésitez pas !  
-<a href="https://www.buymeacoffee.com/axellaffite" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-green.png" alt="Buy Me A Coffee" width=170px></a>
+Server Discord --> [ici](https://discord.gg/6KPZmQa) <--
 
 ## Modifications par rapport à la version 1.x
 
