@@ -136,4 +136,6 @@
     <string name="channel_firebase_description">Channel used to diffuse information to all the users</string>
     <string name="event_not_found">Event not found</string>
     <string name="delete_note">Do you want to delete the note ?</string>
+    <string name="error_missing_credentials">Your credentials must be specified in order to get connected</string>
+    <string name="error_unable_to_treat_server_response">Unable to treat server response</string>
 </resources>

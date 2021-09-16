@@ -13,7 +13,7 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.edt.ut3.R
-import com.edt.ut3.backend.requests.authentication_services.Authenticator
+import com.edt.ut3.backend.requests.authentication_services.Credentials
 import com.edt.ut3.misc.extensions.hideKeyboard
 import com.edt.ut3.misc.extensions.isTrue
 import com.edt.ut3.misc.extensions.updateIfNecessary
@@ -154,7 +154,7 @@ class FragmentAuthentication: Fragment() {
         val password = password?.text.takeIf { !it.isNullOrBlank() }
 
         viewModel.updateCredentials(
-            Authenticator.Credentials.from(
+            Credentials.from(
                 username?.toString(),
                 password?.toString()
             )
@@ -171,7 +171,7 @@ class FragmentAuthentication: Fragment() {
      *
      * @param credentials The incoming credentials
      */
-    private fun handleCredentialsUpdate(credentials: Authenticator.Credentials?) {
+    private fun handleCredentialsUpdate(credentials: Credentials?) {
         val newUsername = credentials?.username ?: return
         val newPassword = credentials.password
 

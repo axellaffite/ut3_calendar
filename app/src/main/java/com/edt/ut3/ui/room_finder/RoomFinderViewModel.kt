@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.edt.ut3.backend.goulin_room_finder.Building
 import com.edt.ut3.backend.goulin_room_finder.Room
-import com.edt.ut3.backend.requests.ServiceBuilder
+import com.edt.ut3.backend.requests.room_finder.RoomFinderService
 import com.edt.ut3.misc.extensions.isNullOrFalse
 import com.edt.ut3.ui.room_finder.RoomFinderState.Presentation
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -15,6 +15,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.lang.Exception
 
 
 class RoomFinderViewModel : ViewModel() {
@@ -23,25 +24,21 @@ class RoomFinderViewModel : ViewModel() {
     private var searchJob: Job? = null
 
     private var rooms = listOf<Room>()
-    private val service = ServiceBuilder.buildRoomFinderService()
+    private val service = RoomFinderService()
 
     private val _buildings = MutableLiveData<Set<Building>>()
-    val buildings : LiveData<Set<Building>>
-        get() = _buildings
+    val buildings : LiveData<Set<Building>> get() = _buildings
 
     val state = MutableLiveData<RoomFinderState>(Presentation)
 
     private val _error = MutableLiveData<RoomFinderFailure?>(null)
-    val error : LiveData<RoomFinderFailure?>
-        get() = _error
+    val error : LiveData<RoomFinderFailure?> get() = _error
 
     private val _searchResult = MutableLiveData(listOf<Room>())
-    val searchResult: LiveData<List<Room>>
-        get() = _searchResult
+    val searchResult: LiveData<List<Room>> get() = _searchResult
 
     private val _searchBarText = MutableLiveData("")
-    val searchBarText: LiveData<String>
-        get() = _searchBarText
+    val searchBarText: LiveData<String> get() = _searchBarText
 
     var ready = false
 
@@ -86,7 +83,7 @@ class RoomFinderViewModel : ViewModel() {
                 val rooms = filterResult(getFreeRooms(searchBarText.value!!, forceRefresh))
                 _searchResult.value = rooms
                 state.value = RoomFinderState.Result
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 _error.value = RoomFinderFailure.SearchFailure
             }
         }

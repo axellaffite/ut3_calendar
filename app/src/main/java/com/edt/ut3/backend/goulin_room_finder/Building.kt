@@ -1,5 +1,7 @@
 package com.edt.ut3.backend.goulin_room_finder
 
+import kotlinx.serialization.Serializable
+
 
 /**
  * Represents a Building
@@ -7,4 +9,5 @@ package com.edt.ut3.backend.goulin_room_finder
  *
  * @property name
  */
-data class Building (val name: String)
+@Serializable
+data class Building(val name: String)

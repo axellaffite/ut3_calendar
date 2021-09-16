@@ -20,7 +20,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import androidx.work.WorkInfo
 import com.edt.ut3.R
-import com.edt.ut3.backend.background_services.Updater
+import com.edt.ut3.backend.background_services.BackgroundUpdater
 import com.edt.ut3.backend.calendar.CalendarMode
 import com.edt.ut3.backend.calendar.DayBuilder
 import com.edt.ut3.backend.celcat.Event
@@ -101,7 +101,7 @@ class CalendarFragment : BottomSheetFragment(),
 
         // Schedule the periodic update in order to
         // keep the Calendar up to date.
-        Updater.scheduleUpdate(requireContext())
+        BackgroundUpdater.scheduleUpdate(requireContext())
 
         updateCalendarMode()
 
@@ -315,7 +315,7 @@ class CalendarFragment : BottomSheetFragment(),
      *
      */
     private fun forceUpdate() {
-        Updater.forceUpdate(requireContext(), false, viewLifecycleOwner, { workInfo ->
+        BackgroundUpdater.forceUpdate(requireContext(), false, viewLifecycleOwner, { workInfo ->
             val swipeCallback = object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
                 override fun onDismissed(
                     transientBottomBar: Snackbar?,

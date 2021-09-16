@@ -1,5 +1,6 @@
 package com.edt.ut3.backend.goulin_room_finder
 
+import kotlinx.serialization.Serializable
 import java.util.*
 
 /**
@@ -11,6 +12,7 @@ import java.util.*
  * the room is free
  * @property room The room's name
  */
+@Serializable
 data class Room (
     val building: String,
     val freeSchedules: List<Schedule>,
