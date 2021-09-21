@@ -21,7 +21,7 @@ Parmis elles on pourra noter :
  - Il est maintenant possible de cacher les cours qui ne nous intéressent pas (pour un redoublant par exemple).
  - L'emploi du temps est maintenant affiché d'une manière différente, deux événements à la même heure seront positionnés côte-à-côte (voir screens plus bas).
  - La vue semaine est elle disponible à la fois en mode portrait et en mode paysage. La vue agenda n'est elle disponible qu'en portrait pour des raisons esthétiques.
- - Un fragment affichant une carte interactive à la manière de Google Maps (pour l'instant avec [OSMDroid](https://github.com/osmdroid/osmdroid)) montre les différents bâtiments de l'université ainsi que ceux du Crous. La recherche de chemin se fait par contre via l'application Google Maps pour des questions de coût, les APIs de ce genre étant pour la plupart payantes. La carte a été restreintes aux bornes de l'université pour ne pas télécharger trop de _Tiles_ auprès du _tile provider_.
+ - Un fragment affichant une carte interactive à la manière de Google Maps (pour l'instant avec [OSMDroid](https://github.com/osmdroid/osmdroid)) montre les différents bâtiments de l'université ainsi que ceux du Crous. La recherche de chemin se fait par contre via l'application Google Maps pour des questions de coût, les APIs de ce genre étant pour la plupart payantes. La carte a été restreinte aux bornes de l'université pour ne pas télécharger trop de _Tiles_ auprès du _tile provider_.
  - Il est possible de trouver une salle libre.
 
 ## Description des fragments  
@@ -29,7 +29,7 @@ Parmis elles on pourra noter :
 
 Le calendrier (et l'application en général) dispose d'un thème sombre et d'un thème clair :
 
-   Theme Clair   |   Theme sombre
+   Thème Clair   |   Thème sombre
 :---------------:|:-----------------:
 <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_dark.jpg" height="600" alt="Theme sombre">
 
@@ -37,7 +37,7 @@ Les événements sont maintenant disposés côte à côte lorsque qu'ils sont à
 Cela évite donc les "multi-event" utilisés dans l'ancienne version qui demandaient de cliquer dessus puis de traverser les différents événement pour réellement voir quels étaient les cours. Ceci est rendu possible grâce à la librarie [Yoda](https://github.com/axellaffite/yoda), codée pour ce projet.  
 À noter qu'une vue __agenda__ est configurée de base et une vue __semaine__ est disponible d'un simple clic grâce à la barre d'action affichée en haut ! La vue __agenda__ n'est cependant disponible qu'en mode portrait pour des raisons esthétiques.
 
-   Theme Clair   |   Theme sombre
+   Thème Clair   |   Thème sombre
 :---------------:|:-----------------:
 <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_evenements_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_evenements_dark.jpg" height="600" alt="Theme sombre">
 <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_evenements_white_week.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_evenements_dark_week.jpg" height="600" alt="Theme sombre">
@@ -46,14 +46,14 @@ Cela évite donc les "multi-event" utilisés dans l'ancienne version qui demanda
 Lors d'un clic sur un événement un fragment s'ouvre par le bas, affichant les détails et la note associée à cet événement (s'il y en a une).  
 Ce fragment permet par ailleurs de prendre des photos qui seront associées à la note.
 
-   Theme Clair   |   Theme sombre
+   Thème Clair   |   Thème sombre
 :---------------:|:-----------------:
 <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/event_details_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/event_details_dark.jpg" height="600" alt="Theme sombre">
 
 
 Les matières peuvent être cachées. Il suffit de cliquer sur l'icône en forme d'oeil que l'on voit dans la barre d'action en haut pour que la page de sélection apparaisse.  
 
-   Theme Clair   |   Theme sombre
+   Thème Clair   |   Thème sombre
 :---------------:|:-----------------:
 <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/visibilite_cours_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/visibilite_cours_dark.jpg" height="600" alt="Theme sombre">
 
@@ -66,27 +66,25 @@ Cela a été rendu possible grâce à [Goulin](https://www.goulin.fr/).
 Le code source est dispo --> [ICI](https://github.com/goulinkh/rooms-finder) <--
 La version web se trouve --> [ICI](https://rooms-finder.goulin.fr/) <--  
 
-   Theme Clair   |   Theme sombre
+   Thème Clair   |   Thème sombre
 :---------------:|:-----------------:
 <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/find_a_room_loading_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/find_a_room_loading_dark.jpg" height="600" alt="Theme sombre">
 <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/find_a_room_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/find_a_room_dark.jpg" height="600" alt="Theme sombre">
 
-L'API retenue a finalement été OSMDroid qui utilise OpenStreeMap.
-Pour la recherche de chemin, cela se fera via un Intent Google Maps.
 
 ### Carte
 
-   Theme Clair   |   Theme sombre
+   Thème Clair   |   Thème sombre
 :---------------:|:-----------------:
 <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/maps_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/maps_dark.jpg" height="600" alt="Theme sombre">
 <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/maps_choices_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/maps_choices_dark.jpg" height="600" alt="Theme sombre">
 
-L'API retenue a finalement été OSMDroid qui utilise OpenStreeMap.
+L'API retenue a finalement été OSMDroid qui utilise OpenStreetMap.
 Pour la recherche de chemin, cela se fera via un Intent Google Maps.
 
 ### Préférences
 
-   Theme Clair   |   Theme sombre
+   Thème Clair   |   Thème sombre
 :---------------:|:-----------------:
 <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/preferences_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/preferences_dark.jpg" height="600" alt="Theme sombre">
 
