@@ -1,19 +1,32 @@
 package com.edt.ut3.ui.map
 
+import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
+import arrow.core.*
+import arrow.typeclasses.Semigroup
+import arrow.typeclasses.Semigroup.Companion.list
+import com.edt.ut3.R
+import com.edt.ut3.refactored.extensions.async
 import com.edt.ut3.refactored.models.domain.maps.Place
+import com.edt.ut3.refactored.models.repositories.preferences.PreferencesManager
 import com.edt.ut3.refactored.models.services.maps.MapsService
 import com.edt.ut3.refactored.viewmodels.PlaceViewModel
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
+import org.osmdroid.util.GeoPoint
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
 
-class MapsViewModel: ViewModel(), KoinComponent {
-    private val placeViewModel: PlaceViewModel by inject()
-    private val mapsService: MapsService by inject()
-
-    val places by lazy { placeViewModel.selectAllLD() }
+class MapsViewModel(
+    private val placeViewModel: PlaceViewModel,
+    private val mapsService: MapsService,
+    private val preferenceManager: PreferencesManager
+) : ViewModel() {
+    val places = placeViewModel.selectAllLD()
 
 
     /**
@@ -34,43 +47,102 @@ class MapsViewModel: ViewModel(), KoinComponent {
      */
     @Suppress("BlockingMethodInNonBlockingContext")
     suspend fun launchDataUpdate(): DownloadResult {
-        var error: Exception? = null
-        var errorCount = 0
+        if (successfulUpdateIsTooRecent()) return DownloadResult(null)
 
-        val newPlaces = mutableListOf<Place>()
-
-        // First download for Paul Sabatier places
-        // (from our github)
-        try {
-            val paulSabatierPlaces = withContext(IO) { mapsService.getPaulSabatierPlaces() }
-            newPlaces.addAll(paulSabatierPlaces)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            error = e
-            errorCount += 1
-        }
-
-
-        // Second download for Crous places
-        // (from the government website)
-        try {
-            val crousPlaces = withContext(IO) { mapsService.getCrousPlaces() }
-            newPlaces.addAll(crousPlaces)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            error = e
-            errorCount += 2
-        }
-
-
-        placeViewModel.insert(*newPlaces.toTypedArray())
-        return DownloadResult(errorCount, error)
+        return parseResult(handleCalls(prepareCalls()))
     }
 
-    class DownloadResult(val errorCount: Int, val error: Exception?) {
-        override fun toString(): String {
-            return "DownloadResult: Error count=$errorCount, Error type= ${error?.javaClass?.simpleName}"
+    private suspend fun successfulUpdateIsTooRecent(): Boolean {
+        val durationSinceLastUpdate = (
+            System.currentTimeMillis() - preferenceManager.lastSuccessfulBuildingUpdate
+        ).milliseconds
+
+        return durationSinceLastUpdate < 1.hours && placeViewModel.hasPlaces()
+    }
+
+    private fun prepareCalls() = listOf(
+        async(IO) {
+            Either.catch { mapsService.getPaulSabatierPlaces() }
+                .mapLeft { R.string.building_update_failed }
+        },
+        async(IO) {
+            Either.catch { mapsService.getCrousPlaces() }
+                .mapLeft { R.string.restaurant_update_failed }
         }
+    )
+
+    private suspend fun handleCalls(calls: List<Deferred<Either<Int, List<Place>>>>): Ior<NonEmptyList<Int>, List<Place>> {
+        fun Ior<NonEmptyList<Int>, List<Place>>.combine(other: Ior<NonEmptyList<Int>, List<Place>>) =
+            combine(Semigroup.nonEmptyList(), list(), other)
+
+        return calls.fold(Ior.Right(emptyList())) { acc, deferred ->
+            deferred.await().fold(
+                ifLeft = { error -> acc.combine(nonEmptyListOf(error).leftIor()) },
+                ifRight = { newPlaces -> acc.combine(newPlaces.rightIor()) }
+            )
+        }
+    }
+
+    private suspend fun parseResult(result: Ior<NonEmptyList<Int>, List<Place>>) = result.fold(
+        fa = {
+            DownloadResult(if (it.size == 2) R.string.unable_to_retrieve_data else it.head)
+        },
+        fb = {
+            placeViewModel.insertAll(it)
+            preferenceManager.lastSuccessfulBuildingUpdate = System.currentTimeMillis()
+            DownloadResult()
+        },
+        fab = { error, places ->
+            placeViewModel.insertAll(places)
+            DownloadResult(error.head)
+        },
+    )
+
+    class DownloadResult(@StringRes val errorRes: Int? = null)
+
+    /**
+     * Launch a GoogleMaps Intent to navigate
+     * from the current position to the [destination point][to].
+     *
+     *
+     * @param activity The current activity
+     * @param to The destination point
+     * @param toTitle The destination point title
+     * @param onError If the Intent cannot be launched
+     */
+    fun routeFromTo(
+        activity: Activity,
+        to: GeoPoint,
+        toTitle: String,
+        onError: (() -> Unit)? = null
+    ) {
+        try {
+            val requestLink = ("https://www.google.com/maps/dir/?api=1" +
+                "&destination=${to.latitude.toFloat()},${to.longitude.toFloat()}" +
+                "&destination_place_id=$toTitle" +
+                "&travelmode=walking")
+
+            // Create a Uri from an intent string. Use the result to create an Intent.
+            val gmmIntentUri = Uri.parse(requestLink)
+
+            // Create an Intent from gmmIntentUri. Set the action to ACTION_VIEW
+            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+
+            // Make the Intent explicit by setting the Google Maps package
+            mapIntent.setPackage("com.google.android.apps.maps")
+
+            activity.startActivity(mapIntent)
+        } catch (e: ActivityNotFoundException) {
+            onError?.invoke()
+        }
+    }
+
+
+    fun matchingPlaces(placesToMatch: List<String>): List<Place> {
+        val savedPlaces = places.value ?: return emptyList()
+        return placesToMatch.mapNotNull { toMatch ->
+            savedPlaces.find { toMatch.contains(it.title, ignoreCase = true) }
+        }.distinct()
     }
 
 }

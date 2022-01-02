@@ -1,6 +1,7 @@
 package com.edt.ut3.ui.calendar
 
 import android.view.View
+import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
@@ -8,7 +9,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDE
 import java.lang.ref.WeakReference
 
 
-open class BottomSheetFragment: Fragment() {
+open class BottomSheetFragment(@LayoutRes layoutID: Int): Fragment(layoutID) {
 
     val bottomSheetManager = BottomSheetManager()
 

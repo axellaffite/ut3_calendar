@@ -15,17 +15,15 @@ import androidx.activity.addCallback
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.axellaffite.fastgallery.FastGallery
 import com.axellaffite.fastgallery.ImageLoader
 import com.edt.ut3.R
-import com.edt.ut3.backend.maps.MapsUtils
+import com.edt.ut3.misc.extensions.hideKeyboard
 import com.edt.ut3.refactored.models.domain.maps.Place
 import com.edt.ut3.refactored.models.repositories.preferences.PreferencesManager
-import com.edt.ut3.misc.extensions.hideKeyboard
 import com.edt.ut3.ui.custom_views.searchbar.FilterChip
 import com.edt.ut3.ui.custom_views.searchbar.SearchBar
 import com.edt.ut3.ui.custom_views.searchbar.SearchBarAdapter
@@ -44,7 +42,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONException
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.osmdroid.config.Configuration
 import org.osmdroid.events.MapListener
 import org.osmdroid.events.ScrollEvent
@@ -62,11 +60,12 @@ import java.io.File
 class MapsFragment : Fragment() {
 
     enum class State { MAP, SEARCHING }
+
     private var selectedPlace: Place? = null
     private var selectedPlaceMarker: PlaceMarker? = null
     private var state = MutableLiveData(State.MAP)
 
-    private val viewModel: MapsViewModel by viewModels()
+    private val mapsViewModel: MapsViewModel by viewModel()
 
     private var downloadJob : Job? = null
 
@@ -282,7 +281,7 @@ class MapsFragment : Fragment() {
 
         setupBackButtonPressCallback()
 
-        viewModel.places.observe(viewLifecycleOwner, { newPlaces ->
+        mapsViewModel.places.observe(viewLifecycleOwner, { newPlaces ->
             setupCategoriesAndPlaces(newPlaces)
         })
     }
@@ -297,7 +296,7 @@ class MapsFragment : Fragment() {
      */
     private fun setupBackButtonPressCallback() {
         val activity = requireActivity()
-        activity.onBackPressedDispatcher.addCallback(this) {
+        activity.onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
             when (state.value) {
                 State.SEARCHING -> state.value = State.MAP
                 else -> {
@@ -337,67 +336,12 @@ class MapsFragment : Fragment() {
                 }
             }
 
-            val downloadResult = viewModel.launchDataUpdate()
-
-            // This callback will hold the callback action.
-            // We put it in a variable to avoid duplicate code
-            // as the code must be use in a post {} function
-            // of the main view (to avoid view nullability and things like that)
-            val callback : () -> Unit
-            when (downloadResult.errorCount) {
-                // Display success message
-                0 -> callback = {
-                    maps_info?.let {
-                        Snackbar.make(it, R.string.maps_update_success, Snackbar.LENGTH_LONG).show()
-                    }
-                }
-
-                // Display an error message depending on
-                // what type of error it is
-                1 -> callback = {
-                    val errRes = when (downloadResult.error) {
-                        is JSONException -> R.string.building_data_invalid
-                        else -> R.string.building_update_failed
-                    }
-
-                    maps_info?.let {
-                        Snackbar.make(it, errRes, Snackbar.LENGTH_INDEFINITE)
-                            .setAction(R.string.action_retry) {
-                                startDownloadJob()
-                            }
-                            .show()
-                    }
-                }
-
-                // Display an error message depending on
-                // what type of error it is
-                2 -> callback = {
-                    val errRes = when (downloadResult.error) {
-                        is JSONException -> R.string.restaurant_data_invalid
-                        else -> R.string.restaurant_update_failed
-                    }
-
-                    maps_info?.let {
-                        Snackbar.make(it, errRes, Snackbar.LENGTH_INDEFINITE)
-                            .setAction(R.string.action_retry) {
-                                startDownloadJob()
-                            }
-                            .show()
-                    }
-                }
-
-                // Display an internet error message
-                else -> callback = {
-                    maps_info?.let {
-                        Snackbar.make(it, R.string.unable_to_retrieve_data, Snackbar.LENGTH_INDEFINITE)
-                            .show()
-                    }
+            val downloadResult = mapsViewModel.launchDataUpdate()
+            downloadResult.errorRes?.let { errorRes ->
+                maps_info?.let { mapsInfo ->
+                    Snackbar.make(mapsInfo, errorRes, Snackbar.LENGTH_LONG).show()
                 }
             }
-
-            // Calling the callback.
-            Log.d(this::class.simpleName, downloadResult.toString())
-            callback()
         }
 
         println("or not ?")
@@ -524,7 +468,7 @@ class MapsFragment : Fragment() {
             place_info.picture = selected.photo
             place_info.go_to.setOnClickListener {
                 activity?.let {
-                    MapsUtils.routeFromTo(
+                    mapsViewModel.routeFromTo(
                         it,
                         GeoPoint(selected.geolocalisation),
                         selected.title

@@ -7,6 +7,7 @@ import com.edt.ut3.refactored.models.services.notifications.NotificationManagerS
 import com.edt.ut3.backend.requests.JsonSerializer
 import com.edt.ut3.refactored.models.services.celcat.CelcatService
 import com.edt.ut3.refactored.models.repositories.database.AppDatabase
+import com.edt.ut3.refactored.models.repositories.preferences.PreferencesManager
 import com.edt.ut3.refactored.viewmodels.*
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -20,31 +21,8 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
+
 val repositoriesModule = module {
-    fun Scope.createDatabase() =
-        Room.databaseBuilder(androidContext(), AppDatabase::class.java, "note_event_db")
-            .addMigrations(AppDatabase.MIGRATION_1_2)
-            .build()
-
-    fun createClient() = HttpClient(CIO) {
-        install(HttpCookies) {
-            storage = AcceptAllCookiesStorage()
-        }
-
-        install(JsonFeature) {
-            serializer = KotlinxSerializer(JsonSerializer)
-        }
-
-        install(Logging) {
-            logger = Logger.DEFAULT
-            level = LogLevel.ALL
-        }
-
-        install(HttpRedirect) {
-            checkHttpMethod = false
-        }
-    }
-
     single { createDatabase() }
     single { CredentialsRepository(androidContext()) }
     single { CelcatService() }
@@ -52,12 +30,33 @@ val repositoriesModule = module {
         CelcatUpdaterService(params.getOrNull() ?: get())
     }
 
+    single { PreferencesManager.getInstance(androidContext()) }
+
     factory { createClient() }
     factory { NotificationManagerService(androidContext()) }
-
-    viewModel { CoursesViewModel(get()) }
-    viewModel { EdtChangeViewModel(get()) }
-    viewModel { EventViewModel(get()) }
-    viewModel { NotesViewModel(get()) }
-    viewModel { PlaceViewModel(get()) }
 }
+
+
+fun createClient() = HttpClient(CIO) {
+    install(HttpCookies) {
+        storage = AcceptAllCookiesStorage()
+    }
+
+    install(JsonFeature) {
+        serializer = KotlinxSerializer(JsonSerializer)
+    }
+
+    install(Logging) {
+        logger = Logger.DEFAULT
+        level = LogLevel.ALL
+    }
+
+    install(HttpRedirect) {
+        checkHttpMethod = false
+    }
+}
+
+fun Scope.createDatabase() =
+    Room.databaseBuilder(androidContext(), AppDatabase::class.java, "note_event_db")
+        .addMigrations(AppDatabase.MIGRATION_1_2)
+        .build()

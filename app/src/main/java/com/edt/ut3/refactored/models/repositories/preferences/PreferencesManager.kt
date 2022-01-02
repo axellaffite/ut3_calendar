@@ -55,6 +55,7 @@ class PreferencesManager private constructor(
         object NOTIFICATION: PreferenceKeys<Boolean>("actual_notification", true)
         object FIRST_LAUNCH: PreferenceKeys<Boolean>("actual_first_launch", true)
         object CODE_VERSION: PreferenceKeys<Int>("actual_code_version", 0)
+        object LAST_BUILDING_UPDATE: PreferenceKeys<Long>("last_building_update", 0L)
 
         object DEPRECATED_FIRST_LAUNCH: PreferenceKeys<Boolean>("first_launch", true)
         object DEPRECATED_NOTIFICATION: PreferenceKeys<Boolean>("notification", true)
@@ -115,6 +116,13 @@ class PreferencesManager private constructor(
         defValue = PreferenceKeys.CODE_VERSION.defValue,
         converter = IntConverter,
         manager = IntManager
+    )
+
+    var lastSuccessfulBuildingUpdate : Long by simplePreference.Delegate(
+        key = PreferenceKeys.LAST_BUILDING_UPDATE.key,
+        defValue = PreferenceKeys.LAST_BUILDING_UPDATE.defValue,
+        converter = LongConverter,
+        manager = LongManager
     )
 
     var deprecated_notification : String by simplePreference.Delegate(

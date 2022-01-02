@@ -75,7 +75,7 @@
                 android:id="@+id/event_details_notes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                class="com.edt.ut3.ui.calendar.event_details.FragmentEventDetails"/>
+                class="com.edt.ut3.refactored.ui.FragmentEventDetails"/>
 
         </androidx.core.widget.NestedScrollView>
 

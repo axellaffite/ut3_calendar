@@ -17,8 +17,6 @@ class CalendarViewModel : ViewModel(), KoinComponent {
     private val eventViewModel: EventViewModel by inject()
     private val coursesViewModel: CoursesViewModel by inject()
 
-    var selectedEvent = MutableLiveData<Event>(null)
-    var selectedEventNote: Note? = null
     var selectedDate = MutableLiveData(Date().timeCleaned())
     var lastPosition = MutableLiveData(Int.MAX_VALUE / 2)
 

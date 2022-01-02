@@ -1,9 +1,11 @@
 package com.edt.ut3.backend.note
 
+import androidx.annotation.StringRes
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
+import com.edt.ut3.R
 import com.edt.ut3.misc.extensions.minus
 import com.edt.ut3.refactored.injected
 import com.edt.ut3.refactored.models.domain.celcat.Event
@@ -114,12 +116,12 @@ data class Note(
         private var type: ReminderType = ReminderType.NONE
         private var customDate: Date? = null
 
-        enum class ReminderType {
-            NONE,
-            FIFTEEN_MINUTES,
-            THIRTY_MINUTES,
-            ONE_HOUR,
-            CUSTOM
+        enum class ReminderType(@StringRes val resId: Int) {
+            NONE(resId = R.string.reminder_none),
+            FIFTEEN_MINUTES(resId = R.string.reminder_fifteen),
+            THIRTY_MINUTES(resId = R.string.reminder_thirty),
+            ONE_HOUR(resId = R.string.reminder_hour),
+            CUSTOM(resId = R.string.reminder_custom)
         }
 
         /**
@@ -193,10 +195,8 @@ data class Note(
             fun fromJSON(str: String): Reminder {
                 val json = JSONObject(str)
                 return Reminder(Date(json.getLong("date"))).apply {
-                    type = ReminderType.valueOf(json.getString("type"))
-                    customDate =
-                        if (json.isNull("custom_date")) { null }
-                        else { Date(json.getLong("custom_date")) }
+                    type = json.optString("type")?.let(ReminderType::valueOf) ?: ReminderType.NONE
+                    customDate = json.optLong("custom_date")?.let(::Date)
                 }
             }
         }

@@ -142,4 +142,6 @@
     <string name="delete_note">Voulez-vous supprimer la note ?</string>
     <string name="error_missing_credentials">Vos identifiants doivent etre précisés pour vous connecter</string>
     <string name="error_unable_to_treat_server_response">Impossible de traiter la réponse du serveur</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

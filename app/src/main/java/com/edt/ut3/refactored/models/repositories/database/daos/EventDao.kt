@@ -2,6 +2,8 @@ package com.edt.ut3.refactored.models.repositories.database.daos
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import com.edt.ut3.backend.note.Note
+import com.edt.ut3.refactored.models.domain.EventWithNote
 import com.edt.ut3.refactored.models.domain.celcat.Event
 
 @Dao
@@ -44,4 +46,13 @@ interface EventDao {
 
     @Query("SELECT DISTINCT courseName FROM event")
     suspend fun getCourses() : List<String?>
+
+    @Query("SELECT * FROM event where id=:eventID LIMIT 1")
+    fun listenToEventID(eventID: String?): LiveData<Event>
+
+    @Query("SELECT event.* FROM event where event.id = :eventID")
+    fun listenToEventWithNote(eventID: String?): LiveData<EventWithNote>
+
+    @Query("SELECT EXISTS(SELECT 1 FROM event WHERE event.id = :eventID)")
+    suspend fun eventExists(eventID: String?): Boolean
 }

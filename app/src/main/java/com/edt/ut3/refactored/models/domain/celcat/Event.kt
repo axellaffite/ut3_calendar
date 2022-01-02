@@ -35,6 +35,8 @@ data class Event(
         }
     }
 
+    val sitesAndLocations get() = (locations + sites).distinct()
+
     fun courseOrCategory(context: Context) = courseName ?: category ?: defaultName(context)
 
     fun defaultName(context: Context) = context.getString(R.string.default_event_name)

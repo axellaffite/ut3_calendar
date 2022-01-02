@@ -35,6 +35,15 @@ object IntConverter : SimplePreference.Converter<Int, Int>() {
 
 
 /**
+ * Used to convert an [Int].
+ */
+object LongConverter : SimplePreference.Converter<Long, Long>() {
+    override fun deserialize(value: Long): Long = value
+    override fun serialize(value: Long): Long = value
+}
+
+
+/**
  * Used to convert a [ThemePreference]
  */
 object ThemePreferenceConverter : SimplePreference.Converter<ThemePreference, String>() {

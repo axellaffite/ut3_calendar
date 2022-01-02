@@ -138,8 +138,7 @@
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/note_label"
-            android:visibility="invisible">
+            app:layout_constraintTop_toBottomOf="@+id/note_label">
 
             <ImageView
                 android:id="@+id/reminder_icon"
@@ -242,19 +241,6 @@
             </com.google.android.material.textfield.TextInputLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <com.github.ybq.android.spinkit.SpinKitView
-            android:id="@+id/note_loading"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:visibility="visible"
-            app:layout_constraintBottom_toBottomOf="@+id/note_container"
-            app:layout_constraintEnd_toEndOf="@+id/note_container"
-            app:layout_constraintStart_toStartOf="@+id/note_container"
-            app:layout_constraintTop_toTopOf="@+id/note_container"
-            app:SpinKit_Color="@color/iconTint"
-            style="@style/SpinKitView.Small.FoldingCube"/>
 
 
         <androidx.coordinatorlayout.widget.CoordinatorLayout

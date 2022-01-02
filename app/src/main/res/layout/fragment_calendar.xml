@@ -135,7 +135,7 @@
 
             <fragment
                 android:id="@+id/event_details"
-                android:name="com.edt.ut3.ui.calendar.event_details.FragmentEventDetails"
+                android:name="com.edt.ut3.refactored.ui.FragmentEventDetails"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 

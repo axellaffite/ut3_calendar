@@ -29,7 +29,9 @@ import com.edt.ut3.misc.Emoji
 import com.edt.ut3.misc.extensions.*
 import com.edt.ut3.refactored.models.domain.daybuilder.DayBuilderConfig
 import com.edt.ut3.refactored.models.services.DayBuilderService
-import com.edt.ut3.ui.calendar.event_details.FragmentEventDetails
+import com.edt.ut3.refactored.viewmodels.EventViewModel
+import com.edt.ut3.refactored.viewmodels.event_details.EventDetailsCalendarSharedViewModel
+import com.edt.ut3.refactored.viewmodels.event_details.IEventDetailsSharedViewModel
 import com.edt.ut3.ui.calendar.view_builders.EventView
 import com.edt.ut3.ui.calendar.view_builders.LayoutAllDay
 import com.elzozor.yoda.events.EventWrapper
@@ -41,15 +43,17 @@ import kotlinx.android.synthetic.main.fragment_calendar.*
 import kotlinx.android.synthetic.main.fragment_calendar.view.*
 import kotlinx.coroutines.Job
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
 
-
-class CalendarFragment : BottomSheetFragment(), OnMenuItemClickListener {
+const val layoutID = R.layout.fragment_calendar
+class CalendarFragment : BottomSheetFragment(layoutID), OnMenuItemClickListener {
 
     enum class Status { IDLE, UPDATING }
 
+    private val sharedViewModel: IEventDetailsSharedViewModel by viewModel()
     private val calendarViewModel: CalendarViewModel by activityViewModels()
     private val dayBuilderService: DayBuilderService by inject()
 
@@ -68,13 +72,6 @@ class CalendarFragment : BottomSheetFragment(), OnMenuItemClickListener {
                 }
             }
         }
-
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? = inflater.inflate(R.layout.fragment_calendar, container, false)
 
     /**
      * This function is used to update the calendar mode
@@ -217,7 +214,8 @@ class CalendarFragment : BottomSheetFragment(), OnMenuItemClickListener {
                 BottomSheetBehavior.BottomSheetCallback() {
                 override fun onStateChanged(bottomSheet: View, newState: Int) {
                     if (newState == STATE_COLLAPSED) {
-                        calendarViewModel.selectedEvent.value = null
+                        sharedViewModel.event.value = null
+                        sharedViewModel.isSubFragmentShown = false
                     }
                 }
 
@@ -299,14 +297,11 @@ class CalendarFragment : BottomSheetFragment(), OnMenuItemClickListener {
 
 
 
-        val childFragment = childFragmentManager.findFragmentById(R.id.event_details)
-        if (childFragment is FragmentEventDetails) {
-            childFragment.onReady = {
-                bottomSheetManager.setVisibleSheet(event_details_container)
-            }
-
-            childFragment.listenTo = calendarViewModel.selectedEvent
-        }
+//        val childFragment = childFragmentManager.findFragmentById(R.id.event_details)
+//        if (childFragment is com.edt.ut3.refactored.ui.FragmentEventDetails) {
+//            sharedViewModel.eventWithNote = eventViewModel.listenToEventWithNote()
+//            bottomSheetManager.setVisibleSheet(event_details_container)
+//        }
     }
 
 
@@ -318,12 +313,12 @@ class CalendarFragment : BottomSheetFragment(), OnMenuItemClickListener {
      *
      */
     private fun forceUpdate() {
-        BackgroundUpdater.forceUpdate(requireContext(), false, viewLifecycleOwner, { workInfo ->
+        BackgroundUpdater.forceUpdate(requireContext(), false, viewLifecycleOwner) { workInfo ->
             val swipeCallback = object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
                 override fun onDismissed(
                     transientBottomBar: Snackbar?,
                     event: Int
-                ){
+                ) {
                     super.onDismissed(transientBottomBar, event)
 
                     status = Status.IDLE
@@ -357,7 +352,7 @@ class CalendarFragment : BottomSheetFragment(), OnMenuItemClickListener {
                     }
                 }
             }
-        })
+        }
     }
 
     /**
@@ -519,7 +514,9 @@ class CalendarFragment : BottomSheetFragment(), OnMenuItemClickListener {
     }
 
     private fun setSelectedEvent(event: Event) {
-        calendarViewModel.selectedEvent.value = event
+        sharedViewModel.event.value = event.id
+        sharedViewModel.isSubFragmentShown = true
+        bottomSheetManager.setVisibleSheet(event_details_container)
     }
 
     fun buildAllDayView(events: List<EventWrapper>): View {

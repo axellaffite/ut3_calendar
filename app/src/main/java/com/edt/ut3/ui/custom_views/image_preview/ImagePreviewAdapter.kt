@@ -9,7 +9,13 @@ import com.edt.ut3.R
 import com.edt.ut3.backend.note.Picture
 import kotlinx.android.synthetic.main.layout_image_preview_holder.view.*
 
-class ImagePreviewAdapter(var dataset: List<Picture>) : RecyclerView.Adapter<ImagePreviewAdapter.ImageViewHolder>() {
+typealias ImagePreviewItemClickListener = ((v: View, picture: Picture, pictures: List<Picture>) -> Unit)
+
+class ImagePreviewAdapter(
+    var dataset: List<Picture>,
+    var onAddPictureClickListener: ((v: View) -> Unit)? = null,
+    var onItemClickListener: ImagePreviewItemClickListener? = null
+) : RecyclerView.Adapter<ImagePreviewAdapter.ImageViewHolder>() {
 
     companion object {
         fun from(layout: RecyclerView): ImagePreviewAdapter {
@@ -17,8 +23,6 @@ class ImagePreviewAdapter(var dataset: List<Picture>) : RecyclerView.Adapter<Ima
         }
     }
 
-    var onItemClickListener: ((v: View, picture: Picture, pictures: List<Picture>) -> Unit)? = null
-    var onAddPictureClickListener: ((v: View) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
         val v = LayoutInflater.from(parent.context)

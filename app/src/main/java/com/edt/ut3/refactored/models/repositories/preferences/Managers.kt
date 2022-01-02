@@ -54,3 +54,13 @@ object IntManager : BaseManager<Int>() {
         edit.put(key, value)
     }
 }
+
+object LongManager : BaseManager<Long>() {
+    override fun get(key: String, defValue: Long, prefs: SharedPreferences): Long {
+        return prefs.getLong(key, defValue)
+    }
+
+    override fun set(key: String, value: Long, edit: SharedPreferences.Editor) {
+        edit.put(key, value)
+    }
+}
