@@ -15,8 +15,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.edt.ut3.R
-import com.edt.ut3.backend.goulin_room_finder.Building
-import com.edt.ut3.backend.goulin_room_finder.Room
+import com.edt.ut3.refactored.models.domain.room_finder.Building
+import com.edt.ut3.refactored.models.domain.room_finder.Room
 import com.edt.ut3.misc.extensions.addOnBackPressedListener
 import com.edt.ut3.misc.extensions.hideKeyboard
 import com.edt.ut3.misc.extensions.onBackPressed

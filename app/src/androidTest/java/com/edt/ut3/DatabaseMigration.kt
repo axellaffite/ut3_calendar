@@ -10,8 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.edt.ut3.backend.database.AppDatabase
-import com.edt.ut3.backend.note.Note
+import com.edt.ut3.refactored.models.repositories.database.AppDatabase
 import org.json.JSONArray
 import org.junit.Before
 import org.junit.Rule
@@ -58,7 +57,7 @@ class DatabaseMigrationTest {
                     }
 
                     try {
-                        val reminder: Note.Reminder = Note.Reminder(Date(cursor.getLong(7))).apply {
+                        val reminder: Reminder = Reminder(Date(cursor.getLong(7))).apply {
                             if (cursor.getInt(6) != 0) {
                                 setCustomReminder(Date(cursor.getLong(4)))
                             }

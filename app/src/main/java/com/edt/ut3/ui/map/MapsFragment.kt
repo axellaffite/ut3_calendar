@@ -23,8 +23,8 @@ import com.axellaffite.fastgallery.FastGallery
 import com.axellaffite.fastgallery.ImageLoader
 import com.edt.ut3.R
 import com.edt.ut3.backend.maps.MapsUtils
-import com.edt.ut3.backend.maps.Place
-import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.refactored.models.domain.maps.Place
+import com.edt.ut3.refactored.models.repositories.preferences.PreferencesManager
 import com.edt.ut3.misc.extensions.hideKeyboard
 import com.edt.ut3.ui.custom_views.searchbar.FilterChip
 import com.edt.ut3.ui.custom_views.searchbar.SearchBar
@@ -282,7 +282,7 @@ class MapsFragment : Fragment() {
 
         setupBackButtonPressCallback()
 
-        viewModel.getPlaces(requireContext()).observe(viewLifecycleOwner, { newPlaces ->
+        viewModel.places.observe(viewLifecycleOwner, { newPlaces ->
             setupCategoriesAndPlaces(newPlaces)
         })
     }
@@ -337,7 +337,7 @@ class MapsFragment : Fragment() {
                 }
             }
 
-            val downloadResult = viewModel.launchDataUpdate(requireContext())
+            val downloadResult = viewModel.launchDataUpdate()
 
             // This callback will hold the callback action.
             // We put it in a variable to avoid duplicate code

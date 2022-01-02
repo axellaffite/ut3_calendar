@@ -1,18 +1,21 @@
 package com.edt.ut3.ui.calendar
 
-import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.edt.ut3.backend.celcat.Course
-import com.edt.ut3.backend.celcat.Event
-import com.edt.ut3.backend.database.viewmodels.CoursesViewModel
-import com.edt.ut3.backend.database.viewmodels.EventViewModel
+import com.edt.ut3.refactored.models.domain.celcat.Course
+import com.edt.ut3.refactored.models.domain.celcat.Event
+import com.edt.ut3.refactored.viewmodels.CoursesViewModel
+import com.edt.ut3.refactored.viewmodels.EventViewModel
 import com.edt.ut3.backend.note.Note
 import com.edt.ut3.misc.extensions.timeCleaned
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.util.*
 
-class CalendarViewModel : ViewModel() {
+class CalendarViewModel : ViewModel(), KoinComponent {
+    private val eventViewModel: EventViewModel by inject()
+    private val coursesViewModel: CoursesViewModel by inject()
 
     var selectedEvent = MutableLiveData<Event>(null)
     var selectedEventNote: Note? = null
@@ -23,18 +26,18 @@ class CalendarViewModel : ViewModel() {
     private lateinit var events: LiveData<List<Event>>
 
     @Synchronized
-    fun getEvents(context: Context) : LiveData<List<Event>> {
+    fun getEvents(): LiveData<List<Event>> {
         if (!this::events.isInitialized) {
-            events = EventViewModel(context).getEventLD()
+            events = eventViewModel.getEventLD()
         }
 
         return events
     }
 
     @Synchronized
-    fun getCoursesVisibility(context: Context): LiveData<List<Course>> {
+    fun getCoursesVisibility(): LiveData<List<Course>> {
         if (!this::coursesVisibility.isInitialized) {
-            coursesVisibility = CoursesViewModel(context).getCoursesLD()
+            coursesVisibility = coursesViewModel.getCoursesLD()
         }
 
         return coursesVisibility

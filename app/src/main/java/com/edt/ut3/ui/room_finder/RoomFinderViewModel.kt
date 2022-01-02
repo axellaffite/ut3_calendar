@@ -4,9 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.edt.ut3.backend.goulin_room_finder.Building
-import com.edt.ut3.backend.goulin_room_finder.Room
-import com.edt.ut3.backend.requests.room_finder.RoomFinderService
+import com.edt.ut3.refactored.models.domain.room_finder.Building
+import com.edt.ut3.refactored.models.domain.room_finder.Room
+import com.edt.ut3.refactored.models.services.room_finder.RoomFinderService
 import com.edt.ut3.misc.extensions.isNullOrFalse
 import com.edt.ut3.ui.room_finder.RoomFinderState.Presentation
 import kotlinx.coroutines.CoroutineExceptionHandler

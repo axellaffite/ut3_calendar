@@ -1,26 +1,19 @@
 package com.edt.ut3.ui.map
 
-import android.content.Context
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import com.edt.ut3.backend.database.viewmodels.PlaceViewModel
-import com.edt.ut3.backend.maps.Place
-import com.edt.ut3.backend.requests.getClient
-import com.edt.ut3.backend.requests.maps.MapsService
+import com.edt.ut3.refactored.models.domain.maps.Place
+import com.edt.ut3.refactored.models.services.maps.MapsService
+import com.edt.ut3.refactored.viewmodels.PlaceViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-class MapsViewModel: ViewModel() {
-    lateinit var places : LiveData<List<Place>>
+class MapsViewModel: ViewModel(), KoinComponent {
+    private val placeViewModel: PlaceViewModel by inject()
+    private val mapsService: MapsService by inject()
 
-    @Synchronized
-    fun getPlaces(context: Context) : LiveData<List<Place>> {
-        if (!this@MapsViewModel::places.isInitialized) {
-            places = PlaceViewModel(context).selectAllLD()
-        }
-
-        return places
-    }
+    val places by lazy { placeViewModel.selectAllLD() }
 
 
     /**
@@ -40,8 +33,7 @@ class MapsViewModel: ViewModel() {
      *                    we display an error message saying to check it.
      */
     @Suppress("BlockingMethodInNonBlockingContext")
-    suspend fun launchDataUpdate(context: Context) : DownloadResult {
-
+    suspend fun launchDataUpdate(): DownloadResult {
         var error: Exception? = null
         var errorCount = 0
 
@@ -50,7 +42,7 @@ class MapsViewModel: ViewModel() {
         // First download for Paul Sabatier places
         // (from our github)
         try {
-            val paulSabatierPlaces = withContext(IO) { MapsService(getClient()).getPaulSabatierPlaces() }
+            val paulSabatierPlaces = withContext(IO) { mapsService.getPaulSabatierPlaces() }
             newPlaces.addAll(paulSabatierPlaces)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -62,7 +54,7 @@ class MapsViewModel: ViewModel() {
         // Second download for Crous places
         // (from the government website)
         try {
-            val crousPlaces = withContext(IO) { MapsService(getClient()).getCrousPlaces() }
+            val crousPlaces = withContext(IO) { mapsService.getCrousPlaces() }
             newPlaces.addAll(crousPlaces)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -71,7 +63,7 @@ class MapsViewModel: ViewModel() {
         }
 
 
-        PlaceViewModel(context).insert(*newPlaces.toTypedArray())
+        placeViewModel.insert(*newPlaces.toTypedArray())
         return DownloadResult(errorCount, error)
     }
 

@@ -28,14 +28,14 @@ import androidx.lifecycle.Observer
 import com.axellaffite.fastgallery.FastGallery
 import com.axellaffite.fastgallery.slider_animations.SlideAnimations
 import com.edt.ut3.R
-import com.edt.ut3.backend.celcat.Event
-import com.edt.ut3.backend.database.viewmodels.NotesViewModel
+import com.edt.ut3.refactored.models.domain.celcat.Event
+import com.edt.ut3.refactored.viewmodels.NotesViewModel
 import com.edt.ut3.backend.maps.MapsUtils
-import com.edt.ut3.backend.maps.Place
+import com.edt.ut3.refactored.models.domain.maps.Place
 import com.edt.ut3.backend.note.Note
 import com.edt.ut3.backend.note.Note.Reminder.ReminderType
 import com.edt.ut3.backend.note.Picture
-import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.refactored.models.repositories.preferences.PreferencesManager
 import com.edt.ut3.misc.extensions.onBackPressed
 import com.edt.ut3.misc.extensions.set
 import com.edt.ut3.misc.extensions.setTime
@@ -55,12 +55,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
+import org.koin.android.ext.android.inject
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
 class FragmentEventDetails : Fragment() {
-
+    private val notesViewModel: NotesViewModel by inject()
     private var updateLocationJob: Job? = null
     private lateinit var event: Event
 
@@ -167,8 +168,8 @@ class FragmentEventDetails : Fragment() {
             // Load asynchronously the attached note.
             // Once it's done, the contents
             lifecycleScope.launch {
-                if (mapsViewModel.getPlaces(root.context).value.isNullOrEmpty()) {
-                    mapsViewModel.launchDataUpdate(root.context)
+                if (mapsViewModel.places.value.isNullOrEmpty()) {
+                    mapsViewModel.launchDataUpdate()
                 }
             }
         }
@@ -193,7 +194,7 @@ class FragmentEventDetails : Fragment() {
         currentNote = Note.generateEmptyNote(event)
         lifecycleScope.launchWhenCreated {
 
-            NotesViewModel(requireContext()).run {
+            notesViewModel.run {
                 whenResumed {
                     setupContent()
                     setupListeners()
@@ -238,7 +239,7 @@ class FragmentEventDetails : Fragment() {
         from_to.text = generateDateText()
 
         val descriptionBuilder = StringBuilder()
-        event.categoryWithEmotions()?.let { descriptionBuilder.append(it).append("\n") }
+        event.categoryWithEmotions?.let { descriptionBuilder.append(it).append("\n") }
 
         val locations = event.locations.joinToString(", ")
         if (locations.isNotBlank()) {
@@ -471,7 +472,7 @@ class FragmentEventDetails : Fragment() {
 
         reminder_spinner.onItemSelectedListener = spinnerObserver
 
-        mapsViewModel.getPlaces(requireContext()).observe(viewLifecycleOwner, Observer {
+        mapsViewModel.places.observe(viewLifecycleOwner, Observer {
             refreshLocations(it)
         })
     }
@@ -660,7 +661,7 @@ class FragmentEventDetails : Fragment() {
             if (save.tryLock()) {
 
                 withContext(IO) {
-                    NotesViewModel(requireContext()).run {
+                    notesViewModel.run {
                         save(currentNote)
                     }
                 }

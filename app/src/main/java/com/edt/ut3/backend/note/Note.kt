@@ -1,14 +1,14 @@
 package com.edt.ut3.backend.note
 
-import android.content.Context
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
-import com.edt.ut3.backend.celcat.Event
-import com.edt.ut3.backend.database.Converter
-import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.misc.extensions.minus
+import com.edt.ut3.refactored.injected
+import com.edt.ut3.refactored.models.domain.celcat.Event
+import com.edt.ut3.refactored.models.repositories.database.Converter
+import com.edt.ut3.refactored.models.services.notifications.NotificationManagerService
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
@@ -62,9 +62,9 @@ data class Note(
 
     fun isEmpty() : Boolean {
         return  (!eventID.isNullOrBlank() || title.isNullOrBlank())
-                && !reminder.isActive()
-                && contents.isBlank()
-                && pictures.isEmpty()
+            && !reminder.isActive()
+            && contents.isBlank()
+            && pictures.isEmpty()
     }
 
 
@@ -92,8 +92,8 @@ data class Note(
         File(picture.thumbnail).delete()
     }
 
-    fun clearNotifications(context: Context) {
-        NotificationManager.getInstance(context).removeNoteSchedule(this)
+    fun clearNotifications(notificationManager: NotificationManagerService = injected()) {
+        notificationManager.removeNoteSchedule(this)
     }
 
     /**
@@ -218,8 +218,8 @@ data class Note(
         override fun equals(other: Any?): Boolean {
             if (other is Reminder) {
                 return other.date == date
-                        && other.customDate == customDate
-                        && other.type == type
+                    && other.customDate == customDate
+                    && other.type == type
             }
 
             return false

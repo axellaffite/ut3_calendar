@@ -3,7 +3,7 @@ package com.edt.ut3.ui.preferences.formation
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.edt.ut3.R
-import com.edt.ut3.backend.background_services.BackgroundUpdater
+import com.edt.ut3.refactored.models.services.workers.BackgroundUpdater
 import com.edt.ut3.ui.preferences.formation.authentication.FragmentAuthentication
 import com.edt.ut3.ui.preferences.formation.state_fragment.StateFragment
 import com.edt.ut3.ui.preferences.formation.which_groups.FragmentWhichGroups
@@ -18,7 +18,7 @@ class FormationSelectionFragment: StateFragment() {
             builder = { FragmentAuthentication() },
             onRequestNext = {
                 context?.let {
-                    viewModel.validateCredentials(it)
+                    viewModel.validateCredentials()
                 } ?: false
             },
             onRequestBack = {
@@ -31,7 +31,7 @@ class FormationSelectionFragment: StateFragment() {
                 nextTo(null)
                 context?.let {
                     viewModel.run {
-                        saveCredentials(it)
+                        saveCredentials()
                         updateGroups(it)
                     }
                 }

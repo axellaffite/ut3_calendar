@@ -7,7 +7,7 @@ import android.util.Log
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.edt.ut3.backend.formation_choice.School
-import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.refactored.models.repositories.preferences.PreferencesManager
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 

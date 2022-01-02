@@ -5,7 +5,6 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import com.edt.ut3.R
-import com.edt.ut3.backend.celcat.Event
 import com.elzozor.yoda.events.EventWrapper
 import kotlinx.android.synthetic.main.layout_all_day.view.*
 
@@ -18,7 +17,7 @@ class LayoutAllDay(context: Context, attributeSet: AttributeSet?): LinearLayout(
     }
 
     fun setEvents(events: List<EventWrapper>, builder: (EventWrapper) -> View) {
-        list.adapter = AllDayAdapter(context, events.map { it as Event.Wrapper }.toTypedArray(), builder)
+        list.adapter = AllDayAdapter(context, events.map { it as com.edt.ut3.refactored.models.domain.celcat.EventWrapper }.toTypedArray(), builder)
     }
 
 }

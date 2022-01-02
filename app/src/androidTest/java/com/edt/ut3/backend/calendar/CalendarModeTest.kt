@@ -1,5 +1,6 @@
 package com.edt.ut3.backend.calendar
 
+import com.edt.ut3.refactored.models.domain.calendar.CalendarMode
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before

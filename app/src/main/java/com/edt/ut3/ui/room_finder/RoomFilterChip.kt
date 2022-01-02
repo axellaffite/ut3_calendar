@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import androidx.core.content.ContextCompat
 import com.edt.ut3.R
-import com.edt.ut3.backend.goulin_room_finder.Room
+import com.edt.ut3.refactored.models.domain.room_finder.Room
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipDrawable
 

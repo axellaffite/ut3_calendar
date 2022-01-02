@@ -5,19 +5,19 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.edt.ut3.backend.credentials.CredentialsManager
-import com.edt.ut3.backend.firebase_services.FirebaseMessagingHandler
 import com.edt.ut3.backend.formation_choice.School
-import com.edt.ut3.backend.requests.celcat.CelcatService
-import com.edt.ut3.backend.requests.getClient
-import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.backend.requests.authentication_services.AuthenticationException
-import com.edt.ut3.backend.requests.authentication_services.AuthenticatorUT3
-import com.edt.ut3.backend.requests.authentication_services.Credentials
 import com.edt.ut3.misc.BaseState
 import com.edt.ut3.misc.extensions.isTrue
 import com.edt.ut3.misc.extensions.toList
 import com.edt.ut3.misc.extensions.trigger
+import com.edt.ut3.refactored.injected
+import com.edt.ut3.refactored.models.domain.Credentials
+import com.edt.ut3.refactored.models.repositories.CredentialsRepository
+import com.edt.ut3.refactored.models.services.celcat.CelcatService
+import com.edt.ut3.refactored.models.repositories.preferences.PreferencesManager
+import com.edt.ut3.refactored.models.services.FirebaseMessagingService
+import com.edt.ut3.refactored.models.services.authentication.AbstractAuthenticator
+import com.edt.ut3.refactored.models.services.authentication.AuthenticationException
 import com.edt.ut3.ui.preferences.formation.authentication.AuthenticationFailure
 import com.edt.ut3.ui.preferences.formation.authentication.AuthenticationState
 import com.edt.ut3.ui.preferences.formation.which_groups.WhichGroupsFailure
@@ -28,9 +28,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONException
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.io.IOException
 
-class FormationSelectionViewModel: ViewModel() {
+class FormationSelectionViewModel: ViewModel(), KoinComponent {
+    private val celcatFetcher: CelcatService by inject()
+    private val credentialsRepository: CredentialsRepository by inject()
     private var groupsDownloadJob: Job? = null
 
     private val _authenticationFailure = MutableLiveData<AuthenticationFailure?>(null)
@@ -66,10 +70,10 @@ class FormationSelectionViewModel: ViewModel() {
         get() = _selectedGroups
 
     var firstCredentialsGet = true
-    fun getCredentials(context: Context): LiveData<Credentials?> = synchronized(this) {
+    fun getCredentials(): LiveData<Credentials?> = synchronized(this) {
         if (firstCredentialsGet) {
             firstCredentialsGet = false
-            _credentials.value = CredentialsManager.getInstance(context).getCredentials()
+            _credentials.value = credentialsRepository.getCredentials()
         }
 
         return _credentials
@@ -80,14 +84,14 @@ class FormationSelectionViewModel: ViewModel() {
         _authenticationState.value = AuthenticationState.Unauthenticated
     }
 
-    suspend fun validateCredentials(context: Context): Boolean {
+    suspend fun validateCredentials(authenticator: AbstractAuthenticator = injected()): Boolean {
         val credentials = _credentials.value
         return if (credentials == null || _authenticationState.value is AuthenticationState.Authenticated) {
             true
         } else {
             _authenticationState.value = AuthenticationState.Authenticating
             try {
-                AuthenticatorUT3(getClient()).checkCredentials(credentials)
+                authenticator.checkCredentials(credentials)
                 _authenticationState.value = AuthenticationState.Authenticated
                 true
             } catch (e: Exception) {
@@ -111,7 +115,7 @@ class FormationSelectionViewModel: ViewModel() {
         groupsDownloadJob = viewModelScope.launch {
             _groupsStatus.value = WhichGroupsState.Downloading
             val success: Boolean = try {
-                val newGroups = CelcatService(getClient()).getGroups(School.default.info.first().groups)
+                val newGroups = celcatFetcher.getGroups(injected(), School.default.info.first().groups)
                 synchronized(groups) {
                     _groups.clear()
                     _groups.addAll(newGroups)
@@ -186,8 +190,8 @@ class FormationSelectionViewModel: ViewModel() {
         else -> {}
     }
 
-    fun saveCredentials(context: Context) {
-        CredentialsManager.getInstance(context).run {
+    fun saveCredentials() {
+        credentialsRepository.run {
             when (val credentials = _credentials.value) {
                 null -> clearCredentials()
                 else -> saveCredentials(credentials)
@@ -205,7 +209,7 @@ class FormationSelectionViewModel: ViewModel() {
             link = School.default.info.first()
         }
 
-        FirebaseMessagingHandler.ensureGroupRegistration(context)
+        FirebaseMessagingService.ensureGroupRegistration(context)
     }
 
     fun checkConfiguration(it: Context) = PreferencesManager.getInstance(it).run {

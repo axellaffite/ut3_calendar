@@ -13,17 +13,18 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.edt.ut3.R
-import com.edt.ut3.backend.celcat.Course
-import com.edt.ut3.backend.database.viewmodels.CoursesViewModel
-import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.refactored.models.domain.celcat.Course
+import com.edt.ut3.refactored.viewmodels.CoursesViewModel
+import com.edt.ut3.refactored.models.repositories.preferences.PreferencesManager
 import com.edt.ut3.misc.extensions.toDp
 import com.edt.ut3.ui.calendar.CalendarViewModel
 import com.edt.ut3.ui.preferences.Theme
 import kotlinx.android.synthetic.main.fragment_calendar_options.*
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 
 class CalendarOptionsFragment: Fragment() {
-
+    private val coursesViewModel: CoursesViewModel by inject()
     private val viewModel: CalendarViewModel by activityViewModels()
 
     override fun onCreateView(inflater: LayoutInflater,
@@ -31,7 +32,7 @@ class CalendarOptionsFragment: Fragment() {
                               savedInstanceState: Bundle?): View?
     {
         return inflater.inflate(R.layout.fragment_calendar_options, container, false).also {
-            viewModel.getCoursesVisibility(requireContext()).observe(viewLifecycleOwner, ::generateCoursesChips)
+            viewModel.getCoursesVisibility().observe(viewLifecycleOwner, ::generateCoursesChips)
         }
     }
 
@@ -47,7 +48,7 @@ class CalendarOptionsFragment: Fragment() {
                 setOnClickListener {
                     this.course.visible = !this.course.visible
                     lifecycleScope.launch {
-                        CoursesViewModel(context).insert(course)
+                        coursesViewModel.insert(course)
                     }
                 }
 

@@ -1,15 +1,9 @@
 package com.edt.ut3.backend.requests
 
-import android.content.Context
-import com.edt.ut3.backend.credentials.CredentialsManager
-import com.edt.ut3.backend.requests.authentication_services.Authenticator
+import com.edt.ut3.refactored.models.repositories.CredentialsRepository
+import com.edt.ut3.refactored.models.services.authentication.AbstractAuthenticator
+import com.edt.ut3.refactored.injected
 import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.features.*
-import io.ktor.client.features.cookies.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
-import io.ktor.client.features.logging.*
 import kotlinx.serialization.json.Json as JsonSerializerBase
 
 val JsonSerializer = JsonSerializerBase {
@@ -18,30 +12,11 @@ val JsonSerializer = JsonSerializerBase {
     ignoreUnknownKeys = true
 }
 
-fun getClient() = HttpClient(CIO) {
-    install(HttpCookies) {
-        storage = AcceptAllCookiesStorage()
-    }
-
-    install(JsonFeature) {
-        serializer = KotlinxSerializer(JsonSerializer)
-    }
-
-    install(Logging) {
-        logger = Logger.DEFAULT
-        level = LogLevel.ALL
-    }
-
-    install(HttpRedirect) {
-        checkHttpMethod = false
-    }
-}
-
 suspend fun HttpClient.authenticateIfNeeded(
-    context: Context,
-    authenticator: Authenticator
+    authenticator: AbstractAuthenticator,
+    credentialsRepository: CredentialsRepository = injected()
 ): HttpClient {
-    val credentials = CredentialsManager.getInstance(context).getCredentials()
+    val credentials = credentialsRepository.getCredentials()
     if (credentials != null) {
         authenticator.authenticate(credentials)
     }

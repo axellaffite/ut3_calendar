@@ -1,7 +1,7 @@
 package com.edt.ut3.backend.network.events
 
 import com.edt.ut3.backend.requests.getClient
-import com.edt.ut3.backend.requests.celcat.CelcatService
+import com.edt.ut3.refactored.models.services.celcat.CelcatService
 import com.edt.ut3.misc.extensions.minus
 import kotlinx.coroutines.runBlocking
 import org.junit.Test

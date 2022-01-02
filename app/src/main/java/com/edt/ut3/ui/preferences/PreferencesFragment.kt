@@ -7,7 +7,7 @@ import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.edt.ut3.R
-import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.refactored.models.repositories.preferences.PreferencesManager
 
 class PreferencesFragment: PreferenceFragmentCompat() {
 

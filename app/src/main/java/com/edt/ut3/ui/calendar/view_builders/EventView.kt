@@ -9,11 +9,12 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import com.edt.ut3.R
-import com.edt.ut3.backend.celcat.Event
-import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.refactored.models.domain.celcat.Event
+import com.edt.ut3.refactored.models.repositories.preferences.PreferencesManager
+import com.edt.ut3.refactored.models.domain.celcat.EventWrapper
 import com.edt.ut3.ui.preferences.Theme
 
-class EventView(context: Context, private var ev: Event.Wrapper): CardView(context) {
+class EventView(context: Context, private var ev: EventWrapper): CardView(context) {
 
     var padding: Int? = null
     var event: Event
@@ -27,7 +28,7 @@ class EventView(context: Context, private var ev: Event.Wrapper): CardView(conte
         elevation = 0f
     }
 
-    fun setEvent(newEvent: Event.Wrapper) {
+    fun setEvent(newEvent: EventWrapper) {
         event = newEvent.event
 
         removeAllViews()

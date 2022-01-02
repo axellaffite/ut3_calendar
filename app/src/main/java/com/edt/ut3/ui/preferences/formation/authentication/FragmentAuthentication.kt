@@ -13,10 +13,11 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.edt.ut3.R
-import com.edt.ut3.backend.requests.authentication_services.Credentials
 import com.edt.ut3.misc.extensions.hideKeyboard
 import com.edt.ut3.misc.extensions.isTrue
 import com.edt.ut3.misc.extensions.updateIfNecessary
+import com.edt.ut3.refactored.models.domain.Credentials
+import com.edt.ut3.refactored.models.domain.from
 import com.edt.ut3.ui.custom_views.TextInputEditText2
 import com.edt.ut3.ui.preferences.formation.FormationSelectionViewModel
 import com.edt.ut3.ui.preferences.formation.state_fragment.StateFragment
@@ -46,7 +47,7 @@ class FragmentAuthentication: Fragment() {
      */
     private fun setupListeners(context: Context) {
         viewModel.run {
-            getCredentials(context).observe(viewLifecycleOwner, ::handleCredentialsUpdate)
+            getCredentials().observe(viewLifecycleOwner, ::handleCredentialsUpdate)
             authenticationState.observe(viewLifecycleOwner, ::handleStateChange)
             authenticationFailure.observe(viewLifecycleOwner, ::handleFailure)
 
@@ -207,7 +208,7 @@ class FragmentAuthentication: Fragment() {
 
                 context?.let {
                     val parent = parentFragment
-                    val credentials = viewModel.getCredentials(it).value
+                    val credentials = viewModel.getCredentials().value
                     if (parent is StateFragment) {
                         when (credentials) {
                             null -> parent.setNextText(R.string.step_skip)

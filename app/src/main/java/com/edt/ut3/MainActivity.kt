@@ -7,8 +7,8 @@ import android.view.View.VISIBLE
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
-import com.edt.ut3.backend.firebase_services.FirebaseMessagingHandler
-import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.refactored.models.services.FirebaseMessagingService
+import com.edt.ut3.refactored.models.repositories.preferences.PreferencesManager
 import com.edt.ut3.compatibility.CompatibilityManager
 import com.edt.ut3.misc.extensions.hideKeyboard
 import com.edt.ut3.ui.preferences.ThemePreference
@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
             }
         }
 
-        FirebaseMessagingHandler.ensureGroupRegistration(this)
+        FirebaseMessagingService.ensureGroupRegistration(this)
     }
 
     private fun showBottomNav(bottomNav : BottomNavigationView) {

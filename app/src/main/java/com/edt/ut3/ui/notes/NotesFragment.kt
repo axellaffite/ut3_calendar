@@ -1,10 +1,7 @@
 package com.edt.ut3.ui.notes
 
 import android.app.AlertDialog
-import android.content.Context
-import android.content.DialogInterface
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
@@ -15,24 +12,25 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.edt.ut3.R
-import com.edt.ut3.backend.celcat.Event
-import com.edt.ut3.backend.database.viewmodels.EventViewModel
-import com.edt.ut3.backend.database.viewmodels.NotesViewModel
+import com.edt.ut3.refactored.models.domain.celcat.Event
+import com.edt.ut3.refactored.viewmodels.EventViewModel
+import com.edt.ut3.refactored.viewmodels.NotesViewModel
 import com.edt.ut3.backend.note.Note
 import com.edt.ut3.ui.calendar.BottomSheetFragment
 import com.edt.ut3.ui.calendar.event_details.FragmentEventDetails
-import com.edt.ut3.ui.calendar.view_builders.EventView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import kotlinx.android.synthetic.main.fragment_notes.*
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.android.ext.android.inject
 import java.lang.IllegalStateException
 
 class NotesFragment : BottomSheetFragment() {
 
-    private val notesViewModel: FragmentNotesViewModel by activityViewModels()
+    private val eventViewModel: EventViewModel by inject()
+    private val notesViewModel: NotesViewModel by inject()
+    private val fragmentNotesViewModel: FragmentNotesViewModel by activityViewModels()
 
     private val notes = mutableListOf<Note>()
 
@@ -55,7 +53,7 @@ class NotesFragment : BottomSheetFragment() {
     }
 
     private fun setupListeners() {
-        val notesLD = notesViewModel.getNotes(requireContext())
+        val notesLD = fragmentNotesViewModel.getNotes(requireContext())
         notesLD.observe(viewLifecycleOwner) { newNotes ->
             notes.clear()
             notes.addAll(newNotes)
@@ -75,14 +73,14 @@ class NotesFragment : BottomSheetFragment() {
                 bottomSheetManager.setVisibleSheet(event_details_notes_container)
             }
 
-            childFragment.listenTo = notesViewModel.selectedEvent
+            childFragment.listenTo = fragmentNotesViewModel.selectedEvent
         }
 
         event_details_notes_container?.let {
             BottomSheetBehavior.from(it).addBottomSheetCallback(object: BottomSheetBehavior.BottomSheetCallback() {
                 override fun onStateChanged(bottomSheet: View, newState: Int) {
                     if (newState == STATE_COLLAPSED) {
-                        notesViewModel.selectedEvent.value = null
+                        fragmentNotesViewModel.selectedEvent.value = null
                     }
                 }
 
@@ -116,13 +114,12 @@ class NotesFragment : BottomSheetFragment() {
                     lifecycleScope.launchWhenResumed {
                         try {
                             if (eventID is String) {
-                                val context = context ?: return@launchWhenResumed
                                 val event =
-                                    EventViewModel(context).getEventsByIDs(eventID).firstOrNull()
+                                    eventViewModel.getEventsByIDs(eventID).firstOrNull()
 
                                 if (event is Event) {
                                     withContext(Main) {
-                                        notesViewModel.selectedEvent.value = event
+                                        fragmentNotesViewModel.selectedEvent.value = event
                                     }
                                 } else {
                                     throw IllegalStateException()
@@ -150,7 +147,7 @@ class NotesFragment : BottomSheetFragment() {
                 .setMessage(R.string.delete_note)
                 .setPositiveButton(android.R.string.ok) { dialog, which ->
                     lifecycleScope.launchWhenResumed {
-                        NotesViewModel(context).delete(note)
+                        notesViewModel.delete(note)
                     }
                 }
                 .setNegativeButton(android.R.string.cancel) { dialog, which ->

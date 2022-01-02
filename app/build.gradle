@@ -4,6 +4,14 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlinx-serialization'
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'idea'
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
 
 
 android {
@@ -49,6 +57,7 @@ android {
     }
 }
 
+def arrow_version = "1.0.1"
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
@@ -132,7 +141,7 @@ dependencies {
     // Name : stfalcon-imageviewer
     // Summary : Display images simply with few lines of code.
     // Documentation : https://github.com/stfalcon-studio/StfalconImageViewer
-    implementation 'com.github.stfalcon:stfalcon-imageviewer:1.0.1'
+    implementation 'com.github.stfalcon-studio:StfalconImageViewer:v1.0.1'
 
     // Name : Android-SpinKit
     // Summary : Display loading animations
@@ -193,4 +202,6 @@ dependencies {
     testImplementation 'androidx.test:core:1.4.0'
     // Optional -- Mockito framework
     testImplementation 'org.mockito:mockito-core:1.10.19'
+
+    implementation  group: 'io.arrow-kt', name: 'arrow-core',   version: arrow_version
 }

@@ -13,6 +13,7 @@
 
 
     <application
+        android:name=".EdtUT3Application"
         android:requestLegacyExternalStorage="true"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -25,7 +26,7 @@
 
 
         <receiver
-            android:name="com.edt.ut3.backend.notification.NotificationReceiver"
+            android:name="com.edt.ut3.refactored.models.services.notifications.NotificationReceiver"
             android:enabled="true"
             android:exported="true" />
 
@@ -55,7 +56,7 @@
         </activity>
 
         <service
-            android:name="com.edt.ut3.backend.firebase_services.FirebaseMessagingHandler"
+            android:name="com.edt.ut3.refactored.models.services.FirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

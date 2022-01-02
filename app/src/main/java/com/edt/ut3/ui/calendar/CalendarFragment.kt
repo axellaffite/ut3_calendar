@@ -11,6 +11,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.addCallback
+import androidx.appcompat.widget.Toolbar.OnMenuItemClickListener
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -20,13 +21,14 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import androidx.work.WorkInfo
 import com.edt.ut3.R
-import com.edt.ut3.backend.background_services.BackgroundUpdater
-import com.edt.ut3.backend.calendar.CalendarMode
-import com.edt.ut3.backend.calendar.DayBuilder
-import com.edt.ut3.backend.celcat.Event
-import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.refactored.models.services.workers.BackgroundUpdater
+import com.edt.ut3.refactored.models.domain.calendar.CalendarMode
+import com.edt.ut3.refactored.models.domain.celcat.Event
+import com.edt.ut3.refactored.models.repositories.preferences.PreferencesManager
 import com.edt.ut3.misc.Emoji
 import com.edt.ut3.misc.extensions.*
+import com.edt.ut3.refactored.models.domain.daybuilder.DayBuilderConfig
+import com.edt.ut3.refactored.models.services.DayBuilderService
 import com.edt.ut3.ui.calendar.event_details.FragmentEventDetails
 import com.edt.ut3.ui.calendar.view_builders.EventView
 import com.edt.ut3.ui.calendar.view_builders.LayoutAllDay
@@ -38,17 +40,18 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_calendar.*
 import kotlinx.android.synthetic.main.fragment_calendar.view.*
 import kotlinx.coroutines.Job
+import org.koin.android.ext.android.inject
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
 
 
-class CalendarFragment : BottomSheetFragment(),
-    androidx.appcompat.widget.Toolbar.OnMenuItemClickListener {
+class CalendarFragment : BottomSheetFragment(), OnMenuItemClickListener {
 
     enum class Status { IDLE, UPDATING }
 
     private val calendarViewModel: CalendarViewModel by activityViewModels()
+    private val dayBuilderService: DayBuilderService by inject()
 
     private var status = Status.IDLE
 
@@ -81,9 +84,9 @@ class CalendarFragment : BottomSheetFragment(),
         val lastValue = preferences.calendarMode
         val newPreference = when (context?.resources?.configuration?.orientation) {
             ORIENTATION_PORTRAIT ->
-                lastValue.withAgendaMode()
+                lastValue.copy(mode = CalendarMode.Mode.AGENDA)
             else ->
-                lastValue.withWeekMode()
+                lastValue.copy(mode = CalendarMode.Mode.WEEK)
         }
 
         preferences.calendarMode = newPreference
@@ -234,7 +237,7 @@ class CalendarFragment : BottomSheetFragment(),
      * related to them.
      */
     private fun setupCalendarListeners() {
-        calendarViewModel.getEvents(requireContext()).observe(viewLifecycleOwner) {
+        calendarViewModel.getEvents().observe(viewLifecycleOwner) {
             pager?.notifyDataSetChanged()
         }
 
@@ -289,7 +292,7 @@ class CalendarFragment : BottomSheetFragment(),
             }
         })
 
-        calendarViewModel.getCoursesVisibility(requireContext()).observe(viewLifecycleOwner) {
+        calendarViewModel.getCoursesVisibility().observe(viewLifecycleOwner) {
             pager?.notifyDataSetChanged()
         }
 
@@ -405,7 +408,7 @@ class CalendarFragment : BottomSheetFragment(),
 
     private fun onChangeViewClick(item: MenuItem): Boolean {
         val mode = preferences.calendarMode
-        val newMode = mode.invertForceWeek()
+        val newMode = mode.copy(forceWeek = !mode.forceWeek)
         Log.d(this::class.simpleName, "Mode: $mode | NewMode: $newMode")
         preferences.calendarMode = newMode
 
@@ -476,18 +479,10 @@ class CalendarFragment : BottomSheetFragment(),
             holder.day.post {
                 holder.job?.cancel()
                 holder.job = lifecycleScope.launchWhenCreated {
-                    DayBuilder(
-                        calendarViewModel.getEvents(requireContext()).value,
+                    dayBuilderService.build(
                         requireContext(),
-                        calendarViewModel.selectedDate.value!!,
-                        calendarViewModel.lastPosition.value!!,
-                        position,
-                        holder.day,
-                        calendarViewModel.getCoursesVisibility(requireContext()).value ?: listOf(),
-                        this@CalendarFragment::buildEventView,
-                        this@CalendarFragment::buildEmptyDayView,
-                        this@CalendarFragment::buildAllDayView
-                    ).build(requireView().pager.height, requireView().pager.width)
+                        CalendarDayConfig(holder, position)
+                    )
                 }
             }
         }
@@ -509,7 +504,7 @@ class CalendarFragment : BottomSheetFragment(),
      */
     fun buildEventView(context: Context, eventWrapper: EventWrapper, x: Int, y: Int, w:Int, h: Int)
             : Pair<Boolean, View> {
-        return Pair(true, EventView(context, eventWrapper as Event.Wrapper).apply {
+        return Pair(true, EventView(context, eventWrapper as com.edt.ut3.refactored.models.domain.celcat.EventWrapper).apply {
             val spacing = context.resources.getDimension(R.dimen.event_spacing).toInt()
             val positionAdder = {x:Int -> x+spacing}
             val sizeChanger = {x:Int -> x-spacing}
@@ -554,5 +549,20 @@ class CalendarFragment : BottomSheetFragment(),
             gravity = Gravity.CENTER
             text = context.getString(R.string.empty_day).format(Emoji.happy())
         }
+    }
+
+
+    inner class CalendarDayConfig(holder: DayViewHolder, position: Int): DayBuilderConfig {
+        override val eventList: List<Event> = calendarViewModel.getEvents().value ?: emptyList()
+        override val currentDate = calendarViewModel.selectedDate.value ?: Date()
+        override val currentPosition = calendarViewModel.lastPosition.value!!
+        override val dayPosition = position
+        override val container = holder.day
+        override val courseVisibility = calendarViewModel.getCoursesVisibility().value ?: emptyList()
+        override val dayBuilder = ::buildEventView
+        override val emptyDayBuilder = ::buildEmptyDayView
+        override val allDayBuilder = ::buildAllDayView
+        override val height = requireView().pager.height
+        override val width = requireView().pager.width
     }
 }

@@ -4,7 +4,7 @@ import android.graphics.Color
 import android.view.MotionEvent
 import androidx.core.content.ContextCompat
 import com.edt.ut3.R
-import com.edt.ut3.backend.maps.Place
+import com.edt.ut3.refactored.models.domain.maps.Place
 import com.elzozor.yoda.utils.NumberExtensions.toDp
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker

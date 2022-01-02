@@ -1,6 +1,7 @@
 package com.edt.ut3
 
 import android.app.Application
+import com.edt.ut3.refactored.models.modelsModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext.startKoin
@@ -13,6 +14,9 @@ class EdtUT3Application : Application(){
         startKoin{
             androidLogger()
             androidContext(this@EdtUT3Application)
+            modules(
+                modelsModule
+            )
         }
     }
 }

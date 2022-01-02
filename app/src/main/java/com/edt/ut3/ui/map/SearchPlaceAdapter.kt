@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import com.edt.ut3.R
-import com.edt.ut3.backend.maps.Place
+import com.edt.ut3.refactored.models.domain.maps.Place
 import kotlinx.android.synthetic.main.search_place.view.*
 
 class SearchPlaceAdapter(context: Context, private val values: Array<Place>) :
