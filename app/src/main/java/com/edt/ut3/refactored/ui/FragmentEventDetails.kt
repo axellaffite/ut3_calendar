@@ -52,6 +52,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 const val layoutId = R.layout.fragment_event_details
 class FragmentEventDetails : Fragment(layoutId), AdapterView.OnItemSelectedListener {
@@ -63,6 +64,7 @@ class FragmentEventDetails : Fragment(layoutId), AdapterView.OnItemSelectedListe
 
     private var previousNote: Note? = null
     private var previousEvent: Event? = null
+    private var reminderIgnoreNextChange = AtomicBoolean(false)
 
     /**
      * Used to launch an Intent that will take
@@ -206,16 +208,17 @@ class FragmentEventDetails : Fragment(layoutId), AdapterView.OnItemSelectedListe
         val noteToDisplay = note ?: Note.generateEmptyNote(event)
         previousNote = noteToDisplay
 
+        event_note.updateIfNecessary(noteToDisplay.contents)
+        pictures.adapter = createImagePreviewAdapter(noteToDisplay)
+        pictures.notifyDataSetChanged()
+
         val reminderTypes = ReminderType.values()
+        reminderIgnoreNextChange.set(sameNote)
         if (!sameNote) {
             val adapterValues = reminderTypes.map { getString(it.resId) }
             reminder_spinner.adapter = buildSpinnerAdapter(adapterValues)
             reminder_spinner.onItemSelectedListener = this
         }
-
-        event_note.updateIfNecessary(noteToDisplay.contents)
-        pictures.adapter = createImagePreviewAdapter(noteToDisplay)
-        pictures.notifyDataSetChanged()
         reminder_spinner.setSelection(noteToDisplay.reminder.getReminderType().ordinal)
     }
 
@@ -309,16 +312,18 @@ class FragmentEventDetails : Fragment(layoutId), AdapterView.OnItemSelectedListe
     override fun onNothingSelected(parent: AdapterView<*>?) = Unit
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        eventDetailsViewModel.handleReminderChoice(previousNote, position) { note ->
-            promptForDateTime(
-                context = requireContext(),
-                date = note.reminder.date,
-                onCancel = { reminder_spinner.setSelection(note.reminder.getReminderType().ordinal) },
-                onConfirm = { date ->
-                    note.reminder.setCustomReminder(date)
-                    eventDetailsViewModel.saveNote(note)
-                }
-            )
+        if (!reminderIgnoreNextChange.getAndSet(false)) {
+            eventDetailsViewModel.handleReminderChoice(previousNote, position) { note ->
+                promptForDateTime(
+                    context = requireContext(),
+                    date = note.reminder.date,
+                    onCancel = { reminder_spinner.setSelection(note.reminder.getReminderType().ordinal) },
+                    onConfirm = { date ->
+                        note.reminder.setCustomReminder(date)
+                        eventDetailsViewModel.saveNote(note)
+                    }
+                )
+            }
         }
     }
 
