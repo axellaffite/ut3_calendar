@@ -28,7 +28,7 @@ data class School(
                 Info(
                     name="FSI",
                     url="https://edt.univ-tlse3.fr/calendar2",
-                    groups="https://edt.univ-tlse3.fr/calendar2/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=10000&pageNumber=1&resType=103&_=1601408259547",
+                    groups="https://edt.univ-tlse3.fr/calendar2/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=10000&pageNumber=1&resType=100&_=1601408259547",
                     rooms="https://edt.univ-tlse3.fr/calendar2/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=10000&pageNumber=1&resType=102&_=1601408259546",
                     courses="https://edt.univ-tlse3.fr/calendar2/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=10000&pageNumber=1&resType=100&_=1601408259545"
                 )
@@ -130,7 +130,7 @@ data class School(
                     if (link.contains("calendar2")) { "___" }
                     else { "__" }
 
-                return "$link/Home/ReadResourceListItems?myResources=false&searchTerm=$search&pageSize=1000000&pageNumber=1&resType=103"
+                return "$link/Home/ReadResourceListItems?myResources=false&searchTerm=$search&pageSize=1000000&pageNumber=1&resType=100"
             }
 
             /**

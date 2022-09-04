@@ -16,7 +16,7 @@ class CelcatService(val client: HttpClient) {
 
     private inline fun Parameters.Companion.buildCelcatParameters(init: ParametersBuilder.() -> Unit): Parameters {
         return ParametersBuilder().apply {
-            append("resType", "103")
+            append("resType", "100")
             append("calView", "agendaDay")
             append("colourScheme", "3")
             init()
