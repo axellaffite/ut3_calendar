@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import com.edt.ut3.backend.database.AppDatabase
 import com.edt.ut3.backend.note.Note
-import com.edt.ut3.backend.notification.NotificationManager
 
 class NotesViewModel(private val context: Context) {
 
@@ -30,21 +29,12 @@ class NotesViewModel(private val context: Context) {
             if (note.id == 0L) {
                 note.id = ids[0]
             }
-
-            NotificationManager.getInstance(context).run {
-                if (note.reminder.isActive()) {
-                    this.createNoteSchedule(note)
-                } else {
-                    this.removeNoteSchedule(note)
-                }
-            }
         }
     }
 
     suspend fun delete(note: Note) {
         dao.delete(note)
         note.clearPictures()
-        note.clearNotifications(context)
     }
 
 }

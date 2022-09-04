@@ -30,7 +30,6 @@ import com.axellaffite.fastgallery.slider_animations.SlideAnimations
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.viewmodels.NotesViewModel
-import com.edt.ut3.backend.maps.MapsUtils
 import com.edt.ut3.backend.maps.Place
 import com.edt.ut3.backend.note.Note
 import com.edt.ut3.backend.note.Note.Reminder.ReminderType
@@ -708,20 +707,6 @@ class FragmentEventDetails : Fragment() {
                     R.style.Widget_MaterialComponents_Chip_Action
                 )
             )
-
-            setOnClickListener {
-                activity?.let {
-                    MapsUtils.routeFromTo(it, place.geolocalisation, place.title) {
-                        view?.event_details_main?.let { mainView ->
-                            Snackbar.make(
-                                mainView,
-                                R.string.unable_to_launch_googlemaps,
-                                Snackbar.LENGTH_LONG
-                            ).show()
-                        }
-                    }
-                }
-            }
 
             setChipBackgroundColorResource(R.color.foregroundColor)
 

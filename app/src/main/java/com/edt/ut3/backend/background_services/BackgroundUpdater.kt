@@ -12,7 +12,6 @@ import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.viewmodels.CoursesViewModel
 import com.edt.ut3.backend.database.viewmodels.EventViewModel
 import com.edt.ut3.backend.requests.authenticateIfNeeded
-import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.authentication_services.AuthenticationException
 import com.edt.ut3.backend.requests.authentication_services.AuthenticatorUT3
@@ -113,7 +112,6 @@ class BackgroundUpdater(appContext: Context, workerParams: WorkerParameters) :
             val changes = computeEventUpdate(incomingEvents)
 
             updateDatabaseContents(changes)
-            displayUpdateNotifications(changes)
             insertCoursesVisibility(eventViewModel.getEvents())
 
             Result.success()
@@ -190,20 +188,6 @@ class BackgroundUpdater(appContext: Context, workerParams: WorkerParameters) :
         insert(*changes.new.toTypedArray())
         delete(*changes.deleted.toTypedArray())
         update(*changes.updated.toTypedArray())
-    }
-
-    private fun displayUpdateNotifications(changes: EventChanges) {
-        val notificationEnabled = prefManager.notification
-        val shouldDisplayNotifications = notificationEnabled && !firstUpdate
-        if (shouldDisplayNotifications) {
-            val notificationManager = NotificationManager.getInstance(applicationContext)
-
-            notificationManager.notifyUpdates(
-                added = changes.new,
-                removed = changes.deleted,
-                updated = changes.updated
-            )
-        }
     }
 
 

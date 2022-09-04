@@ -7,7 +7,6 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.Converter
-import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.misc.extensions.minus
 import org.json.JSONException
 import org.json.JSONObject
@@ -90,10 +89,6 @@ data class Note(
     private fun cleanPictureData(picture: Picture) {
         File(picture.picture).delete()
         File(picture.thumbnail).delete()
-    }
-
-    fun clearNotifications(context: Context) {
-        NotificationManager.getInstance(context).removeNoteSchedule(this)
     }
 
     /**

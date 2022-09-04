@@ -23,12 +23,6 @@
         android:usesCleartextTraffic="true"
         android:fullBackupContent="@xml/auto_backup_restrictions">
 
-
-        <receiver
-            android:name="com.edt.ut3.backend.notification.NotificationReceiver"
-            android:enabled="true"
-            android:exported="true" />
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -53,14 +47,6 @@
                 <category android:name="android.intent.category.APP_MAPS"/>
             </intent-filter>
         </activity>
-
-        <service
-            android:name="com.edt.ut3.backend.firebase_services.FirebaseMessagingHandler"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
     </application>
 
 </manifest>

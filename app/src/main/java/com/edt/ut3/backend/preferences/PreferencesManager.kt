@@ -52,12 +52,10 @@ class PreferencesManager private constructor(
         object GROUPS: PreferenceKeys<List<String>?>("groups", null)
         object OLD_GROUPS: PreferenceKeys<List<String>?>("old_groups", null)
         object CALENDAR_MODE: PreferenceKeys<CalendarMode>("calendar_mode", CalendarMode.default())
-        object NOTIFICATION: PreferenceKeys<Boolean>("actual_notification", true)
         object FIRST_LAUNCH: PreferenceKeys<Boolean>("actual_first_launch", true)
         object CODE_VERSION: PreferenceKeys<Int>("actual_code_version", 0)
 
         object DEPRECATED_FIRST_LAUNCH: PreferenceKeys<Boolean>("first_launch", true)
-        object DEPRECATED_NOTIFICATION: PreferenceKeys<Boolean>("notification", true)
     }
 
 
@@ -96,13 +94,6 @@ class PreferencesManager private constructor(
         manager = CalendarModeManager
     )
 
-    var notification : Boolean by simplePreference.Delegate(
-        key = PreferenceKeys.NOTIFICATION.key,
-        defValue = PreferenceKeys.NOTIFICATION.defValue,
-        converter = BooleanConverter,
-        manager = BooleanManager
-    )
-
     private var firstLaunch : Boolean by simplePreference.Delegate(
         key = PreferenceKeys.FIRST_LAUNCH.key,
         defValue = PreferenceKeys.FIRST_LAUNCH.defValue,
@@ -115,13 +106,6 @@ class PreferencesManager private constructor(
         defValue = PreferenceKeys.CODE_VERSION.defValue,
         converter = IntConverter,
         manager = IntManager
-    )
-
-    var deprecated_notification : String by simplePreference.Delegate(
-        key = PreferenceKeys.DEPRECATED_NOTIFICATION.key,
-        defValue = PreferenceKeys.DEPRECATED_NOTIFICATION.defValue.toString(),
-        converter = StringConverter,
-        manager = StringManager
     )
 
     var deprecated_firstLaunch : String by simplePreference.Delegate(
@@ -197,7 +181,6 @@ class PreferencesManager private constructor(
         true -> {
             theme = ThemePreference.SMARTPHONE
             calendarMode = CalendarMode.default()
-            notification = true
             firstLaunch = false
 
             true

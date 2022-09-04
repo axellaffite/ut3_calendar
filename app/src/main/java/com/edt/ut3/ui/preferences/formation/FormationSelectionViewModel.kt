@@ -6,7 +6,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.edt.ut3.backend.credentials.CredentialsManager
-import com.edt.ut3.backend.firebase_services.FirebaseMessagingHandler
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.requests.celcat.CelcatService
 import com.edt.ut3.backend.requests.getClient
@@ -204,8 +203,6 @@ class FormationSelectionViewModel: ViewModel() {
             groups = newGroupsTemp
             link = School.default.info.first()
         }
-
-        FirebaseMessagingHandler.ensureGroupRegistration(context)
     }
 
     fun checkConfiguration(it: Context) = PreferencesManager.getInstance(it).run {

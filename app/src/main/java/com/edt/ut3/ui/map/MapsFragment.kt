@@ -22,7 +22,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.axellaffite.fastgallery.FastGallery
 import com.axellaffite.fastgallery.ImageLoader
 import com.edt.ut3.R
-import com.edt.ut3.backend.maps.MapsUtils
 import com.edt.ut3.backend.maps.Place
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.misc.extensions.hideKeyboard
@@ -522,23 +521,6 @@ class MapsFragment : Fragment() {
             place_info.titleText = selected.title
             place_info.descriptionText = selected.short_desc ?: getString(R.string.no_description_available)
             place_info.picture = selected.photo
-            place_info.go_to.setOnClickListener {
-                activity?.let {
-                    MapsUtils.routeFromTo(
-                        it,
-                        GeoPoint(selected.geolocalisation),
-                        selected.title
-                    ) {
-                        maps_info?.let { info ->
-                            Snackbar.make(
-                                info,
-                                R.string.unable_to_launch_googlemaps,
-                                Snackbar.LENGTH_LONG
-                            ).show()
-                        }
-                    }
-                }
-            }
 
             val image = Pair(selected.photo, R.drawable.no_image_placeholder)
             place_info.image?.setOnClickListener {

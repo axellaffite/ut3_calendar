@@ -107,16 +107,6 @@ class CompatibilityManager {
         val androidPreferencesManager = PreferenceManager.getDefaultSharedPreferences(context)
         androidPreferencesManager.run {
             edit {
-                try {
-                    val notification = PreferencesManager.PreferenceKeys.NOTIFICATION
-                    val notificationValue = preferencesManager.deprecated_notification.toBoolean()
-                    putBoolean(
-                            notification.key,
-                            notificationValue
-                    )
-                } catch (e: Exception) {
-
-                }
 
                 try {
                     val firstLaunch = PreferencesManager.PreferenceKeys.FIRST_LAUNCH
@@ -124,17 +114,6 @@ class CompatibilityManager {
                     putBoolean(
                             firstLaunch.key,
                             firstLaunchValue
-                    )
-                } catch (e: Exception) {
-
-                }
-
-                try {
-                    val codeVersion = PreferencesManager.PreferenceKeys.CODE_VERSION
-                    putInt(
-                            PreferencesManager.PreferenceKeys.NOTIFICATION.key,
-                            (getString(codeVersion.key, null)
-                                    ?: codeVersion.defValue.toString()).toInt()
                     )
                 } catch (e: Exception) {
 
