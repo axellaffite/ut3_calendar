@@ -32,11 +32,15 @@ object DateSerializer : KSerializer<Date> {
 
     override fun deserialize(decoder: Decoder): Date {
         val date = decoder.decodeString()
-        return SimpleDateFormat(DATE_FORMAT).parse(date)!!
+        val dateFormat = SimpleDateFormat(DATE_FORMAT)
+        dateFormat.setTimeZone(TimeZone.getTimeZone("PST"))
+        return dateFormat.parse(date)!!
     }
 
     override fun serialize(encoder: Encoder, value: Date) {
-        encoder.encodeString(SimpleDateFormat(DATE_FORMAT).format(value))
+        val dateFormat = SimpleDateFormat(DATE_FORMAT)
+        dateFormat.setTimeZone(TimeZone.getTimeZone("PST"))
+        encoder.encodeString(dateFormat.format(value))
     }
 
 }
