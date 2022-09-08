@@ -30,13 +30,17 @@ object DateSerializer : KSerializer<Date> {
 
     override val descriptor = PrimitiveSerialDescriptor("Date", PrimitiveKind.STRING)
 
+    private val dateFormatter = SimpleDateFormat(DATE_FORMAT).apply {
+        timeZone = TimeZone.getTimeZone("PST")
+    }
+
     override fun deserialize(decoder: Decoder): Date {
         val date = decoder.decodeString()
-        return SimpleDateFormat(DATE_FORMAT).parse(date)!!
+        return dateFormatter.parse(date)!!
     }
 
     override fun serialize(encoder: Encoder, value: Date) {
-        encoder.encodeString(SimpleDateFormat(DATE_FORMAT).format(value))
+        encoder.encodeString(dateFormatter.format(value))
     }
 
 }
