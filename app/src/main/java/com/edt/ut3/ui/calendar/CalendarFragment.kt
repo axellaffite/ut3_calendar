@@ -437,10 +437,10 @@ class CalendarFragment : BottomSheetFragment(),
                 }
 
                 else -> {
-                    val start = SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(
+                    val start = SimpleDateFormat("EEE dd/MM", Locale.getDefault()).format(
                         beginDate
                     )
-                    val end = SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(
+                    val end = SimpleDateFormat("EEE dd/MM", Locale.getDefault()).format(
                         beginDate.add(
                             Calendar.DAY_OF_YEAR,
                             dayCount - 1
