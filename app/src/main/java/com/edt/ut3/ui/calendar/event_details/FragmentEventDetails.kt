@@ -259,7 +259,6 @@ class FragmentEventDetails : Fragment() {
         } else {
             newNote?.let {
                 if (currentNote.pictures != it.pictures) {
-                    println("setting pictures to: ${it.pictures}")
                     currentNote.pictures.clear()
                     currentNote.pictures.addAll(it.pictures)
 
@@ -500,11 +499,9 @@ class FragmentEventDetails : Fragment() {
     private fun askUserForTime(context: Context, date: Date, newDate: Date, callback: (Date) -> Unit) {
         val hour = date.get(Calendar.HOUR_OF_DAY)
         val minute = date.get(Calendar.MINUTE)
-        println("Date: $newDate")
 
         val timeListener = { _: TimePicker, newHour: Int, newMinute: Int ->
             newDate.setTime(newHour, newMinute)
-            println("Date: $newDate")
             callback(newDate)
         }
 
@@ -597,8 +594,6 @@ class FragmentEventDetails : Fragment() {
     private fun generateOutputFile(callback: ((name: String, file: File) -> Unit)) {
         lifecycleScope.launch {
             saveNote {
-                println("Save from outputFile")
-
                 val name = Picture.generateFilename(it.id.toString())
                 val file = Picture.prepareImageFile(
                     requireContext(),

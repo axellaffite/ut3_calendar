@@ -102,6 +102,7 @@ class BackgroundUpdater(appContext: Context, workerParams: WorkerParameters) :
         try {
             val groups = prefManager.groups ?: throw IllegalStateException("Groups must be set")
             val link = prefManager.link ?: throw IllegalStateException("Link must be set")
+            val resourceType = prefManager.resourceType
 
             val updater = getUpdater {
                 authenticateIfNeeded(applicationContext, AuthenticatorUT3(this, link.url))
@@ -109,7 +110,7 @@ class BackgroundUpdater(appContext: Context, workerParams: WorkerParameters) :
 
             val classes = updater.getClasses(link.rooms).toSet()
             val courses = updater.getCoursesNames(link.courses)
-            val incomingEvents = updater.getEvents(link, groups, classes, courses, firstUpdate)
+            val incomingEvents = updater.getEvents(link, resourceType, groups, classes, courses, firstUpdate)
             val changes = computeEventUpdate(incomingEvents)
 
             updateDatabaseContents(changes)
@@ -156,7 +157,7 @@ class BackgroundUpdater(appContext: Context, workerParams: WorkerParameters) :
         /* get all the event and their id before the update */
         val oldEvent: List<Event> = eventViewModel.getEvents()
         val oldEventID = oldEvent.map { it.id }.toHashSet()
-        val oldEventMap = oldEvent.map { it.id to it }.toMap()
+        val oldEventMap = oldEvent.associateBy { it.id }
 
         /* get id of received events */
         val receivedEventID = incomingEvents.map { it.id }.toHashSet()

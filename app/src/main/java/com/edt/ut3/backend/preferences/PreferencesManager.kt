@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatDelegate.*
 import androidx.preference.PreferenceManager
+import com.edt.ut3.backend.background_services.updaters.ResourceType
 import com.edt.ut3.backend.calendar.CalendarMode
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.simple_preference.SimplePreference
@@ -49,6 +50,7 @@ class PreferencesManager private constructor(
     sealed class PreferenceKeys<T>(val key: String, val defValue: T) {
         object THEME: PreferenceKeys<ThemePreference>("theme", ThemePreference.SMARTPHONE)
         object LINK: PreferenceKeys<String?>("link", null)
+        object RESOURCE: PreferenceKeys<ResourceType>("resource", ResourceType.Groups)
         object GROUPS: PreferenceKeys<List<String>?>("groups", null)
         object OLD_GROUPS: PreferenceKeys<List<String>?>("old_groups", null)
         object CALENDAR_MODE: PreferenceKeys<CalendarMode>("calendar_mode", CalendarMode.default())
@@ -73,6 +75,13 @@ class PreferencesManager private constructor(
         defValue = PreferenceKeys.LINK.defValue,
         converter = InfoConverter,
         manager = InfoManager
+    )
+
+    var resourceType : ResourceType by simplePreference.Delegate(
+        key = PreferenceKeys.RESOURCE.key,
+        defValue = PreferenceKeys.RESOURCE.defValue.toString(),
+        converter = ResourceTypeConverter,
+        manager = ResourceTypeManager
     )
 
     var groups : List<String>? by simplePreference.Delegate <List<String>?, String>(

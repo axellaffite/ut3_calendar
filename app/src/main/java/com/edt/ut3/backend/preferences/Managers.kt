@@ -43,6 +43,8 @@ val ThemePreferenceManager = StringManager
 
 val InfoManager = NullableStringManager
 
+val ResourceTypeManager = StringManager
+
 val CalendarModeManager = StringManager
 
 object IntManager : BaseManager<Int>() {

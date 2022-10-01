@@ -22,6 +22,7 @@ class CelcatUpdater(client: HttpClient) : Updater {
 
     override suspend fun getEvents(
         link: School.Info,
+        resourceType: ResourceType,
         groups: List<String>,
         classes: Set<String>,
         courses: Map<String, String>,
@@ -33,6 +34,7 @@ class CelcatUpdater(client: HttpClient) : Updater {
         return service.getEvents(
             link.url,
             start = startDate,
+            resType = resourceType,
             groups,
             classes,
             courses

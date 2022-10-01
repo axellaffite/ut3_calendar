@@ -1,19 +1,17 @@
 package com.edt.ut3.ui.preferences.formation
 
 import android.content.Context
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
+import com.edt.ut3.backend.background_services.updaters.ResourceType
 import com.edt.ut3.backend.credentials.CredentialsManager
 import com.edt.ut3.backend.firebase_services.FirebaseMessagingHandler
 import com.edt.ut3.backend.formation_choice.School
-import com.edt.ut3.backend.requests.celcat.CelcatService
-import com.edt.ut3.backend.requests.getClient
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.authentication_services.AuthenticationException
 import com.edt.ut3.backend.requests.authentication_services.AuthenticatorUT3
 import com.edt.ut3.backend.requests.authentication_services.Credentials
+import com.edt.ut3.backend.requests.celcat.CelcatService
+import com.edt.ut3.backend.requests.getClient
 import com.edt.ut3.misc.BaseState
 import com.edt.ut3.misc.extensions.isTrue
 import com.edt.ut3.misc.extensions.toList
@@ -65,6 +63,9 @@ class FormationSelectionViewModel: ViewModel() {
     val selectedGroups : LiveData<Set<School.Info.Group>>
         get() = _selectedGroups
 
+    private val _resourceType = MutableLiveData(ResourceType.Groups)
+    val resourceType get(): LiveData<ResourceType> = _resourceType
+
     var firstCredentialsGet = true
     fun getCredentials(context: Context): LiveData<Credentials?> = synchronized(this) {
         if (firstCredentialsGet) {
@@ -80,7 +81,7 @@ class FormationSelectionViewModel: ViewModel() {
         _authenticationState.value = AuthenticationState.Unauthenticated
     }
 
-    suspend fun validateCredentials(context: Context): Boolean {
+    suspend fun validateCredentials(): Boolean {
         val credentials = _credentials.value
         return if (credentials == null || _authenticationState.value is AuthenticationState.Authenticated) {
             true
@@ -104,14 +105,13 @@ class FormationSelectionViewModel: ViewModel() {
     }
 
     fun updateGroups(context: Context) = synchronized(this) {
-        if (groupsDownloadJob?.isActive.isTrue() || groups.isNotEmpty()) {
-            return
-        }
+        groupsDownloadJob?.cancel()
 
         groupsDownloadJob = viewModelScope.launch {
             _groupsStatus.value = WhichGroupsState.Downloading
             val success: Boolean = try {
-                val newGroups = CelcatService(getClient()).getGroups(School.default.info.first().groups)
+                val link = School.default.info.first().get(resourceType.value)
+                val newGroups = CelcatService(getClient()).getGroups(link)
                 synchronized(groups) {
                     _groups.clear()
                     _groups.addAll(newGroups)
@@ -127,6 +127,7 @@ class FormationSelectionViewModel: ViewModel() {
                 _groupsFailure.value = WhichGroupsFailure.WrongCredentials
                 false
             } catch (e: Exception) {
+                e.printStackTrace()
                 _groupsFailure.value = WhichGroupsFailure.UnknownError
                 false
             }
@@ -196,13 +197,14 @@ class FormationSelectionViewModel: ViewModel() {
     }
 
     fun saveGroups(context: Context) {
-        PreferencesManager.getInstance(context).apply {
-            val oldGroupsTemp = this.groups ?: listOf()
-            val newGroupsTemp = _selectedGroups.value?.map { it.id } ?: listOf()
+        PreferencesManager.getInstance(context).let { preferences ->
+            val oldGroupsTemp = preferences.groups ?: emptyList()
+            val newGroupsTemp = _selectedGroups.value?.map { it.id } ?: emptyList()
 
-            oldGroups = oldGroupsTemp - newGroupsTemp
-            groups = newGroupsTemp
-            link = School.default.info.first()
+            preferences.oldGroups = oldGroupsTemp - newGroupsTemp
+            preferences.groups = newGroupsTemp
+            preferences.link = School.default.info.first()
+            preferences.resourceType = resourceType.value ?: ResourceType.Groups
         }
 
         FirebaseMessagingHandler.ensureGroupRegistration(context)
@@ -218,4 +220,14 @@ class FormationSelectionViewModel: ViewModel() {
     }
 
     fun triggerAuthenticationButton() = _authenticationState.trigger()
+
+    fun selectResourceType(context: Context, resType: Int) {
+        val upComingValue = ResourceType.fromUiSource(resType)
+        if (_resourceType.value == upComingValue) {
+            return
+        }
+
+        _resourceType.value = upComingValue
+        updateGroups(context)
+    }
 }
