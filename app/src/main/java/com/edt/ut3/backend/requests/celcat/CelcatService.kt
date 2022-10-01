@@ -1,5 +1,6 @@
 package com.edt.ut3.backend.requests.celcat
 
+import com.edt.ut3.backend.background_services.updaters.ResourceType
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.misc.extensions.toCelcatDateStr
@@ -14,9 +15,9 @@ import java.util.*
 
 class CelcatService(val client: HttpClient) {
 
-    private inline fun Parameters.Companion.buildCelcatParameters(init: ParametersBuilder.() -> Unit): Parameters {
+    private inline fun Parameters.Companion.buildCelcatParameters(resType: ResourceType, init: ParametersBuilder.() -> Unit): Parameters {
         return ParametersBuilder().apply {
-            append("resType", "103")
+            append("resType", resType.resType)
             append("calView", "agendaDay")
             append("colourScheme", "3")
             init()
@@ -26,13 +27,14 @@ class CelcatService(val client: HttpClient) {
     suspend fun getEvents(
         link: String,
         start: Date,
+        resType: ResourceType,
         formations: List<String>,
         classes: Set<String>,
         courses: Map<String, String>
     ): List<Event> {
         val events: JsonArray = client.submitForm(
             url = "$link/Home/GetCalendarData",
-            formParameters = Parameters.buildCelcatParameters {
+            formParameters = Parameters.buildCelcatParameters(resType = resType) {
                 append("start", start.toCelcatDateStr())
                 append("end", Date().add(Calendar.YEAR, 1).toCelcatDateStr())
 

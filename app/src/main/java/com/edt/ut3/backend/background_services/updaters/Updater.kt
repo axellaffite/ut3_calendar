@@ -8,6 +8,7 @@ interface Updater {
     suspend fun getCoursesNames(link: String): Map<String, String>
     suspend fun getEvents(
         link: School.Info,
+        resourceType: ResourceType,
         groups: List<String>,
         classes: Set<String>,
         courses: Map<String, String>,

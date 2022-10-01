@@ -2,6 +2,7 @@ package com.edt.ut3.ui.custom_views.searchbar
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.View
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.view.children
@@ -48,11 +49,28 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
 
     private var filteredDataSet = mutableListOf<Data>()
 
-    fun configure(dataSet: List<Data>,
-                  converter: (Data) -> String,
-                  searchHandler: SearchHandler,
-                  adapter: Adapter)
-    {
+    fun hideResults() {
+        results?.visibility = View.GONE
+    }
+
+    fun showResults() {
+        results?.visibility = View.VISIBLE
+    }
+
+    fun hideFilters() {
+        results?.visibility = View.GONE
+    }
+
+    fun showFilters() {
+        results?.visibility = View.VISIBLE
+    }
+
+    fun configure(
+        dataSet: List<Data>,
+        converter: (Data) -> String,
+        searchHandler: SearchHandler,
+        adapter: Adapter
+    ) {
         this.mDataSet = dataSet
         this.mConverter = converter
         this.mSearchHandler = searchHandler
@@ -90,40 +108,23 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
         adapter.setDataSet(filteredDataSet)
     }
 
-    @Suppress("UNCHECKED_CAST")
-    fun getFilters(): List<FilterChip.Filter<Data>> = filters?.children?.map {
-        with (it as? FilterChip<Data>) {
-            if (this?.isChecked == true) {
-                this.filter
-            } else {
-                null
-            }
-        }
-    }?.filterNotNull()?.toList() ?: listOf()
-
-    private suspend fun search(word: String, query: String): Boolean = withContext(Default) {
-        var i = 0
-        var j = 0
-
-        while (i < word.length && j < query.length) {
-            while (i < word.length) {
-                if (word[i] == query[j]) {
-                    j += 1
-                    break
-                }
-
-                i += 1
-            }
-            i += 1
-        }
-
-        j == query.length
+    fun setDataSet(dataSet: List<Data>) {
+        mDataSet = dataSet
+        search(matchSearchBarText = true)
     }
+
+    @Suppress("UNCHECKED_CAST")
+    fun getFilters(): List<FilterChip.Filter<Data>> = filters?.children?.mapNotNull {
+        with (it as? FilterChip<Data>) {
+            this?.filter?.takeIf { this.isChecked }
+        }
+    }?.toList() ?: emptyList()
 
     fun search(matchSearchBarText: Boolean = true, callback: ((List<Data>) -> Unit)? = null) {
         val query = if (matchSearchBarText) {
             search_bar?.text.toString()
         } else { String() }
+
 
         mSearchHandler?.searchLauncher {
             search(query, callback)
@@ -145,12 +146,12 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
 
         val filtered = withContext(Default) {
             dataSetToFilter.filter {
-                search(dataConverter(it).uppercase(Locale.FRENCH), upperText)
+                dataConverter(it).contains(upperText, ignoreCase = true)
             }.let {
                 localFilters.fold(it) { acc, filter -> filter(acc) }
             }.let {
                 globalFilters(it)
-            }
+            }.sortedBy { dataConverter(it).indexOf(upperText, ignoreCase = true) }
         }
 
 

@@ -125,7 +125,7 @@
     <string name="channel_reminder_description">Reminder sets by the user</string>
     <string name="step_check_credentials">Check</string>
     <string name="step_checking_credentials">Checking..</string>
-    <string name="summary_authentication">Although optional, entering you credentials is recommended to obtain all informations from Celcat.</string>
+    <string name="summary_authentication">Although optional, entering you credentials is recommended to obtain all information from Celcat.</string>
     <string name="error_complete_configuration">You must finish the configuration</string>
     <string name="lets_go">Let\'s go !</string>
     <string name="step_skip">Skip</string>
@@ -138,4 +138,9 @@
     <string name="delete_note">Do you want to delete the note ?</string>
     <string name="error_missing_credentials">Your credentials must be specified in order to get connected</string>
     <string name="error_unable_to_treat_server_response">Unable to treat server response</string>
+
+    <string-array name="resource_type_possibilities">
+        <item>Groups</item>
+        <item>Courses</item>
+    </string-array>
 </resources>

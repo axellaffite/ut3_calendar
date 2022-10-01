@@ -1,6 +1,7 @@
 package com.edt.ut3.backend.preferences
 
 import android.content.SharedPreferences
+import com.edt.ut3.backend.background_services.updaters.ResourceType
 import com.edt.ut3.backend.calendar.CalendarMode
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.simple_preference.SimplePreference
@@ -43,6 +44,14 @@ object IntConverter : SimplePreference.Converter<Int, Int>() {
 object ThemePreferenceConverter : SimplePreference.Converter<ThemePreference, String>() {
     override fun deserialize(value: String) = ThemePreference.valueOf(value)
     override fun serialize(value: ThemePreference) = value.toString()
+}
+
+/**
+ * Used to convert a [ResourceType]
+ */
+object ResourceTypeConverter : SimplePreference.Converter<ResourceType, String>() {
+    override fun deserialize(value: String) = ResourceType.valueOf(value)
+    override fun serialize(value: ResourceType) = value.toString()
 }
 
 /**

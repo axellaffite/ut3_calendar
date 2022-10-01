@@ -99,7 +99,6 @@ class RoomFinderViewModel : ViewModel() {
             state.value = RoomFinderState.Downloading
 
             downloadJob = viewModelScope.launch {
-                println("launching download")
                 launchBuildingsDownload(forceRefresh, CoroutineExceptionHandler { _, _ ->
                     _error.value = RoomFinderFailure.UpdateBuildingFailure
                 })?.join()

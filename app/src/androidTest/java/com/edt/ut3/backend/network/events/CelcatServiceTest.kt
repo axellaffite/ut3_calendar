@@ -19,8 +19,6 @@ class CelcatServiceTest {
                 emptySet(),
                 emptyMap()
             )
-
-            println(result)
         }
     }
 

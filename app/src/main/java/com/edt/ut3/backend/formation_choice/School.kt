@@ -3,6 +3,7 @@ package com.edt.ut3.backend.formation_choice
 import android.net.Uri
 import androidx.core.net.toUri
 import com.edt.ut3.R
+import com.edt.ut3.backend.background_services.updaters.ResourceType
 import com.edt.ut3.backend.formation_choice.School.Info
 import kotlinx.serialization.Serializable
 
@@ -53,6 +54,13 @@ data class School(
         val rooms: String,
         val courses: String
     ){
+        fun get(resourceType: ResourceType?) = when (resourceType) {
+            ResourceType.Groups -> groups
+            ResourceType.Courses -> courses
+            null -> groups
+        }
+
+
         companion object {
             /**
              * This function extracts the fids from a Celcat URL.
@@ -107,7 +115,6 @@ data class School(
                     }
 
                     val name = ""
-                    println(baseLink)
                     val url = celcatLinkPattern.find(link)?.groups?.get(1)?.value!!
                     val groups = guessGroupsLink(url)
                     val rooms = guessRoomsLink(url)

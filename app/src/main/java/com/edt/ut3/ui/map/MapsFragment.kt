@@ -399,8 +399,6 @@ class MapsFragment : Fragment() {
             Log.d(this::class.simpleName, downloadResult.toString())
             callback()
         }
-
-        println("or not ?")
     }
 
     private fun setupCategoriesAndPlaces(incomingPlaces: List<Place>) {
@@ -454,8 +452,6 @@ class MapsFragment : Fragment() {
             map.overlays.removeAll { it is PlaceMarker }
             addPlacesOnMap(placesToShow)
 
-            println("Updated")
-
             map.invalidate()
             map.requestLayout()
         }
@@ -488,8 +484,8 @@ class MapsFragment : Fragment() {
     }
 
     private fun foldEverything() {
-        theSearchBar?.filters?.visibility = GONE
-        theSearchBar?.results?.visibility = GONE
+        theSearchBar?.hideFilters()
+        theSearchBar?.hideResults()
         from(place_info_container).state = STATE_HIDDEN
 
         theSearchBar?.clearFocus()
@@ -499,8 +495,8 @@ class MapsFragment : Fragment() {
     }
 
     private fun unfoldSearchTools() {
-        theSearchBar?.results?.visibility = VISIBLE
-        theSearchBar?.filters?.visibility = VISIBLE
+        theSearchBar?.showResults()
+        theSearchBar?.showFilters()
         from(place_info_container).state = STATE_HIDDEN
 
     }
@@ -508,8 +504,8 @@ class MapsFragment : Fragment() {
     private fun displayPlaceInfo() {
         theSearchBar?.clearFocus()
         selectedPlace?.let { selected ->
-            theSearchBar?.results?.visibility = GONE
-            theSearchBar?.filters?.visibility = GONE
+            theSearchBar?.hideResults()
+            theSearchBar?.hideFilters()
             hideKeyboard()
 
             lifecycleScope.launchWhenStarted {

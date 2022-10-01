@@ -7,6 +7,7 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.widget.AdapterView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -23,6 +24,8 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_which_groups.*
 import kotlinx.android.synthetic.main.layout_search_bar.view.*
+import kotlinx.android.synthetic.main.layout_search_bar.view.search_bar
+import kotlinx.android.synthetic.main.room_finder_fragment.view.*
 import kotlinx.coroutines.Job
 
 class FragmentWhichGroups: Fragment() {
@@ -52,6 +55,7 @@ class FragmentWhichGroups: Fragment() {
             searchHandler = GroupSearchHandler(),
             adapter = GroupAdapter().apply {
                 onItemClicked = { _: View, _: Int, group: School.Info.Group ->
+                    searchBar.hideResults()
                     viewModel.addGroup(group)
                     searchBar.clearFocus()
                 }
@@ -62,8 +66,9 @@ class FragmentWhichGroups: Fragment() {
     private fun setupListeners() {
         viewModel.run {
             groupsLD.observe(viewLifecycleOwner) {
+                searchBar?.setDataSet(it)
                 searchBar.results?.adapter?.notifyDataSetChanged()
-                searchBar.results?.visibility = VISIBLE
+                searchBar.showResults()
             }
 
             selectedGroups.observe(viewLifecycleOwner) { selectedGroups: Set<School.Info.Group> ->
@@ -72,15 +77,30 @@ class FragmentWhichGroups: Fragment() {
 
             groupsStatus.observe(viewLifecycleOwner, ::handleStateChange)
             groupsFailure.observe(viewLifecycleOwner, ::handleError)
+            resourceType.observe(viewLifecycleOwner) { res ->
+                res?.let { resource_type.setSelection(res.uiChoice) }
+            }
+        }
+
+        background.setOnClickListener {
+            searchBar.hideResults()
+        }
+
+        resource_type.onItemSelectedListener = object: AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                viewModel.selectResourceType(context ?: return, position)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
 
         searchBar.search_bar.setOnFocusChangeListener { v, hasFocus ->
             Log.d("Which groups", "Search bar has focus: $hasFocus")
             if (hasFocus) {
                 searchBar.search()
-                searchBar.results.visibility = VISIBLE
+                searchBar.showResults()
             } else {
-                searchBar.results.visibility = GONE
+                searchBar.hideResults()
             }
         }
     }
