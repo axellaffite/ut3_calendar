@@ -31,6 +31,8 @@ import java.io.IOException
 class FormationSelectionViewModel: ViewModel() {
     private var groupsDownloadJob: Job? = null
 
+    private var client = getClient()
+
     private val _authenticationFailure = MutableLiveData<AuthenticationFailure?>(null)
     val authenticationFailure : LiveData<AuthenticationFailure?>
         get() = _authenticationFailure
@@ -88,7 +90,7 @@ class FormationSelectionViewModel: ViewModel() {
         } else {
             _authenticationState.value = AuthenticationState.Authenticating
             try {
-                AuthenticatorUT3(getClient()).checkCredentials(credentials)
+                AuthenticatorUT3(client).checkCredentials(credentials)
                 _authenticationState.value = AuthenticationState.Authenticated
                 true
             } catch (e: Exception) {
@@ -111,7 +113,7 @@ class FormationSelectionViewModel: ViewModel() {
             _groupsStatus.value = WhichGroupsState.Downloading
             val success: Boolean = try {
                 val link = School.default.info.first().get(resourceType.value)
-                val newGroups = CelcatService(getClient()).getGroups(link)
+                val newGroups = CelcatService(client).getGroups(link)
                 synchronized(groups) {
                     _groups.clear()
                     _groups.addAll(newGroups)
