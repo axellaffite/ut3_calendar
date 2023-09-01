@@ -9,7 +9,7 @@ import io.ktor.client.request.*
 class RoomFinderService(val client: HttpClient = getClient()) {
 
     companion object {
-        private const val SERVICE_URL = "https://rooms-finder.api.goulin.fr"
+        private const val SERVICE_URL = "https://rooms-finder-api.goulin.fr"
     }
 
     suspend fun getBuildings(): List<Building> {
