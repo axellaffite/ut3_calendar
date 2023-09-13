@@ -86,7 +86,7 @@ dependencies {
     // Name : Room
     // Summary : A useful library that generate sql from classes
     // Documentation : https://developer.android.com/topic/libraries/architecture/room
-    def room_version = "2.3.0"
+    def room_version = "2.4.3"
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version" // For Kotlin use kapt instead of annotationProcessor
     // optional - Kotlin Extensions and Coroutines support for Room
@@ -177,12 +177,14 @@ dependencies {
     implementation "io.insert-koin:koin-androidx-compose:$koin_version"
 
 
-    def ktor_version = "1.6.3"
+    def ktor_version = "2.2.0"
     implementation "io.ktor:ktor-client-core:$ktor_version"
     implementation "io.ktor:ktor-client-cio:$ktor_version"
     implementation "io.ktor:ktor-client-serialization:$ktor_version"
     implementation "io.ktor:ktor-client-logging:$ktor_version"
     implementation "ch.qos.logback:logback-classic:1.2.3"
+    implementation "io.ktor:ktor-client-content-negotiation:$ktor_version"
+    implementation "io.ktor:ktor-serialization-kotlinx-json:$ktor_version"
 
 
     implementation "io.grpc:grpc-okhttp:1.32.2"

@@ -5,11 +5,14 @@ import com.edt.ut3.backend.credentials.CredentialsManager
 import com.edt.ut3.backend.requests.authentication_services.Authenticator
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.features.*
-import io.ktor.client.features.cookies.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
-import io.ktor.client.features.logging.*
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpRedirect
+import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.plugins.logging.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
+import io.ktor.client.plugins.contentnegotiation.*
+
 import kotlinx.serialization.json.Json as JsonSerializerBase
 
 val JsonSerializer = JsonSerializerBase {
@@ -23,8 +26,8 @@ fun getClient() = HttpClient(CIO) {
         storage = AcceptAllCookiesStorage()
     }
 
-    install(JsonFeature) {
-        serializer = KotlinxSerializer(JsonSerializer)
+    install(ContentNegotiation) {
+        json()
     }
 
     install(Logging) {

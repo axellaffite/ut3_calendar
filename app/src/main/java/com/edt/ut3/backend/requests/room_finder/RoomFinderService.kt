@@ -4,6 +4,7 @@ import com.edt.ut3.backend.goulin_room_finder.Building
 import com.edt.ut3.backend.goulin_room_finder.Room
 import com.edt.ut3.backend.requests.getClient
 import io.ktor.client.*
+import io.ktor.client.call.body
 import io.ktor.client.request.*
 
 class RoomFinderService(val client: HttpClient = getClient()) {
@@ -13,13 +14,13 @@ class RoomFinderService(val client: HttpClient = getClient()) {
     }
 
     suspend fun getBuildings(): List<Building> {
-        return client.get("$SERVICE_URL/buildings")
+        return client.get("$SERVICE_URL/buildings").body()
     }
 
     suspend fun getFreeRooms(place: String): List<Room> {
         return client.get("$SERVICE_URL/") {
             parameter("place", place)
-        }
+        }.body()
     }
 
 }
