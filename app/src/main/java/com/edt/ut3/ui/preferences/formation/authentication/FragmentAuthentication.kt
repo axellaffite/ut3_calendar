@@ -14,24 +14,26 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.edt.ut3.R
 import com.edt.ut3.backend.requests.authentication_services.Credentials
+import com.edt.ut3.databinding.FragmentAuthenticationBinding
 import com.edt.ut3.misc.extensions.hideKeyboard
 import com.edt.ut3.misc.extensions.isTrue
 import com.edt.ut3.misc.extensions.updateIfNecessary
 import com.edt.ut3.ui.custom_views.TextInputEditText2
 import com.edt.ut3.ui.preferences.formation.FormationSelectionViewModel
 import com.edt.ut3.ui.preferences.formation.state_fragment.StateFragment
-import kotlinx.android.synthetic.main.fragment_authentication.*
-import kotlinx.android.synthetic.main.state_fragment.*
 
 class FragmentAuthentication: Fragment() {
 
-    val viewModel: FormationSelectionViewModel by activityViewModels()
-
+    private var binding: FragmentAuthenticationBinding? = null
+    private val viewModel: FormationSelectionViewModel by activityViewModels()
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? = inflater.inflate(R.layout.fragment_authentication, container, false)
+    ): View? {
+        binding = FragmentAuthenticationBinding.inflate(inflater, container, false)
+        return binding!!.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -45,15 +47,13 @@ class FragmentAuthentication: Fragment() {
      * @param context A valid [Context]
      */
     private fun setupListeners(context: Context) {
-        viewModel.run {
+        viewModel.run{
             getCredentials(context).observe(viewLifecycleOwner, ::handleCredentialsUpdate)
             authenticationState.observe(viewLifecycleOwner, ::handleStateChange)
             authenticationFailure.observe(viewLifecycleOwner, ::handleFailure)
-
         }
-
-        setupField(username)
-        setupField(password)
+        setupField(binding!!.username)
+        setupField(binding!!.password)
     }
 
     /**
@@ -99,7 +99,7 @@ class FragmentAuthentication: Fragment() {
      * @return Always return false
      */
     private fun showKeyboardOnEvent(v: View? = null, keyCode: Int): Boolean {
-        val shouldBeHandled = (keyCode == KeyEvent.KEYCODE_ENTER && v == password)
+        val shouldBeHandled = (keyCode == KeyEvent.KEYCODE_ENTER && v == binding!!.password)
 
         if (shouldBeHandled) {
             showActionButtonsIfSubFragment()
@@ -114,8 +114,8 @@ class FragmentAuthentication: Fragment() {
      */
     private fun showActionButtonsDependingOnFocus() {
         when {
-            username?.hasFocus().isTrue() -> hideActionButtonsIfSubFragment()
-            password?.hasFocus().isTrue() -> hideActionButtonsIfSubFragment()
+            binding!!.username.hasFocus().isTrue() -> hideActionButtonsIfSubFragment()
+            binding!!.password.hasFocus().isTrue() -> hideActionButtonsIfSubFragment()
             else -> {}
         }
     }
@@ -128,7 +128,7 @@ class FragmentAuthentication: Fragment() {
     private fun hideActionButtonsIfSubFragment() {
         val parent = parentFragment
         if (parent is StateFragment) {
-            parent.action_buttons?.visibility = GONE
+            parent.setActionButtonsVisibility(GONE)
         }
     }
 
@@ -140,7 +140,7 @@ class FragmentAuthentication: Fragment() {
     private fun showActionButtonsIfSubFragment() {
         val parent = parentFragment
         if (parent is StateFragment) {
-            parent.action_buttons?.visibility = VISIBLE
+            parent.setActionButtonsVisibility(VISIBLE)
         }
     }
 
@@ -150,8 +150,8 @@ class FragmentAuthentication: Fragment() {
      * we just pass null to the [viewModel].
      */
     private fun updateViewModelCredentials() {
-        val username = username?.text.takeIf { !it.isNullOrBlank() }
-        val password = password?.text.takeIf { !it.isNullOrBlank() }
+        val username = binding!!.username.text.takeIf { !it.isNullOrBlank() }
+        val password = binding!!.password.text.takeIf { !it.isNullOrBlank() }
 
         viewModel.updateCredentials(
             Credentials.from(
@@ -173,10 +173,10 @@ class FragmentAuthentication: Fragment() {
      */
     private fun handleCredentialsUpdate(credentials: Credentials?) {
         val newUsername = credentials?.username ?: return
-        val newPassword = credentials.password
+        val newPassword = credentials?.password
 
-        username?.updateIfNecessary(newUsername)
-        password?.updateIfNecessary(newPassword)
+        binding!!.username.updateIfNecessary(newUsername)
+        binding!!.password.updateIfNecessary(newPassword)
     }
 
     /**
@@ -202,8 +202,8 @@ class FragmentAuthentication: Fragment() {
     private fun handleStateChange(state: AuthenticationState?) {
         when (state) {
             AuthenticationState.Unauthenticated -> {
-                username?.isEnabled = true
-                password?.isEnabled = true
+                binding!!.username.isEnabled = true
+                binding!!.password.isEnabled = true
 
                 context?.let {
                     val parent = parentFragment
@@ -223,8 +223,8 @@ class FragmentAuthentication: Fragment() {
                     parent.setNextText(R.string.step_checking_credentials)
                 }
 
-                username?.isEnabled = false
-                password?.isEnabled = false
+                binding!!.username.isEnabled = false
+                binding!!.password.isEnabled = false
             }
 
             AuthenticationState.Authenticated -> {
@@ -233,8 +233,8 @@ class FragmentAuthentication: Fragment() {
                     parent.resetNextText()
                 }
 
-                username?.isEnabled = true
-                password?.isEnabled = true
+                binding!!.username.isEnabled = true
+                binding!!.password.isEnabled = true
             }
 
             else -> {}

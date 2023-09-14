@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.edt.ut3.R
-import kotlinx.android.synthetic.main.fragment_image_view_pager.view.*
+import com.edt.ut3.databinding.FragmentImageViewPagerBinding
 
 class ImageOverlayLayout(context: Context, attrs: AttributeSet?): ConstraintLayout(context, attrs) {
 
@@ -13,9 +13,9 @@ class ImageOverlayLayout(context: Context, attrs: AttributeSet?): ConstraintLayo
     var onDeleteRequest: (() -> Unit)? = null
 
     init {
-        val view = inflate(context, R.layout.fragment_image_view_pager, this)
+        val view = FragmentImageViewPagerBinding.bind(this)
         view.run {
-            delete.setOnClickListener {
+            view.delete.setOnClickListener {
                 onDeleteRequest?.invoke()
             }
         }

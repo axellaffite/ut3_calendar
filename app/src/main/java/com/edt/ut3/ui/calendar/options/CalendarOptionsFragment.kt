@@ -16,32 +16,30 @@ import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Course
 import com.edt.ut3.backend.database.viewmodels.CoursesViewModel
 import com.edt.ut3.backend.preferences.PreferencesManager
+import com.edt.ut3.databinding.FragmentCalendarOptionsBinding
 import com.edt.ut3.misc.extensions.toDp
 import com.edt.ut3.ui.calendar.CalendarViewModel
 import com.edt.ut3.ui.preferences.Theme
-import kotlinx.android.synthetic.main.fragment_calendar_options.*
 import kotlinx.coroutines.launch
 
 class CalendarOptionsFragment: Fragment() {
 
-    private val viewModel: CalendarViewModel by activityViewModels()
-
+    private var binding: FragmentCalendarOptionsBinding? = null
     override fun onCreateView(inflater: LayoutInflater,
                               container: ViewGroup?,
                               savedInstanceState: Bundle?): View?
     {
-        return inflater.inflate(R.layout.fragment_calendar_options, container, false).also {
-            viewModel.getCoursesVisibility(requireContext()).observe(viewLifecycleOwner, ::generateCoursesChips)
-        }
+        binding = FragmentCalendarOptionsBinding.inflate(layoutInflater)
+        return binding!!.root
     }
 
     private fun generateCoursesChips(courses: List<Course>) {
         courses.forEachIndexed { index, course ->
-            if (group_list.childCount <= index) {
-                group_list.addView(CourseButton(requireContext(), course))
+            if (binding!!.groupList.childCount <= index) {
+                binding!!.groupList.addView(CourseButton(requireContext(), course))
             }
 
-            with(group_list.getChildAt(index) as CourseButton) {
+            with(binding!!.groupList.getChildAt(index) as CourseButton) {
                 this.course = course
                 this.text = course.title
                 setOnClickListener {
@@ -58,8 +56,8 @@ class CalendarOptionsFragment: Fragment() {
             }
         }
 
-        if (courses.size < group_list.childCount) {
-            group_list.removeViews(courses.size, group_list.childCount - courses.size)
+        if (courses.size < binding!!.groupList.childCount) {
+            binding!!.groupList.removeViews(courses.size, binding!!.groupList.childCount - courses.size)
         }
     }
 

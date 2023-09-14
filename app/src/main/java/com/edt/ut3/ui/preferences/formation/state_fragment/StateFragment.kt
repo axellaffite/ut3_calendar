@@ -9,13 +9,14 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.edt.ut3.R
+import com.edt.ut3.databinding.StateFragmentBinding
 import com.edt.ut3.misc.extensions.addOnBackPressedListener
-import kotlinx.android.synthetic.main.state_fragment.*
 import kotlinx.coroutines.Job
 
 abstract class StateFragment: Fragment() {
 
     private val viewModel: StateViewModel by viewModels()
+    private val binding: StateFragmentBinding? = null
 
     private var onRequestBackJob: Job? = null
     private var onRequestNextJob: Job? = null
@@ -26,7 +27,7 @@ abstract class StateFragment: Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? = inflater.inflate(R.layout.state_fragment, container, false)
+    ): View? = StateFragmentBinding.inflate(inflater).root
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -38,14 +39,14 @@ abstract class StateFragment: Fragment() {
     }
 
     private fun setupView() {
-        pager?.adapter = StateAdapter(this)
-        pager?.isUserInputEnabled = false
+        binding!!.pager?.adapter = StateAdapter(this)
+        binding!!.pager?.isUserInputEnabled = false
     }
 
     private fun setupListeners() {
         viewModel.run {
             position.observe(viewLifecycleOwner) { position: StateViewModel.Position ->
-                pager?.currentItem = position.current ?: 0
+                binding!!.pager?.currentItem = position.current ?: 0
                 resetBackText()
                 resetNextText()
                 setTitle(builders[position.current ?: 0].title)
@@ -53,17 +54,17 @@ abstract class StateFragment: Fragment() {
             }
 
             title.observe(viewLifecycleOwner) {
-                this@StateFragment.title?.setText(it)
+                binding!!.title?.setText(it)
             }
 
             summary.observe(viewLifecycleOwner) {
-                this@StateFragment.summary?.setText(it)
+                binding!!.summary?.setText(it)
             }
         }
 
         addOnBackPressedListener { requestBack() }
-        back.setOnClickListener { requestBack() }
-        next.setOnClickListener { requestNext() }
+        binding!!.back.setOnClickListener { requestBack() }
+        binding!!.next.setOnClickListener { requestNext() }
     }
 
     private fun requestBack() = synchronized(this) {
@@ -88,6 +89,9 @@ abstract class StateFragment: Fragment() {
         }
     }
 
+    public fun setActionButtonsVisibility(visibility: Int){
+        binding!!.actionButtons?.visibility = visibility;
+    }
     abstract fun initFragments(): List<StateFragmentBuilder>
 
     fun currentPosition() = viewModel.currentPosition()
@@ -104,19 +108,19 @@ abstract class StateFragment: Fragment() {
 
     fun setSummary(id: Int) = viewModel.setDescription(id)
 
-    fun setBackText(id: Int) = back?.setText(id)
+    fun setBackText(id: Int) = binding!!.back?.setText(id)
     fun resetBackText() {
-        val text = when (pager?.currentItem)  {
+        val text = when (binding!!.pager?.currentItem)  {
             0 -> R.string.step_cancel
             else -> R.string.step_back
         }
 
-        back?.setText(text)
+        binding!!.back?.setText(text)
     }
 
-    fun setNextText(id: Int) = next?.setText(id)
+    fun setNextText(id: Int) = binding!!.next?.setText(id)
     fun resetNextText() {
-        val text = when (pager?.currentItem) {
+        val text = when (binding!!.pager?.currentItem) {
             builders.lastIndex -> {
                 R.string.step_finish
             }
@@ -126,7 +130,7 @@ abstract class StateFragment: Fragment() {
             }
         }
 
-        next.setText(text)
+        binding!!.next.setText(text)
     }
 
 

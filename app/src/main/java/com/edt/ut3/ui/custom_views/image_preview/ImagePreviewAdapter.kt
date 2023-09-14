@@ -7,7 +7,7 @@ import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.edt.ut3.R
 import com.edt.ut3.backend.note.Picture
-import kotlinx.android.synthetic.main.layout_image_preview_holder.view.*
+import com.edt.ut3.databinding.LayoutImagePreviewHolderBinding
 
 class ImagePreviewAdapter(var dataset: List<Picture>) : RecyclerView.Adapter<ImagePreviewAdapter.ImageViewHolder>() {
 
@@ -19,12 +19,11 @@ class ImagePreviewAdapter(var dataset: List<Picture>) : RecyclerView.Adapter<Ima
 
     var onItemClickListener: ((v: View, picture: Picture, pictures: List<Picture>) -> Unit)? = null
     var onAddPictureClickListener: ((v: View) -> Unit)? = null
+    private var binding: LayoutImagePreviewHolderBinding? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
-        val v = LayoutInflater.from(parent.context)
-            .inflate(R.layout.layout_image_preview_holder, parent, false) as CardView
-
-        return ImageViewHolder(v)
+        binding = LayoutImagePreviewHolderBinding.inflate(LayoutInflater.from(parent.context))
+        return ImageViewHolder(binding!!.root)
     }
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
@@ -40,7 +39,7 @@ class ImagePreviewAdapter(var dataset: List<Picture>) : RecyclerView.Adapter<Ima
     private fun bindClassicPicture(holder: ImageViewHolder, position: Int) {
         holder.apply {
             val picture = dataset[position]
-            picture.loadThumbnailInto(view.thumbnail)
+            picture.loadThumbnailInto(binding!!.thumbnail)
 
 
             view.setOnClickListener {
@@ -51,8 +50,8 @@ class ImagePreviewAdapter(var dataset: List<Picture>) : RecyclerView.Adapter<Ima
 
     private fun bindAddPicture(holder: ImageViewHolder) {
         holder.apply {
-            view.thumbnail.setImageResource(R.drawable.ic_add)
-            view.setOnClickListener { onAddPictureClickListener?.invoke(it) }
+            binding!!.thumbnail.setImageResource(R.drawable.ic_add)
+            binding!!.root.setOnClickListener { onAddPictureClickListener?.invoke(it) }
         }
     }
 

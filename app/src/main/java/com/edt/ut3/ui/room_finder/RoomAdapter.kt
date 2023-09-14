@@ -8,18 +8,17 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.edt.ut3.R
 import com.edt.ut3.backend.goulin_room_finder.Room
+import com.edt.ut3.databinding.RoomLayoutBinding
 import com.edt.ut3.misc.extensions.toDp
 import com.edt.ut3.misc.extensions.toFormattedTime
-import kotlinx.android.synthetic.main.room_layout.view.*
 
 
 class RoomAdapter(val dataset: List<Room>) : RecyclerView.Adapter<RoomAdapter.RoomViewHolder>() {
 
+    private var binding: RoomLayoutBinding? = null
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RoomViewHolder {
-        val rootView: View =
-            LayoutInflater.from(parent.context).inflate(R.layout.room_layout, parent, false)
-
-        return RoomViewHolder(rootView)
+        binding = RoomLayoutBinding.inflate(LayoutInflater.from(parent.context))
+        return RoomViewHolder(binding!!.root)
     }
 
     override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
@@ -29,9 +28,9 @@ class RoomAdapter(val dataset: List<Room>) : RecyclerView.Adapter<RoomAdapter.Ro
     override fun getItemCount() = dataset.size
 
     fun setSchedule(view: View, room: Room) {
-        view.title.text = room.room
+        binding!!.title.text = room.room
 
-        view.schedules.removeAllViews()
+        binding!!.schedules.removeAllViews()
         val formatTime = view.context.getString(R.string.hour_format)
         val formatTotalTime = view.context.getString(R.string.from_to_format)
 
@@ -39,7 +38,7 @@ class RoomAdapter(val dataset: List<Room>) : RecyclerView.Adapter<RoomAdapter.Ro
             val startTime = schedule.start.toFormattedTime(formatTime)
             val endTime = schedule.end.toFormattedTime(formatTime)
 
-            view.schedules.addView(TextView(view.context).apply {
+            binding!!.schedules.addView(TextView(view.context).apply {
                 text = formatTotalTime.format(startTime, endTime)
             })
         }

@@ -17,31 +17,34 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.edt.ut3.R
 import com.edt.ut3.backend.goulin_room_finder.Building
 import com.edt.ut3.backend.goulin_room_finder.Room
+import com.edt.ut3.databinding.RoomFinderFragmentBinding
 import com.edt.ut3.misc.extensions.addOnBackPressedListener
 import com.edt.ut3.misc.extensions.hideKeyboard
 import com.edt.ut3.misc.extensions.onBackPressed
 import com.edt.ut3.misc.extensions.toDp
 import com.edt.ut3.ui.room_finder.RoomFinderState.*
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.room_finder_fragment.*
 import java.util.*
 
     class RoomFinderFragment : Fragment() {
 
     private val viewModel: RoomFinderViewModel by activityViewModels()
-
+    private var binding: RoomFinderFragmentBinding? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? = inflater.inflate(R.layout.room_finder_fragment, container, false)
+    ): View? {
+        binding = RoomFinderFragmentBinding.inflate(inflater)
+        return binding!!.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        result.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-        result.addItemDecoration(RoomAdapter.RoomSeparator())
+        binding!!.result.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        binding!!.result.addItemDecoration(RoomAdapter.RoomSeparator())
 
         setupFilters()
         setupListeners()
@@ -65,13 +68,13 @@ import java.util.*
         }
 
 
-        hints.setOnItemClickListener { _: AdapterView<*>, view: View, _: Int, _: Long ->
+        binding!!.hints.setOnItemClickListener { _: AdapterView<*>, view: View, _: Int, _: Long ->
             if (view is TextView) {
                 viewModel.selectBuilding(view.text.toString())
             }
         }
 
-        search_bar.apply {
+        binding!!.searchBar.apply {
             doOnTextChanged { text, _, _, _ ->
                 viewModel.updateBarText(text.toString())
             }
@@ -94,7 +97,7 @@ import java.util.*
             }
         }
 
-        filters_chipgroup.children.forEach { child ->
+        binding!!.filtersChipgroup.children.forEach { child ->
             if (child is RoomFilterChip) {
                 child.setOnClickListener {
                     if (child.isChecked) {
@@ -114,10 +117,10 @@ import java.util.*
     }
 
     private fun invertHintsVisibility() {
-        hints.run {
+        binding!!.hints.run {
             if (visibility != VISIBLE) {
                 visibility = VISIBLE
-                search_bar_container?.cardElevation = 8.toDp(context)
+                binding!!.searchBarContainer.cardElevation = 8.toDp(context)
             } else {
                 hideHints()
             }
@@ -125,15 +128,15 @@ import java.util.*
     }
 
     private fun hideHints() {
-        search_bar_container?.cardElevation = 0f
-        hints?.visibility = GONE
+        binding!!.searchBarContainer.cardElevation = 0f
+        binding!!.hints.visibility = GONE
 
-        search_bar.clearFocus()
+        binding!!.searchBar.clearFocus()
         hideKeyboard()
     }
 
     private fun setupFilters() {
-        filter_from_now?.filter = { room ->
+        binding!!.filterFromNow.filter = { room ->
             val now = Date()
             room.map { it.withoutPastSchedules(now) }
                 .filter { it.freeSchedules.isNotEmpty() }
@@ -147,7 +150,7 @@ import java.util.*
      * @param action The action to perform when the action button is clicked
      */
     private fun displayInternetError(actionLabel: Int = R.string.action_retry, action: (View?) -> Unit) {
-        Snackbar.make(result, getString(R.string.data_update_failed), Snackbar.LENGTH_INDEFINITE)
+        Snackbar.make(binding!!.result, getString(R.string.data_update_failed), Snackbar.LENGTH_INDEFINITE)
             .setAction(actionLabel, action)
             .show()
     }
@@ -161,37 +164,37 @@ import java.util.*
      */
     private fun handleStateChange(state: RoomFinderState) = when (state) {
         is Presentation -> {
-            thanks.visibility = VISIBLE
-            hints.visibility = GONE
-            loading_container.visibility = INVISIBLE
-            result.visibility = INVISIBLE
+            binding!!.thanks.visibility = VISIBLE
+            binding!!.hints.visibility = GONE
+            binding!!.loadingContainer.visibility = INVISIBLE
+            binding!!.result.visibility = INVISIBLE
 
-            search_bar.clearFocus()
+            binding!!.searchBar.clearFocus()
             hideKeyboard()
         }
 
         is Result -> {
-            thanks.visibility = INVISIBLE
-            loading_container.visibility = INVISIBLE
-            result.visibility = VISIBLE
+            binding!!.thanks.visibility = INVISIBLE
+            binding!!.loadingContainer.visibility = INVISIBLE
+            binding!!.result.visibility = VISIBLE
 
             hideHints()
-            search_bar.clearFocus()
+            binding!!.searchBar.clearFocus()
             hideKeyboard()
         }
 
         is Searching -> {
-            thanks.visibility = INVISIBLE
-            loading_container.visibility = VISIBLE
-            result.visibility = INVISIBLE
+            binding!!.thanks.visibility = INVISIBLE
+            binding!!.loadingContainer.visibility = VISIBLE
+            binding!!.result.visibility = INVISIBLE
             hideHints()
         }
 
         is Downloading -> {
-            hints.visibility = GONE
-            thanks.visibility = INVISIBLE
-            loading_container.visibility = INVISIBLE
-            result.visibility = INVISIBLE
+            binding!!.hints.visibility = GONE
+            binding!!.thanks.visibility = INVISIBLE
+                binding!!.loadingContainer.visibility = INVISIBLE
+            binding!!.result.visibility = INVISIBLE
         }
     }
 
@@ -237,7 +240,7 @@ import java.util.*
      */
     private fun handleSearchUpdate(rooms: List<Room>) {
         Log.d(this::class.simpleName, "New rooms: $rooms")
-        result.adapter = RoomAdapter(rooms)
+        binding!!.result.adapter = RoomAdapter(rooms)
     }
 
     /**
@@ -248,9 +251,9 @@ import java.util.*
      */
     private fun handleTextChanged(text: String?) {
         when (text) {
-            search_bar?.text, null -> {}
+            binding!!.searchBar.text, null -> {}
             else -> {
-                search_bar?.text = text
+                binding!!.searchBar.text = text
             }
         }
     }
@@ -261,7 +264,7 @@ import java.util.*
      * @param buildings The new buildings
      */
     private fun handleBuildingUpdate(buildings: Set<Building>) {
-        hints.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, buildings.map { it.name })
+        binding!!.hints.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, buildings.map { it.name })
     }
 
 }
