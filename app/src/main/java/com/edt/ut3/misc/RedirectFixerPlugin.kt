@@ -13,6 +13,18 @@ import io.ktor.util.KtorDsl
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
+
+/**
+* Un plugin de Ktor qui permet de changer la méthode des requêtes en GET quand elles ont été redirigées
+* au moins une fois par un status code 302. C'est le comportement par défaut des navigateurs, même si 
+* c'est techniquement une erreur d'implémentation de la spécification.
+*
+* Le plugin intercepte les requêtes sortantes, et si la requête est une requête POST et que la réponse
+* est un code 302, alors la requête suivante sera une requête GET. Idéalement il faudrait vérifier que
+* l'origine est la même, et encore plus idéalement il faudrait patcher le plugin HttpRedirect lui-même,
+* mais ça devrait être suffisant pour 99% des situations.  
+* 
+*/
 class RedirectFixerPlugin{
 
     var changeNextRequestMethod = AtomicBoolean(false)
