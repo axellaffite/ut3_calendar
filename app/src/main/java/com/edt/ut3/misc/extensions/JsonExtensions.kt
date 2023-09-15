@@ -12,6 +12,15 @@ fun <T> JSONArray.toList(): List<T> =
         get(it) as T
     }
 
+@Throws(JSONException::class)
+fun  JsonObject.toStringMap(): Map<String, String> {
+    val map = HashMap<String, String>()
+    for (key in keys) {
+        map[key] = get(key).toString()
+    }
+    return map
+}
+
 fun <T> JSONArray.map(consumer: (Any?) -> T) =
     (0 until length()).map {
         consumer(get(it))

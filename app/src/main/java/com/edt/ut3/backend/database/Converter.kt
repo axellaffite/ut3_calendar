@@ -28,7 +28,7 @@ class Converter {
     fun fromTimestamp(time: Long) = Date(time)
 
     @TypeConverter
-    fun serializePicture(pictures: List<Picture>) = JSONArray(
+    fun serializePictureList(pictures: MutableList<Picture>) = JSONArray(
         pictures.map {
             JSONObject().apply {
                 put("picture", it.picture)
@@ -38,11 +38,11 @@ class Converter {
     ).toString()
 
     @TypeConverter
-    fun deserializePicture(str: String) = JSONArray(str).map {
+    fun deserializePictureList(str: String): MutableList<Picture> = JSONArray(str).map {
         (it as JSONObject).run {
             Picture(picture = getString("picture"), thumbnail = getString("thumbnail"))
         }
-    }
+    }.toMutableList()
 
     @TypeConverter
     fun serializeGeoPoint(geoPoint: GeoPoint) = JSONObject().apply {

@@ -16,7 +16,7 @@ import kotlinx.coroutines.Job
 abstract class StateFragment: Fragment() {
 
     private val viewModel: StateViewModel by viewModels()
-    private val binding: StateFragmentBinding? = null
+    private var binding: StateFragmentBinding? = null
 
     private var onRequestBackJob: Job? = null
     private var onRequestNextJob: Job? = null
@@ -27,7 +27,10 @@ abstract class StateFragment: Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? = StateFragmentBinding.inflate(inflater).root
+    ): View?{
+        binding = StateFragmentBinding.inflate(inflater, container, false)
+        return binding!!.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

@@ -6,6 +6,8 @@
 
 plugins{
     id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlin-parcelize'
     id 'kotlinx-serialization'
     id 'com.google.gms.google-services'
     id 'com.google.devtools.ksp' version '1.8.22-1.0.11'
@@ -31,7 +33,14 @@ android {
                 androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
             }
         }
+        kotlinOptions{
+            jvmTarget="17"
+        }
+        kotlin{
+            jvmToolchain(17)
+        }
     }
+
 
     buildTypes {
         release {
@@ -78,6 +87,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-inappmessaging-display:20.3.3'
     implementation 'com.google.firebase:firebase-messaging:23.2.1'
     implementation "androidx.activity:activity-ktx:1.7.2"
+    implementation 'com.davemorrissey.labs:subsampling-scale-image-view-androidx:3.10.0'
+
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 
@@ -106,10 +117,10 @@ dependencies {
     implementation "androidx.room:room-rxjava2:$room_version"
 
     // To easily test database migrations
-    //def test_version = "1.5.2"
-    //androidTestImplementation "androidx.test:runner:$test_version"
-    //androidTestImplementation "androidx.test:rules:$test_version"
-    //androidTestImplementation "androidx.room:room-testing:$room_version"
+    def test_version = "1.4.0"
+    androidTestImplementation "androidx.test:runner:$test_version"
+    androidTestImplementation "androidx.test:rules:$test_version"
+    androidTestImplementation "androidx.room:room-testing:$room_version"
 
 
 
@@ -159,8 +170,8 @@ dependencies {
     implementation 'com.github.liip:SweetPreferences:1.0.3'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version" // or "kotlin-stdlib-jdk8"
-    //implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.1" // JVM dependency
-    //implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.1" // JVM dependency
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1"
 
     // Name: Dexter
     // Summary : Simplified permissions for Android
@@ -189,7 +200,7 @@ dependencies {
     implementation "io.insert-koin:koin-androidx-compose:$koin_version"
 
 
-    def ktor_version = "2.2.0"
+    def ktor_version = "2.3.4"
     implementation "io.ktor:ktor-client-core:$ktor_version"
     implementation "io.ktor:ktor-client-cio:$ktor_version"
     implementation "io.ktor:ktor-client-serialization:$ktor_version"
@@ -204,7 +215,7 @@ dependencies {
     // Required -- JUnit 4 framework
     testImplementation 'junit:junit:4.13.2'
     // Optional -- Robolectric environment
-    //testImplementation 'androidx.test:core:1.5.0'
+    testImplementation 'androidx.test:core:1.5.0'
     // Optional -- Mockito framework
     testImplementation 'org.mockito:mockito-core:1.10.19'
 }

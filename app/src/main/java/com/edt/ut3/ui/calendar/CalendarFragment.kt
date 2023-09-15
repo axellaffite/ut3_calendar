@@ -70,7 +70,10 @@ class CalendarFragment : BottomSheetFragment(),
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? = FragmentCalendarBinding.inflate(inflater).root
+    ): View? {
+        binding = FragmentCalendarBinding.inflate(inflater, container, false)
+        return binding!!.root
+    }
 
     /**
      * This function is used to update the calendar mode
@@ -87,7 +90,7 @@ class CalendarFragment : BottomSheetFragment(),
 
         preferences.calendarMode = newPreference
 
-        binding!!.actionView?.menu?.findItem(R.id.change_view)?.let {
+        binding!!.actionView.menu?.findItem(R.id.change_view)?.let {
             it.isEnabled = newPreference.mode == CalendarMode.Mode.AGENDA
         }
     }
