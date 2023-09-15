@@ -6,7 +6,12 @@ import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.edt.ut3.backend.requests.authentication_services.Credentials
-
+import java.util.Dictionary
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObjectBuilder
+import kotlinx.serialization.json.jsonObject
+import com.edt.ut3.misc.extensions.toJsonOject
+import com.edt.ut3.misc.extensions.toStringMap
 
 /**
  * This class is used to store the user credentials.
@@ -74,6 +79,25 @@ class CredentialsManager private constructor(val context: Context) {
         getCredentialsPreferenceFile().edit {
             putString("username", null)
             putString("password", null)
+        }
+    }
+
+    fun getLocalVariables(): Map<String, String>? = synchronized(this) {
+        getCredentialsPreferenceFile().run{
+            val localStorageStr = getString("localStorage", null) ?: return null
+            Json.parseToJsonElement(localStorageStr).jsonObject.toStringMap()
+        }
+    }
+
+    fun clearLocalVariables(): Unit = synchronized(this) {
+        getCredentialsPreferenceFile().edit{
+            remove("localStorage")
+        }
+    }
+
+    fun saveLocalVariables(localVariables: Map<String, String>): Unit = synchronized(this) {
+        getCredentialsPreferenceFile().edit {
+            putString("localStorage", localVariables.toJsonOject().toString())
         }
     }
 

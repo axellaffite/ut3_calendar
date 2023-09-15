@@ -3,6 +3,7 @@ package com.edt.ut3.backend.requests
 import android.content.Context
 import com.edt.ut3.backend.credentials.CredentialsManager
 import com.edt.ut3.backend.requests.authentication_services.Authenticator
+import com.edt.ut3.misc.RedirectFixerPlugin
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.HttpClient
@@ -37,7 +38,10 @@ fun getClient() = HttpClient(CIO) {
 
     install(HttpRedirect) {
         checkHttpMethod = false
+
     }
+    install(RedirectFixerPlugin){}
+
 }
 
 suspend fun HttpClient.authenticateIfNeeded(

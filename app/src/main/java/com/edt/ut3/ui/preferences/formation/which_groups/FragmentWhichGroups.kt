@@ -155,9 +155,9 @@ class FragmentWhichGroups: Fragment() {
     }
 
     private fun updateChips(groups: Set<School.Info.Group>) {
-        binding!!.selectedGroups?.removeAllViews()
+        binding!!.selectedGroups.removeAllViews()
         groups.forEach { group ->
-            binding!!.selectedGroups?.addView(Chip(requireContext()).apply {
+            binding!!.selectedGroups.addView(Chip(requireContext()).apply {
                 text = if (group.text.length > 20) {
                     group.text.substring(0, 10) + "..." + group.text.substring(group.text.length - 10)
                 } else {

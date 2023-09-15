@@ -2,6 +2,7 @@ package com.edt.ut3.ui.custom_views.searchbar
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
 import androidx.cardview.widget.CardView
@@ -20,14 +21,12 @@ import java.util.*
 class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, attrs: AttributeSet? = null)
     : CardView(context, attrs)
 {
-    private var binding: LayoutSearchBarBinding? = null
+    private var binding: LayoutSearchBarBinding
     // parce qu'il y a du code ailleurs qui en a besoin...
     public var searchBar: EditText? = null
     public var results: RecyclerView? = null
     init {
-        binding = LayoutSearchBarBinding.bind(this)
-        searchBar = binding!!.searchBar
-        results = binding!!.results
+        binding = LayoutSearchBarBinding.inflate(LayoutInflater.from(context), this)
         context.theme.obtainStyledAttributes(
             attrs,
             R.styleable.SearchBar,
@@ -35,13 +34,13 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
 
             try {
                 setCardBackgroundColor(getColor(R.styleable.SearchBar_backgroundColor, ContextCompat.getColor(context, R.color.backgroundColor)))
-                binding!!.searchBar.hint = getString(R.styleable.SearchBar_placeHolder) ?: "..."
+                binding.searchBar.hint = getString(R.styleable.SearchBar_placeHolder) ?: "..."
             } finally {
                 recycle()
             }
         }
 
-        binding!!.searchBar.doOnTextChanged { text, _, _, _ ->
+        binding.searchBar.doOnTextChanged { text, _, _, _ ->
             if (hasFocus()) {
                 search()
             }
@@ -56,19 +55,19 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
     private var filteredDataSet = mutableListOf<Data>()
 
     fun hideResults() {
-        binding!!.results?.visibility = View.GONE
+        binding.results?.visibility = View.GONE
     }
 
     fun showResults() {
-        binding!!.results?.visibility = View.VISIBLE
+        binding.results?.visibility = View.VISIBLE
     }
 
     fun hideFilters() {
-        binding!!.results?.visibility = View.GONE
+        binding.results?.visibility = View.GONE
     }
 
     fun showFilters() {
-        binding!!.results?.visibility = View.VISIBLE
+        binding.results?.visibility = View.VISIBLE
     }
 
     fun configure(
@@ -85,12 +84,12 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
 
     fun removeFilters(vararg chips: FilterChip<Data>) {
         chips.forEach {
-            binding!!.filters?.removeView(it)
+            binding.filters?.removeView(it)
         }
     }
 
     fun clearFilters() {
-        binding!!.filters?.removeAllViews()
+        binding.filters?.removeAllViews()
     }
 
     fun setFilters(vararg chips: FilterChip<Data>) {
@@ -100,7 +99,7 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
 
     fun addFilters(vararg chips: FilterChip<Data>) {
         chips.forEach {
-            binding!!.filters.addView(it.apply {
+            binding.filters.addView(it.apply {
                 setOnCheckedChangeListener { _, _ ->
                     search()
                 }
@@ -109,8 +108,8 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
     }
 
     private fun setAdapter(adapter: Adapter) {
-        binding!!.results.layoutManager = LinearLayoutManager(context)
-        binding!!.results.adapter = adapter
+        binding.results.layoutManager = LinearLayoutManager(context)
+        binding.results.adapter = adapter
         adapter.setDataSet(filteredDataSet)
     }
 
@@ -120,7 +119,7 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun getFilters(): List<FilterChip.Filter<Data>> = binding!!.filters?.children?.mapNotNull {
+    fun getFilters(): List<FilterChip.Filter<Data>> = binding.filters?.children?.mapNotNull {
         with (it as? FilterChip<Data>) {
             this?.filter?.takeIf { this.isChecked }
         }
@@ -128,7 +127,7 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
 
     fun search(matchSearchBarText: Boolean = true, callback: ((List<Data>) -> Unit)? = null) {
         val query = if (matchSearchBarText) {
-            binding!!.searchBar.text.toString()
+            binding.searchBar.text.toString()
         } else { String() }
 
 
@@ -165,8 +164,8 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
         filteredDataSet.addAll(filtered)
 
         withContext(Main) {
-            if (query == binding!!.searchBar.text.toString()) {
-                val res = binding!!.results.adapter
+            if (query == binding.searchBar.text.toString()) {
+                val res = binding.results.adapter
                 res?.notifyDataSetChanged()
             }
 
