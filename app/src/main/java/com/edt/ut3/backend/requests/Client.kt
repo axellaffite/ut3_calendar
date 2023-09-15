@@ -28,7 +28,7 @@ fun getClient() = HttpClient(CIO) {
     }
 
     install(ContentNegotiation) {
-        json()
+        json(JsonSerializer)
     }
 
     install(Logging) {
