@@ -4,7 +4,6 @@ import android.content.Context
 import com.edt.ut3.backend.credentials.CredentialsManager
 import com.edt.ut3.backend.requests.authentication_services.Authenticator
 import com.edt.ut3.misc.RedirectFixerPlugin
-import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpRedirect
