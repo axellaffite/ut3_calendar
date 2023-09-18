@@ -48,7 +48,7 @@ class CalendarFragment : BottomSheetFragment(),
     enum class Status { IDLE, UPDATING }
 
     private val calendarViewModel: CalendarViewModel by activityViewModels()
-    private var binding: FragmentCalendarBinding? = null
+    private lateinit var binding: FragmentCalendarBinding
 
     private var status = Status.IDLE
 
@@ -60,7 +60,7 @@ class CalendarFragment : BottomSheetFragment(),
                 PreferencesManager.PreferenceKeys.CALENDAR_MODE.key -> {
                     val newPreference = preferences.calendarMode
                     updateBarText(calendarViewModel.selectedDate.value!!, newPreference)
-                    binding!!.pager?.notifyDataSetChanged()
+                    binding.pager?.notifyDataSetChanged()
                 }
             }
         }
@@ -72,7 +72,7 @@ class CalendarFragment : BottomSheetFragment(),
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentCalendarBinding.inflate(inflater, container, false)
-        return binding!!.root
+        return binding.root
     }
 
     /**
@@ -90,7 +90,7 @@ class CalendarFragment : BottomSheetFragment(),
 
         preferences.calendarMode = newPreference
 
-        binding!!.actionView.menu?.findItem(R.id.change_view)?.let {
+        binding.actionView.menu?.findItem(R.id.change_view)?.let {
             it.isEnabled = newPreference.mode == CalendarMode.Mode.AGENDA
         }
     }
@@ -112,7 +112,7 @@ class CalendarFragment : BottomSheetFragment(),
         setupBackButtonListener()
 
         view.run {
-            binding!!.actionView?.menu?.findItem(R.id.change_view)?.let {
+            binding.actionView?.menu?.findItem(R.id.change_view)?.let {
                 updateViewIcon(it)
             }
 
@@ -123,7 +123,7 @@ class CalendarFragment : BottomSheetFragment(),
     }
 
     private fun setupBottomSheetManager() {
-        bottomSheetManager.add(binding!!.optionsContainer, binding!!.eventDetailsContainer)
+        bottomSheetManager.add(binding.optionsContainer, binding.eventDetailsContainer)
     }
 
     /**
@@ -154,7 +154,7 @@ class CalendarFragment : BottomSheetFragment(),
      * the animation.
      */
     private fun setupViewPager() {
-        binding!!.pager?.apply {
+        binding.pager?.apply {
             // Creates the pager and assign it to
             // the ViewPager2.
             val pagerAdapter = DaySlider(this@CalendarFragment)
@@ -180,14 +180,14 @@ class CalendarFragment : BottomSheetFragment(),
         // This listener is in charge to listen to the
         // AppBar offset in order to hide things when
         // necessary ( such as the refresh buttons and the action bar ).
-        binding!!.scrollView?.onScrollChangeListeners?.add { _: Int, y: Int, _: Int, _: Int ->
+        binding.scrollView?.onScrollChangeListeners?.add { _: Int, y: Int, _: Int, _: Int ->
             hideRefreshWhenNecessary(y)
         }
 
         // Force the Updater to perform an update
         // and hides the refresh button.
-        binding!!.refreshButton?.setOnClickListener {
-            binding!!.refreshButton.hide()
+        binding.refreshButton?.setOnClickListener {
+            binding.refreshButton.hide()
             status = Status.UPDATING
 
             forceUpdate()
@@ -195,23 +195,23 @@ class CalendarFragment : BottomSheetFragment(),
 
         // Launch the setting fragment
         // when clicked.
-        binding!!.settingsButton?.setOnClickListener {
+        binding.settingsButton?.setOnClickListener {
             findNavController().navigate(R.id.action_navigation_calendar_to_preferencesFragment)
         }
 
         preferences.observe(preferenceChangeListener)
 
-        binding!!.scrollView?.post {
-            binding!!.scrollView?.let {
-                binding!!.pager?.apply {
+        binding.scrollView?.post {
+            binding.scrollView?.let {
+                binding.pager?.apply {
                     layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, it.height)
                 }
             }
         }
 
-        binding!!.actionView?.setOnMenuItemClickListener(this)
+        binding.actionView?.setOnMenuItemClickListener(this)
 
-        binding!!.eventDetailsContainer?.let {
+        binding.eventDetailsContainer?.let {
             BottomSheetBehavior.from(it).addBottomSheetCallback(object:
                 BottomSheetBehavior.BottomSheetCallback() {
                 override fun onStateChanged(bottomSheet: View, newState: Int) {
@@ -237,21 +237,21 @@ class CalendarFragment : BottomSheetFragment(),
      */
     private fun setupCalendarListeners() {
         calendarViewModel.getEvents(requireContext()).observe(viewLifecycleOwner) {
-            binding!!.pager?.notifyDataSetChanged()
+            binding.pager?.notifyDataSetChanged()
         }
 
         // This listener allows the CalendarViewerFragments to keep
         // up to date their contents by listening to the
         // view model's selectedDate variable.
-        binding!!.calendarView?.setOnDateChangeListener { _, year, month, dayOfMonth ->
+        binding.calendarView?.setOnDateChangeListener { _, year, month, dayOfMonth ->
             val newDate = Date().set(year, month, dayOfMonth).timeCleaned()
 
             calendarViewModel.selectedDate.value = newDate
-            binding!!.pager?.notifyDataSetChanged()
+            binding.pager?.notifyDataSetChanged()
         }
 
         calendarViewModel.selectedDate.observe(viewLifecycleOwner) { selectedDate ->
-            binding!!.calendarView?.run {
+            binding.calendarView?.run {
                 if (selectedDate.time != date) {
                     setDate(selectedDate.time, false, false)
                 }
@@ -269,7 +269,7 @@ class CalendarFragment : BottomSheetFragment(),
         // This is done to give information to the
         // CalendarViewerFragments in order to keep
         // them up to date.
-        binding!!.pager?.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
+        binding.pager?.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
                 super.onPageScrolled(position, positionOffset, positionOffsetPixels)
 
@@ -292,7 +292,7 @@ class CalendarFragment : BottomSheetFragment(),
         })
 
         calendarViewModel.getCoursesVisibility(requireContext()).observe(viewLifecycleOwner) {
-            binding!!.pager?.notifyDataSetChanged()
+            binding.pager?.notifyDataSetChanged()
         }
 
 
@@ -301,7 +301,7 @@ class CalendarFragment : BottomSheetFragment(),
         val childFragment = childFragmentManager.findFragmentById(R.id.event_details)
         if (childFragment is FragmentEventDetails) {
             childFragment.onReady = {
-                bottomSheetManager.setVisibleSheet(binding!!.eventDetailsContainer)
+                bottomSheetManager.setVisibleSheet(binding.eventDetailsContainer)
             }
 
             childFragment.listenTo = calendarViewModel.selectedEvent
@@ -327,7 +327,7 @@ class CalendarFragment : BottomSheetFragment(),
 
                     status = Status.IDLE
 
-                    binding!!.scrollView?.scrollY?.let {
+                    binding.scrollView?.scrollY?.let {
                         hideRefreshWhenNecessary(it)
                     }
                 }
@@ -337,7 +337,7 @@ class CalendarFragment : BottomSheetFragment(),
                 when (state) {
                     WorkInfo.State.FAILED -> {
                         Snackbar.make(
-                            binding!!.frontLayout,
+                            binding.frontLayout,
                             R.string.update_failed,
                             Snackbar.LENGTH_INDEFINITE
                         )
@@ -347,7 +347,7 @@ class CalendarFragment : BottomSheetFragment(),
                     }
 
                     WorkInfo.State.SUCCEEDED -> {
-                        Snackbar.make(binding!!.frontLayout, R.string.update_succeeded, Snackbar.LENGTH_LONG)
+                        Snackbar.make(binding.frontLayout, R.string.update_succeeded, Snackbar.LENGTH_LONG)
                             .addCallback(swipeCallback)
                             .show()
                     }
@@ -368,12 +368,12 @@ class CalendarFragment : BottomSheetFragment(),
     private fun hideRefreshWhenNecessary(verticalOffset: Int) {
         if (verticalOffset < 100) {
             if (status != Status.UPDATING) {
-                binding!!.refreshButton.show()
+                binding.refreshButton.show()
             }
-            binding!!.settingsButton.show()
+            binding.settingsButton.show()
         } else {
-            binding!!.settingsButton.hide()
-            binding!!.refreshButton.hide()
+            binding.settingsButton.hide()
+            binding.refreshButton.hide()
         }
     }
 
@@ -388,7 +388,7 @@ class CalendarFragment : BottomSheetFragment(),
     }
 
     private fun onVisibilityClick(): Boolean {
-        return binding!!.let { root ->
+        return binding.let { root ->
             BottomSheetBehavior.from(root.optionsContainer).apply {
                 when (state) {
                     STATE_COLLAPSED -> {
@@ -432,7 +432,7 @@ class CalendarFragment : BottomSheetFragment(),
             set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
         }.time
 
-        binding!!.actionView?.apply {
+        binding.actionView?.apply {
             val newTitle = when (mode) {
                 CalendarMode.default() -> {
                     SimpleDateFormat("EEE dd/MM/yyyy", Locale.getDefault()).format(date)
@@ -489,7 +489,7 @@ class CalendarFragment : BottomSheetFragment(),
                         this@CalendarFragment::buildEventView,
                         this@CalendarFragment::buildEmptyDayView,
                         this@CalendarFragment::buildAllDayView
-                    ).build(binding!!.pager.height, binding!!.pager.width)
+                    ).build(binding.pager.height, binding.pager.width)
                 }
             }
         }

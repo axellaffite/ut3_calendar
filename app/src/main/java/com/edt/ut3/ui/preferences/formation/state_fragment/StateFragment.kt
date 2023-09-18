@@ -16,7 +16,7 @@ import kotlinx.coroutines.Job
 abstract class StateFragment: Fragment() {
 
     private val viewModel: StateViewModel by viewModels()
-    private var binding: StateFragmentBinding? = null
+    private lateinit var binding: StateFragmentBinding
 
     private var onRequestBackJob: Job? = null
     private var onRequestNextJob: Job? = null
@@ -29,7 +29,7 @@ abstract class StateFragment: Fragment() {
         savedInstanceState: Bundle?
     ): View?{
         binding = StateFragmentBinding.inflate(inflater, container, false)
-        return binding!!.root
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -42,14 +42,14 @@ abstract class StateFragment: Fragment() {
     }
 
     private fun setupView() {
-        binding!!.pager?.adapter = StateAdapter(this)
-        binding!!.pager?.isUserInputEnabled = false
+        binding.pager?.adapter = StateAdapter(this)
+        binding.pager?.isUserInputEnabled = false
     }
 
     private fun setupListeners() {
         viewModel.run {
             position.observe(viewLifecycleOwner) { position: StateViewModel.Position ->
-                binding!!.pager?.currentItem = position.current ?: 0
+                binding.pager?.currentItem = position.current ?: 0
                 resetBackText()
                 resetNextText()
                 setTitle(builders[position.current ?: 0].title)
@@ -57,17 +57,17 @@ abstract class StateFragment: Fragment() {
             }
 
             title.observe(viewLifecycleOwner) {
-                binding!!.title?.setText(it)
+                binding.title?.setText(it)
             }
 
             summary.observe(viewLifecycleOwner) {
-                binding!!.summary?.setText(it)
+                binding.summary?.setText(it)
             }
         }
 
         addOnBackPressedListener { requestBack() }
-        binding!!.back.setOnClickListener { requestBack() }
-        binding!!.next.setOnClickListener { requestNext() }
+        binding.back.setOnClickListener { requestBack() }
+        binding.next.setOnClickListener { requestNext() }
     }
 
     private fun requestBack() = synchronized(this) {
@@ -93,7 +93,7 @@ abstract class StateFragment: Fragment() {
     }
 
     public fun setActionButtonsVisibility(visibility: Int){
-        binding!!.actionButtons?.visibility = visibility;
+        binding.actionButtons?.visibility = visibility;
     }
     abstract fun initFragments(): List<StateFragmentBuilder>
 
@@ -111,19 +111,19 @@ abstract class StateFragment: Fragment() {
 
     fun setSummary(id: Int) = viewModel.setDescription(id)
 
-    fun setBackText(id: Int) = binding!!.back?.setText(id)
+    fun setBackText(id: Int) = binding.back?.setText(id)
     fun resetBackText() {
-        val text = when (binding!!.pager?.currentItem)  {
+        val text = when (binding.pager?.currentItem)  {
             0 -> R.string.step_cancel
             else -> R.string.step_back
         }
 
-        binding!!.back?.setText(text)
+        binding.back?.setText(text)
     }
 
-    fun setNextText(id: Int) = binding!!.next?.setText(id)
+    fun setNextText(id: Int) = binding.next?.setText(id)
     fun resetNextText() {
-        val text = when (binding!!.pager?.currentItem) {
+        val text = when (binding.pager?.currentItem) {
             builders.lastIndex -> {
                 R.string.step_finish
             }
@@ -133,7 +133,7 @@ abstract class StateFragment: Fragment() {
             }
         }
 
-        binding!!.next.setText(text)
+        binding.next.setText(text)
     }
 
 

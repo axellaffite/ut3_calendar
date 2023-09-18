@@ -29,7 +29,7 @@ import java.util.*
     class RoomFinderFragment : Fragment() {
 
     private val viewModel: RoomFinderViewModel by activityViewModels()
-    private var binding: RoomFinderFragmentBinding? = null
+    private lateinit var binding: RoomFinderFragmentBinding
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,14 +37,14 @@ import java.util.*
         savedInstanceState: Bundle?
     ): View? {
         binding = RoomFinderFragmentBinding.inflate(inflater)
-        return binding!!.root
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding!!.result.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-        binding!!.result.addItemDecoration(RoomAdapter.RoomSeparator())
+        binding.result.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        binding.result.addItemDecoration(RoomAdapter.RoomSeparator())
 
         setupFilters()
         setupListeners()
@@ -68,13 +68,13 @@ import java.util.*
         }
 
 
-        binding!!.hints.setOnItemClickListener { _: AdapterView<*>, view: View, _: Int, _: Long ->
+        binding.hints.setOnItemClickListener { _: AdapterView<*>, view: View, _: Int, _: Long ->
             if (view is TextView) {
                 viewModel.selectBuilding(view.text.toString())
             }
         }
 
-        binding!!.searchBar.apply {
+        binding.searchBar.apply {
             doOnTextChanged { text, _, _, _ ->
                 viewModel.updateBarText(text.toString())
             }
@@ -97,7 +97,7 @@ import java.util.*
             }
         }
 
-        binding!!.filtersChipgroup.children.forEach { child ->
+        binding.filtersChipgroup.children.forEach { child ->
             if (child is RoomFilterChip) {
                 child.setOnClickListener {
                     if (child.isChecked) {
@@ -117,10 +117,10 @@ import java.util.*
     }
 
     private fun invertHintsVisibility() {
-        binding!!.hints.run {
+        binding.hints.run {
             if (visibility != VISIBLE) {
                 visibility = VISIBLE
-                binding!!.searchBarContainer.cardElevation = 8.toDp(context)
+                binding.searchBarContainer.cardElevation = 8.toDp(context)
             } else {
                 hideHints()
             }
@@ -128,15 +128,15 @@ import java.util.*
     }
 
     private fun hideHints() {
-        binding!!.searchBarContainer.cardElevation = 0f
-        binding!!.hints.visibility = GONE
+        binding.searchBarContainer.cardElevation = 0f
+        binding.hints.visibility = GONE
 
-        binding!!.searchBar.clearFocus()
+        binding.searchBar.clearFocus()
         hideKeyboard()
     }
 
     private fun setupFilters() {
-        binding!!.filterFromNow.filter = { room ->
+        binding.filterFromNow.filter = { room ->
             val now = Date()
             room.map { it.withoutPastSchedules(now) }
                 .filter { it.freeSchedules.isNotEmpty() }
@@ -150,7 +150,7 @@ import java.util.*
      * @param action The action to perform when the action button is clicked
      */
     private fun displayInternetError(actionLabel: Int = R.string.action_retry, action: (View?) -> Unit) {
-        Snackbar.make(binding!!.result, getString(R.string.data_update_failed), Snackbar.LENGTH_INDEFINITE)
+        Snackbar.make(binding.result, getString(R.string.data_update_failed), Snackbar.LENGTH_INDEFINITE)
             .setAction(actionLabel, action)
             .show()
     }
@@ -164,37 +164,37 @@ import java.util.*
      */
     private fun handleStateChange(state: RoomFinderState) = when (state) {
         is Presentation -> {
-            binding!!.thanks.visibility = VISIBLE
-            binding!!.hints.visibility = GONE
-            binding!!.loadingContainer.visibility = INVISIBLE
-            binding!!.result.visibility = INVISIBLE
+            binding.thanks.visibility = VISIBLE
+            binding.hints.visibility = GONE
+            binding.loadingContainer.visibility = INVISIBLE
+            binding.result.visibility = INVISIBLE
 
-            binding!!.searchBar.clearFocus()
+            binding.searchBar.clearFocus()
             hideKeyboard()
         }
 
         is Result -> {
-            binding!!.thanks.visibility = INVISIBLE
-            binding!!.loadingContainer.visibility = INVISIBLE
-            binding!!.result.visibility = VISIBLE
+            binding.thanks.visibility = INVISIBLE
+            binding.loadingContainer.visibility = INVISIBLE
+            binding.result.visibility = VISIBLE
 
             hideHints()
-            binding!!.searchBar.clearFocus()
+            binding.searchBar.clearFocus()
             hideKeyboard()
         }
 
         is Searching -> {
-            binding!!.thanks.visibility = INVISIBLE
-            binding!!.loadingContainer.visibility = VISIBLE
-            binding!!.result.visibility = INVISIBLE
+            binding.thanks.visibility = INVISIBLE
+            binding.loadingContainer.visibility = VISIBLE
+            binding.result.visibility = INVISIBLE
             hideHints()
         }
 
         is Downloading -> {
-            binding!!.hints.visibility = GONE
-            binding!!.thanks.visibility = INVISIBLE
-                binding!!.loadingContainer.visibility = INVISIBLE
-            binding!!.result.visibility = INVISIBLE
+            binding.hints.visibility = GONE
+            binding.thanks.visibility = INVISIBLE
+                binding.loadingContainer.visibility = INVISIBLE
+            binding.result.visibility = INVISIBLE
         }
     }
 
@@ -240,7 +240,7 @@ import java.util.*
      */
     private fun handleSearchUpdate(rooms: List<Room>) {
         Log.d(this::class.simpleName, "New rooms: $rooms")
-        binding!!.result.adapter = RoomAdapter(rooms)
+        binding.result.adapter = RoomAdapter(rooms)
     }
 
     /**
@@ -251,9 +251,9 @@ import java.util.*
      */
     private fun handleTextChanged(text: String?) {
         when (text) {
-            binding!!.searchBar.text, null -> {}
+            binding.searchBar.text, null -> {}
             else -> {
-                binding!!.searchBar.text = text
+                binding.searchBar.text = text
             }
         }
     }
@@ -264,7 +264,7 @@ import java.util.*
      * @param buildings The new buildings
      */
     private fun handleBuildingUpdate(buildings: Set<Building>) {
-        binding!!.hints.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, buildings.map { it.name })
+        binding.hints.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, buildings.map { it.name })
     }
 
 }

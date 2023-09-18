@@ -12,20 +12,20 @@ import com.edt.ut3.misc.extensions.addOnBackPressedListener
 
 class FirstLaunchFragment : Fragment() {
 
-    private var binding: FragmentFirstLaunchBinding? = null
+    private lateinit var binding: FragmentFirstLaunchBinding
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentFirstLaunchBinding.inflate(inflater)
-        return binding!!.root
+        return binding.root
     }
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding!!.letsGo.setOnClickListener { findNavController().navigate(
+        binding.letsGo.setOnClickListener { findNavController().navigate(
             R.id.action_firstLaunchFragment_to_formationSelectionFragment
         ) }
 

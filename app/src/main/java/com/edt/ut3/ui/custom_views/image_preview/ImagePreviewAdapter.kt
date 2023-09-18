@@ -19,11 +19,11 @@ class ImagePreviewAdapter(var dataset: List<Picture>) : RecyclerView.Adapter<Ima
 
     var onItemClickListener: ((v: View, picture: Picture, pictures: List<Picture>) -> Unit)? = null
     var onAddPictureClickListener: ((v: View) -> Unit)? = null
-    private var binding: LayoutImagePreviewHolderBinding? = null
+    private lateinit var binding: LayoutImagePreviewHolderBinding
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
-        binding = LayoutImagePreviewHolderBinding.inflate(LayoutInflater.from(parent.context))
-        return ImageViewHolder(binding!!.root)
+        binding = LayoutImagePreviewHolderBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ImageViewHolder(binding.root)
     }
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
@@ -39,7 +39,7 @@ class ImagePreviewAdapter(var dataset: List<Picture>) : RecyclerView.Adapter<Ima
     private fun bindClassicPicture(holder: ImageViewHolder, position: Int) {
         holder.apply {
             val picture = dataset[position]
-            picture.loadThumbnailInto(binding!!.thumbnail)
+            picture.loadThumbnailInto(binding.thumbnail)
 
 
             view.setOnClickListener {
@@ -50,8 +50,8 @@ class ImagePreviewAdapter(var dataset: List<Picture>) : RecyclerView.Adapter<Ima
 
     private fun bindAddPicture(holder: ImageViewHolder) {
         holder.apply {
-            binding!!.thumbnail.setImageResource(R.drawable.ic_add)
-            binding!!.root.setOnClickListener { onAddPictureClickListener?.invoke(it) }
+            binding.thumbnail.setImageResource(R.drawable.ic_add)
+            binding.root.setOnClickListener { onAddPictureClickListener?.invoke(it) }
         }
     }
 

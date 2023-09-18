@@ -23,10 +23,10 @@ class NoteAdapter(val dataset: MutableList<Note>) : RecyclerView.Adapter<NoteAda
 
     var onItemClickListener: ((Note) -> Unit)? = null
 
-    var binding: LayoutNoteBinding? = null
+    private lateinit var binding: LayoutNoteBinding
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
         binding = LayoutNoteBinding.inflate(LayoutInflater.from(parent.context))
-        return NoteViewHolder(binding!!.root)
+        return NoteViewHolder(binding.root)
     }
 
     @SuppressLint("SimpleDateFormat")
@@ -41,12 +41,12 @@ class NoteAdapter(val dataset: MutableList<Note>) : RecyclerView.Adapter<NoteAda
 
         holder.noteView.apply {
             currentNote.title?.let {
-                binding!!.title.text = it
+                binding.title.text = it
             } ?: run {
-                binding!!.title.visibility = GONE
+                binding.title.visibility = GONE
             }
 
-            binding!!.shortDesc.text = currentNote.contents
+            binding.shortDesc.text = currentNote.contents
 
             val reminderText = if (currentNote.reminder.isActive()) {
                 SimpleDateFormat("dd/MM/yyyy - HH:mm ").format(currentNote.reminder.getReminderDate()!!)
@@ -54,7 +54,7 @@ class NoteAdapter(val dataset: MutableList<Note>) : RecyclerView.Adapter<NoteAda
                 context.getString(R.string.no_reminder_set)
             }
 
-            binding!!.reminder.text = context.getString(R.string.note_reminder_pictures)
+            binding.reminder.text = context.getString(R.string.note_reminder_pictures)
                 .format(reminderText, currentNote.pictures.size)
         }
     }

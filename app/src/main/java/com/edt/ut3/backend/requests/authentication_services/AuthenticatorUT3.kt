@@ -58,25 +58,16 @@ class AuthenticatorUT3(
 
     @Throws(IOException::class, TimeoutException::class, AuthenticationException::class)
     override suspend fun authenticate(credentials: Credentials) = authenticate(credentials, client)
-    override suspend fun login(tokens: Map<String, String>) {
-        login(tokens, client)
-    }
-
-    private suspend fun login(tokens: Map<String, String>, targetClient: HttpClient){
-
-    }
-
-
     @Throws(IOException::class, TimeoutException::class, AuthenticationException::class)
     private suspend fun authenticate(credentials: Credentials, targetClient: HttpClient) {
 
-        val response1: HttpResponse = client.get("https://edt.univ-tlse3.fr/calendar2", )
+        val response1: HttpResponse = targetClient.get("https://edt.univ-tlse3.fr/calendar2", )
         Log.d("Auth", response1.request.url.toString())
         val execution = response1.request.url.parameters["execution"]
         Log.d("Auth", "Mode d'execution : " + execution)
 
         // On signale qu'on souhaite une nouvelle connection, pas de localStorage
-        val response2: HttpResponse = client.submitForm(
+        val response2: HttpResponse = targetClient.submitForm(
             url = "https://idp.univ-tlse3.fr/idp/profile/SAML2/Redirect/SSO",
             formParameters  = Parameters.build {
                 append("_eventId_proceed","")

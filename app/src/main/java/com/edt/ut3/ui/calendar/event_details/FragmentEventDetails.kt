@@ -70,8 +70,10 @@ class FragmentEventDetails : Fragment() {
     private var firstNoteUpdate = true
 
     private lateinit var currentNote: Note
+    private lateinit var binding: FragmentEventDetailsBinding
 
     private var pictureFile: File? = null
+
     private var pictureName: String? = null
 
     var onReady : (() -> Unit)? = null
@@ -151,8 +153,6 @@ class FragmentEventDetails : Fragment() {
         outState.putSerializable("pictureFile", pictureFile)
         super.onSaveInstanceState(outState)
     }
-
-    private var binding: FragmentEventDetailsBinding? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -164,7 +164,7 @@ class FragmentEventDetails : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentEventDetailsBinding.inflate(inflater)
-        return binding!!.root.also { root ->
+        return binding.root.also { root ->
             // Load asynchronously the attached note.
             // Once it's done, the contents
             lifecycleScope.launch {
@@ -218,25 +218,25 @@ class FragmentEventDetails : Fragment() {
      * Setup the view contents.
      */
     private fun setupContent() {
-        binding!!.noteContainer.visibility = INVISIBLE
-        binding!!.noteLoading.visibility = VISIBLE
+        binding.noteContainer.visibility = INVISIBLE
+        binding.noteLoading.visibility = VISIBLE
 
         when (PreferencesManager.getInstance(requireContext()).currentTheme()) {
             Theme.LIGHT -> {
                 event.lightBackgroundColor(requireContext()).let {
-                    binding!!.titleContainer.setCardBackgroundColor(it)
+                    binding.titleContainer.setCardBackgroundColor(it)
                 }
             }
 
             Theme.DARK -> {
                 event.darkBackgroundColor(requireContext()).let {
-                    binding!!.titleContainer.setCardBackgroundColor(it)
+                    binding.titleContainer.setCardBackgroundColor(it)
                 }
             }
         }
 
-        binding!!.title.text = event.courseOrCategory(requireContext())
-        binding!!.fromTo.text = generateDateText()
+        binding.title.text = event.courseOrCategory(requireContext())
+        binding.fromTo.text = generateDateText()
 
         val descriptionBuilder = StringBuilder()
         event.categoryWithEmotions()?.let { descriptionBuilder.append(it).append("\n") }
@@ -250,7 +250,7 @@ class FragmentEventDetails : Fragment() {
         descriptionBuilder.append("\n")
 
         event.description?.let { descriptionBuilder.append(it) }
-        binding!!.description.text = descriptionBuilder.toString()
+        binding.description.text = descriptionBuilder.toString()
     }
 
 
@@ -263,12 +263,12 @@ class FragmentEventDetails : Fragment() {
                     currentNote.pictures.clear()
                     currentNote.pictures.addAll(it.pictures)
 
-                    binding!!.pictures.adapter?.notifyDataSetChanged()
+                    binding.pictures.adapter?.notifyDataSetChanged()
                 }
 
                 if (currentNote.reminder != newNote.reminder) {
                     currentNote.reminder.setupFrom(newNote.reminder)
-                    binding!!.reminderSpinner.setSelection(
+                    binding.reminderSpinner.setSelection(
                         ReminderType.values().indexOf(currentNote.reminder.getReminderType())
                     )
                 }
@@ -280,21 +280,21 @@ class FragmentEventDetails : Fragment() {
 
     private fun clearSpinner() {
         spinnerObserver.shouldSkipNextUpdate = true
-        binding!!.reminderSpinner.setSelection(0)
+        binding.reminderSpinner.setSelection(0)
     }
 
     private fun initialNoteSetup(newNote: Note?) {
         currentNote = newNote ?: Note.generateEmptyNote(event)
 
-        if (binding!!.eventNote.text.toString() != newNote?.contents) {
-            binding!!.eventNote.setText(newNote?.contents)
+        if (binding.eventNote.text.toString() != newNote?.contents) {
+            binding.eventNote.setText(newNote?.contents)
         }
 
 
         // Setup the adapter contents and the item "onclick" callbacks.
         // Use the StfalconImageViewer library to display a fullscreen
         // image.
-        binding!!.pictures.adapter = ImagePreviewAdapter(currentNote.pictures).apply {
+        binding.pictures.adapter = ImagePreviewAdapter(currentNote.pictures).apply {
             onItemClickListener = { _, picture, pictures ->
                 val overlayLayout = ImageOverlayLayout(requireContext())
 
@@ -322,7 +322,7 @@ class FragmentEventDetails : Fragment() {
 
                                 lifecycleScope.launchWhenResumed {
                                     saveNote {
-                                        binding!!.pictures.notifyDataSetChanged()
+                                        binding.pictures.notifyDataSetChanged()
                                         if (currentNote.pictures.isEmpty()) {
                                             fragment.dismiss()
                                         } else {
@@ -351,14 +351,14 @@ class FragmentEventDetails : Fragment() {
         // Add all the note event picture to the view model variable
         // It is used into several cases to add and delete pictures
         // to the current note.
-        binding!!.pictures.notifyDataSetChanged()
+        binding.pictures.notifyDataSetChanged()
 
         // The adapter is an extension of the ArrayAdapter class.
         // It's made like this to override the getView() function
         // in order to remove the left and right padding of the
         // spinner.
         val adapterValues = ReminderType.values().map { getString(reminderText(it)) }
-        binding!!.reminderSpinner.adapter = object: ArrayAdapter<String>(requireContext(), android.R.layout.simple_list_item_1, adapterValues) {
+        binding.reminderSpinner.adapter = object: ArrayAdapter<String>(requireContext(), android.R.layout.simple_list_item_1, adapterValues) {
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                 return super.getView(position, convertView, parent).apply {
                     setPadding(0, paddingTop, 0, paddingBottom)
@@ -375,8 +375,8 @@ class FragmentEventDetails : Fragment() {
 
 
         firstNoteUpdate = false
-        binding!!.noteLoading.visibility = INVISIBLE
-        binding!!.noteContainer.visibility = VISIBLE
+        binding.noteLoading.visibility = INVISIBLE
+        binding.noteContainer.visibility = VISIBLE
     }
 
 
@@ -399,9 +399,9 @@ class FragmentEventDetails : Fragment() {
     private fun updateReminderSpinner(newNote: Note?) {
         newNote?.let {
             val typeIndex = ReminderType.values().indexOf(newNote.reminder.getReminderType())
-            binding!!.reminderSpinner.setSelection(typeIndex)
+            binding.reminderSpinner.setSelection(typeIndex)
         } ?: run {
-            binding!!.reminderSpinner.setSelection(0)
+            binding.reminderSpinner.setSelection(0)
         }
     }
 
@@ -428,17 +428,17 @@ class FragmentEventDetails : Fragment() {
 
     private fun refreshLocations(context: Context, places: List<Place>) {
         if (places.isNotEmpty()) {
-            binding!!.locationsContainer.removeAllViews()
+            binding.locationsContainer.removeAllViews()
 
             places.forEach {
-                binding!!.locationsContainer.addView(PlaceChip(context, it))
+                binding.locationsContainer.addView(PlaceChip(context, it))
             }
 
-            binding!!.locationsContainer.visibility = VISIBLE
-            binding!!.locationsNotFoundLabel.visibility = GONE
+            binding.locationsContainer.visibility = VISIBLE
+            binding.locationsNotFoundLabel.visibility = GONE
         } else {
-            binding!!.locationsContainer.visibility = GONE
-            binding!!.locationsNotFoundLabel.visibility = VISIBLE
+            binding.locationsContainer.visibility = GONE
+            binding.locationsNotFoundLabel.visibility = VISIBLE
         }
     }
 
@@ -457,19 +457,19 @@ class FragmentEventDetails : Fragment() {
     }
 
     private fun setupListeners() {
-        binding!!.closeButton.setOnClickListener {
+        binding.closeButton.setOnClickListener {
             requireActivity().onBackPressed()
         }
 
         // Save the current note at each modification.
-        binding!!.eventNote.doOnTextChanged { text, _, _, _ ->
+        binding.eventNote.doOnTextChanged { text, _, _, _ ->
             if (currentNote.contents != text) {
                 currentNote.contents = text.toString()
                 lifecycleScope.launch { saveNote() }
             }
         }
 
-        binding!!.reminderSpinner.onItemSelectedListener = spinnerObserver
+        binding.reminderSpinner.onItemSelectedListener = spinnerObserver
 
         mapsViewModel.getPlaces(requireContext()).observe(viewLifecycleOwner, Observer {
             refreshLocations(it)
@@ -553,7 +553,7 @@ class FragmentEventDetails : Fragment() {
      */
     private fun takePicture() {
         if (!canTakePicture) {
-            binding!!.eventDetailsSnackbar.let { snackbarContainer ->
+            binding.eventDetailsSnackbar.let { snackbarContainer ->
                 Snackbar.make(snackbarContainer, R.string.unable_take_while_saving, Snackbar.LENGTH_SHORT).show()
             }
 
@@ -627,7 +627,7 @@ class FragmentEventDetails : Fragment() {
             currentNote.pictures.add(generated)
 
             saveNote {
-                binding!!.pictures.notifyDataSetChanged()
+                binding.pictures.notifyDataSetChanged()
                 canTakePicture = true
             }
 
@@ -708,7 +708,7 @@ class FragmentEventDetails : Fragment() {
             setOnClickListener {
                 activity?.let {
                     MapsUtils.routeFromTo(it, place.geolocalisation, place.title) {
-                        binding!!.eventDetailsMain.let { mainView ->
+                        binding.eventDetailsMain.let { mainView ->
                             Snackbar.make(
                                 mainView,
                                 R.string.unable_to_launch_googlemaps,

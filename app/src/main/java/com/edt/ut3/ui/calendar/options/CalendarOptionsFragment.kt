@@ -24,22 +24,22 @@ import kotlinx.coroutines.launch
 
 class CalendarOptionsFragment: Fragment() {
 
-    private var binding: FragmentCalendarOptionsBinding? = null
+    private lateinit var binding: FragmentCalendarOptionsBinding
     override fun onCreateView(inflater: LayoutInflater,
                               container: ViewGroup?,
                               savedInstanceState: Bundle?): View?
     {
         binding = FragmentCalendarOptionsBinding.inflate(layoutInflater)
-        return binding!!.root
+        return binding.root
     }
 
     private fun generateCoursesChips(courses: List<Course>) {
         courses.forEachIndexed { index, course ->
-            if (binding!!.groupList.childCount <= index) {
-                binding!!.groupList.addView(CourseButton(requireContext(), course))
+            if (binding.groupList.childCount <= index) {
+                binding.groupList.addView(CourseButton(requireContext(), course))
             }
 
-            with(binding!!.groupList.getChildAt(index) as CourseButton) {
+            with(binding.groupList.getChildAt(index) as CourseButton) {
                 this.course = course
                 this.text = course.title
                 setOnClickListener {
@@ -56,8 +56,8 @@ class CalendarOptionsFragment: Fragment() {
             }
         }
 
-        if (courses.size < binding!!.groupList.childCount) {
-            binding!!.groupList.removeViews(courses.size, binding!!.groupList.childCount - courses.size)
+        if (courses.size < binding.groupList.childCount) {
+            binding.groupList.removeViews(courses.size, binding.groupList.childCount - courses.size)
         }
     }
 

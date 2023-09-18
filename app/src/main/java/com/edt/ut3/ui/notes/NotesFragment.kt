@@ -36,23 +36,23 @@ class NotesFragment : BottomSheetFragment() {
 
     private val notes = mutableListOf<Note>()
 
+    private lateinit var binding:FragmentNotesBinding
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentNotesBinding.inflate(inflater)
-        return binding!!.root
+        return binding.root
     }
-    private var binding:FragmentNotesBinding? = null
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding!!.notesContainer.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-        binding!!.notesContainer.addItemDecoration(NoteAdapter.NoteSeparator())
+        binding.notesContainer.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        binding.notesContainer.addItemDecoration(NoteAdapter.NoteSeparator())
 
         setupBottomSheetManager()
         setupListeners()
     }
 
     private fun setupBottomSheetManager() {
-        bottomSheetManager.add(binding!!.eventDetailsNotesContainer)
+        bottomSheetManager.add(binding.eventDetailsNotesContainer)
     }
 
     private fun setupListeners() {
@@ -62,9 +62,9 @@ class NotesFragment : BottomSheetFragment() {
             notes.addAll(newNotes)
 
             if (notes.isEmpty()) {
-                binding!!.noNotesLayout.visibility = VISIBLE
+                binding.noNotesLayout.visibility = VISIBLE
             } else {
-                binding!!.noNotesLayout.visibility = GONE
+                binding.noNotesLayout.visibility = GONE
             }
 
             updateRecyclerAdapter()
@@ -73,13 +73,13 @@ class NotesFragment : BottomSheetFragment() {
         val childFragment = childFragmentManager.findFragmentById(R.id.event_details_notes)
         if (childFragment is FragmentEventDetails) {
             childFragment.onReady = {
-                bottomSheetManager.setVisibleSheet(binding!!.eventDetailsNotesContainer)
+                bottomSheetManager.setVisibleSheet(binding.eventDetailsNotesContainer)
             }
 
             childFragment.listenTo = notesViewModel.selectedEvent
         }
 
-        binding!!.eventDetailsNotesContainer?.let {
+        binding.eventDetailsNotesContainer?.let {
             BottomSheetBehavior.from(it).addBottomSheetCallback(object: BottomSheetBehavior.BottomSheetCallback() {
                 override fun onStateChanged(bottomSheet: View, newState: Int) {
                     if (newState == STATE_COLLAPSED) {
@@ -109,8 +109,8 @@ class NotesFragment : BottomSheetFragment() {
     }
 
     private fun updateRecyclerAdapter() {
-        if (binding!!.notesContainer.adapter == null) {
-            binding!!.notesContainer.adapter = NoteAdapter(notes).apply {
+        if (binding.notesContainer.adapter == null) {
+            binding.notesContainer.adapter = NoteAdapter(notes).apply {
                 onItemClickListener = { note ->
                     val eventID = note.eventID
 
@@ -141,7 +141,7 @@ class NotesFragment : BottomSheetFragment() {
             }
         }
 
-        binding!!.notesContainer.adapter?.notifyDataSetChanged()
+        binding.notesContainer.adapter?.notifyDataSetChanged()
     }
 
     private fun askToDeleteNote(note: Note) {

@@ -11,7 +11,7 @@ import com.edt.ut3.databinding.SearchPlaceBinding
 
 class SearchPlaceAdapter(context: Context, private val values: Array<Place>) :
     ArrayAdapter<Place>(context, -1, values) {
-    private var binding: SearchPlaceBinding? = null
+    private lateinit var binding: SearchPlaceBinding
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val root = if (convertView != null) {
             convertView
@@ -19,13 +19,14 @@ class SearchPlaceAdapter(context: Context, private val values: Array<Place>) :
             val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             //inflater.inflate(R.layout.search_place, parent, false)
             binding = SearchPlaceBinding.inflate(inflater)
+            binding.root
         }
 
         val res = values[position].getIcon()
 
-        binding!!.icon.setImageResource(res)
-        binding!!.name.text = values[position].title
+        binding.icon.setImageResource(res)
+        binding.name.text = values[position].title
 
-        return binding!!.root
+        return binding.root
     }
 }

@@ -68,37 +68,37 @@ class MapsFragment : Fragment() {
 
     private var downloadJob : Job? = null
 
+    private lateinit var binding: FragmentMapsBinding
+
     private val places = mutableListOf<Place>()
 
-    private var theSearchBar: (SearchBar<Place, MapsSearchBarAdapter>)? = null
 
+    private var theSearchBar: (SearchBar<Place, MapsSearchBarAdapter>)? = null
 
     override fun onPause() {
         super.onPause()
         // Do not remove this line until we use osmdroid
-        binding!!.map.onPause()
+        binding.map.onPause()
     }
 
     override fun onResume() {
         super.onResume()
         // Do not remove this line until we use omsdroid
-        binding!!.map.onResume()
+        binding.map.onResume()
     }
-
-    private var binding: FragmentMapsBinding? = null
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentMapsBinding.inflate(inflater)
-        return binding!!.root
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        theSearchBar = binding!!.placeSearchBar as SearchBar<Place, MapsSearchBarAdapter>
+        theSearchBar = binding.placeSearchBar as SearchBar<Place, MapsSearchBarAdapter>
         theSearchBar?.configure(
             dataSet = places,
             converter = { it.title },
@@ -140,7 +140,7 @@ class MapsFragment : Fragment() {
         }
 
 
-        binding!!.map.apply {
+        binding.map.apply {
             tileProvider.clearTileCache()
             tileProvider.tileCache.clear()
 
@@ -332,7 +332,7 @@ class MapsFragment : Fragment() {
         // Assign the downloadJob to the new operation
         downloadJob = lifecycleScope.launch {
             withContext(Main) {
-                binding!!.mapsInfo?.let {
+                binding.mapsInfo.let {
                     Snackbar.make(it, R.string.data_update, Snackbar.LENGTH_SHORT).show()
                 }
             }
@@ -347,7 +347,7 @@ class MapsFragment : Fragment() {
             when (downloadResult.errorCount) {
                 // Display success message
                 0 -> callback = {
-                    binding!!.mapsInfo.let {
+                    binding.mapsInfo.let {
                         Snackbar.make(it, R.string.maps_update_success, Snackbar.LENGTH_LONG).show()
                     }
                 }
@@ -360,7 +360,7 @@ class MapsFragment : Fragment() {
                         else -> R.string.building_update_failed
                     }
 
-                    binding!!.mapsInfo.let {
+                    binding.mapsInfo.let {
                         Snackbar.make(it, errRes, Snackbar.LENGTH_INDEFINITE)
                             .setAction(R.string.action_retry) {
                                 startDownloadJob()
@@ -377,7 +377,7 @@ class MapsFragment : Fragment() {
                         else -> R.string.restaurant_update_failed
                     }
 
-                    binding!!.mapsInfo.let {
+                    binding.mapsInfo.let {
                         Snackbar.make(it, errRes, Snackbar.LENGTH_INDEFINITE)
                             .setAction(R.string.action_retry) {
                                 startDownloadJob()
@@ -388,7 +388,7 @@ class MapsFragment : Fragment() {
 
                 // Display an internet error message
                 else -> callback = {
-                    binding!!.mapsInfo.let {
+                    binding.mapsInfo.let {
                         Snackbar.make(it, R.string.unable_to_retrieve_data, Snackbar.LENGTH_INDEFINITE)
                             .show()
                     }
@@ -405,7 +405,7 @@ class MapsFragment : Fragment() {
         places.clear()
         places.addAll(incomingPlaces)
 
-        theSearchBar!!.run {
+        theSearchBar?.run {
             search()
 
             val categories = places.map { it.type }.toHashSet()
@@ -448,19 +448,19 @@ class MapsFragment : Fragment() {
 
     private fun refreshPlaces() {
         theSearchBar!!.search(matchSearchBarText = false) { placesToShow ->
-            binding!!.map.overlays.forEach { if (it is Marker) { it.closeInfoWindow() } }
-            binding!!.map.overlays.removeAll { it is PlaceMarker }
+            binding.map.overlays.forEach { if (it is Marker) { it.closeInfoWindow() } }
+            binding.map.overlays.removeAll { it is PlaceMarker }
             addPlacesOnMap(placesToShow)
 
-            binding!!.map.invalidate()
-            binding!!.map.requestLayout()
+            binding.map.invalidate()
+            binding.map.requestLayout()
         }
     }
 
     private fun addPlacesOnMap(places: List<Place>) {
         places.forEach { curr ->
-            binding!!.map.overlays.add(
-                PlaceMarker(binding!!.map, curr.copy()).apply {
+            binding.map.overlays.add(
+                PlaceMarker(binding.map, curr.copy()).apply {
                     onClickListener = {
                         selectedPlace = place
                         displayPlaceInfo()
@@ -486,10 +486,10 @@ class MapsFragment : Fragment() {
     private fun foldEverything() {
         theSearchBar?.hideFilters()
         theSearchBar?.hideResults()
-        from(binding!!.placeInfoContainer).state = STATE_HIDDEN
+        from(binding.placeInfoContainer).state = STATE_HIDDEN
 
         theSearchBar?.clearFocus()
-        binding!!.map.requestFocus()
+        binding.map.requestFocus()
 
         hideKeyboard()
     }
@@ -497,7 +497,7 @@ class MapsFragment : Fragment() {
     private fun unfoldSearchTools() {
         theSearchBar?.showResults()
         theSearchBar?.showFilters()
-        from(binding!!.placeInfoContainer).state = STATE_HIDDEN
+        from(binding.placeInfoContainer).state = STATE_HIDDEN
 
     }
 
@@ -510,22 +510,22 @@ class MapsFragment : Fragment() {
 
             lifecycleScope.launchWhenStarted {
                 delay(500)
-                binding!!.placeInfoContainer.let {
+                binding.placeInfoContainer.let {
                     from(it).state = STATE_EXPANDED
                 }
             }
 
-            binding!!.placeInfo.titleText = selected.title
-            binding!!.placeInfo.descriptionText = selected.short_desc ?: getString(R.string.no_description_available)
-            binding!!.placeInfo.picture = selected.photo
-            binding!!.placeInfo.goTo?.setOnClickListener {
+            binding.placeInfo.titleText = selected.title
+            binding.placeInfo.descriptionText = selected.short_desc ?: getString(R.string.no_description_available)
+            binding.placeInfo.picture = selected.photo
+            binding.placeInfo.goTo.setOnClickListener {
                 activity?.let {
                     MapsUtils.routeFromTo(
                         it,
                         GeoPoint(selected.geolocalisation),
                         selected.title
                     ) {
-                        binding!!.mapsInfo.let { info ->
+                        binding.mapsInfo.let { info ->
                             Snackbar.make(
                                 info,
                                 R.string.unable_to_launch_googlemaps,
@@ -537,7 +537,7 @@ class MapsFragment : Fragment() {
             }
 
             val image = Pair(selected.photo, R.drawable.no_image_placeholder)
-            binding!!.placeInfo.image?.setOnClickListener {
+            binding.placeInfo.image?.setOnClickListener {
                 FastGallery.Builder<Pair<String?, Int>>()
                     .withImages(listOf(image))
                     .withConverter { pair: Pair<String?, Int>, loader: ImageLoader<Pair<String?, Int>> ->
@@ -566,7 +566,7 @@ class MapsFragment : Fragment() {
      * @param ms The time in ms
      */
     private fun smoothMoveTo(position: GeoPoint, zoom: Double = 17.0, ms: Long = 1000L) {
-        binding!!.map.controller.animateTo(position, Math.max(zoom, binding!!.map.zoomLevelDouble), ms)
+        binding.map.controller.animateTo(position, Math.max(zoom, binding.map.zoomLevelDouble), ms)
     }
 
 
@@ -587,18 +587,18 @@ class MapsFragment : Fragment() {
             this.dataset = dataSet
         }
 
-        private var binding: SearchPlaceBinding? = null
+        private lateinit var binding: SearchPlaceBinding
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val inflater = LayoutInflater.from(parent.context)
             binding = SearchPlaceBinding.inflate(inflater)
-            return ViewHolder(binding!!.root as ConstraintLayout)
+            return ViewHolder(binding.root as ConstraintLayout)
         }
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val item = dataset!![position]
             holder.v.run {
-                binding!!.icon.setImageResource(item.getIcon())
-                binding!!.name.text = item.title
+                binding.icon.setImageResource(item.getIcon())
+                binding.name.text = item.title
 
                 setOnClickListener {
                     onItemClicked?.invoke(it, position, item)

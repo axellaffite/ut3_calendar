@@ -15,10 +15,10 @@ import com.edt.ut3.misc.extensions.toFormattedTime
 
 class RoomAdapter(val dataset: List<Room>) : RecyclerView.Adapter<RoomAdapter.RoomViewHolder>() {
 
-    private var binding: RoomLayoutBinding? = null
+    private lateinit var binding: RoomLayoutBinding
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RoomViewHolder {
         binding = RoomLayoutBinding.inflate(LayoutInflater.from(parent.context))
-        return RoomViewHolder(binding!!.root)
+        return RoomViewHolder(binding.root)
     }
 
     override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
@@ -28,9 +28,9 @@ class RoomAdapter(val dataset: List<Room>) : RecyclerView.Adapter<RoomAdapter.Ro
     override fun getItemCount() = dataset.size
 
     fun setSchedule(view: View, room: Room) {
-        binding!!.title.text = room.room
+        binding.title.text = room.room
 
-        binding!!.schedules.removeAllViews()
+        binding.schedules.removeAllViews()
         val formatTime = view.context.getString(R.string.hour_format)
         val formatTotalTime = view.context.getString(R.string.from_to_format)
 
@@ -38,7 +38,7 @@ class RoomAdapter(val dataset: List<Room>) : RecyclerView.Adapter<RoomAdapter.Ro
             val startTime = schedule.start.toFormattedTime(formatTime)
             val endTime = schedule.end.toFormattedTime(formatTime)
 
-            binding!!.schedules.addView(TextView(view.context).apply {
+            binding.schedules.addView(TextView(view.context).apply {
                 text = formatTotalTime.format(startTime, endTime)
             })
         }

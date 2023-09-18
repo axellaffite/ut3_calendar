@@ -29,14 +29,14 @@ class FragmentWhichGroups: Fragment() {
 
     val viewModel: FormationSelectionViewModel by activityViewModels()
     lateinit var searchBar : SearchBar<School.Info.Group, GroupAdapter>
-    private var binding: FragmentWhichGroupsBinding? = null
+    private lateinit var binding: FragmentWhichGroupsBinding
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View?{
         binding = FragmentWhichGroupsBinding.inflate(inflater)
-        return binding!!.root
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -48,7 +48,7 @@ class FragmentWhichGroups: Fragment() {
 
     private fun setupSearchBar() {
         @Suppress("UNCHECKED_CAST")
-        searchBar = binding!!.groupSearchBar as SearchBar<School.Info.Group, GroupAdapter>
+        searchBar = binding.groupSearchBar as SearchBar<School.Info.Group, GroupAdapter>
         searchBar.configure(
             dataSet = viewModel.groups,
             converter = { it.text },
@@ -78,15 +78,15 @@ class FragmentWhichGroups: Fragment() {
             groupsStatus.observe(viewLifecycleOwner, ::handleStateChange)
             groupsFailure.observe(viewLifecycleOwner, ::handleError)
             resourceType.observe(viewLifecycleOwner) { res ->
-                res?.let { binding!!.resourceType.setSelection(res.uiChoice) }
+                res?.let { binding.resourceType.setSelection(res.uiChoice) }
             }
         }
 
-        binding!!.background.setOnClickListener {
+        binding.background.setOnClickListener {
             searchBar.hideResults()
         }
 
-        binding!!.resourceType.onItemSelectedListener = object: AdapterView.OnItemSelectedListener {
+        binding.resourceType.onItemSelectedListener = object: AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 viewModel.selectResourceType(context ?: return, position)
             }
@@ -108,23 +108,23 @@ class FragmentWhichGroups: Fragment() {
     private fun handleStateChange(state: WhichGroupsState?) : Unit = when (state) {
         WhichGroupsState.NotReady -> {
             searchBar.searchBar?.isEnabled = false
-            binding!!.selectedGroups.visibility = VISIBLE
-            binding!!.loading.visibility = GONE
-            binding!!.errorMessage.visibility = GONE
+            binding.selectedGroups.visibility = VISIBLE
+            binding.loading.visibility = GONE
+            binding.errorMessage.visibility = GONE
         }
 
         WhichGroupsState.Downloading -> {
             searchBar.searchBar?.isEnabled = false
-            binding!!.selectedGroups.visibility = GONE
-            binding!!.loading.visibility = VISIBLE
-            binding!!.errorMessage.visibility = GONE
+            binding.selectedGroups.visibility = GONE
+            binding.loading.visibility = VISIBLE
+            binding.errorMessage.visibility = GONE
         }
 
         WhichGroupsState.Ready -> {
             searchBar.searchBar?.isEnabled = true
-            binding!!.selectedGroups.visibility = VISIBLE
-            binding!!.loading.visibility = GONE
-            binding!!.errorMessage.visibility = GONE
+            binding.selectedGroups.visibility = VISIBLE
+            binding.loading.visibility = GONE
+            binding.errorMessage.visibility = GONE
         }
 
         else -> {}
@@ -133,13 +133,13 @@ class FragmentWhichGroups: Fragment() {
     private fun handleError(error: WhichGroupsFailure?){
         when (error) {
             WhichGroupsFailure.WrongCredentials, WhichGroupsFailure.UnknownError -> {
-                binding!!.snackContainer.let {
+                binding.snackContainer.let {
                     Snackbar.make(it, error.reason(it.context), Snackbar.LENGTH_SHORT).show()
                 }
             }
 
             WhichGroupsFailure.GroupUpdateFailure -> {
-                binding!!.snackContainer.let {
+                binding.snackContainer.let {
                     Snackbar.make(it, error.reason(it.context), Snackbar.LENGTH_INDEFINITE)
                         .setAction(R.string.action_retry) { v ->
                             viewModel.updateGroups(v.context)
@@ -155,9 +155,9 @@ class FragmentWhichGroups: Fragment() {
     }
 
     private fun updateChips(groups: Set<School.Info.Group>) {
-        binding!!.selectedGroups.removeAllViews()
+        binding.selectedGroups.removeAllViews()
         groups.forEach { group ->
-            binding!!.selectedGroups.addView(Chip(requireContext()).apply {
+            binding.selectedGroups.addView(Chip(requireContext()).apply {
                 text = if (group.text.length > 20) {
                     group.text.substring(0, 10) + "..." + group.text.substring(group.text.length - 10)
                 } else {

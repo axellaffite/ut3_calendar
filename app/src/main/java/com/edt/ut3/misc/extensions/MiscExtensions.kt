@@ -28,8 +28,8 @@ fun<E> Iterable<E>.toJSONArray(converter: (E) -> Any?) : JSONArray {
 
 fun Map<String, String>.toJsonOject() : JsonObject {
     return buildJsonObject {
-        for(key in keys){
-            put(key, get(key))
+        for((key, value) in entries){
+            put(key, value)
         }
     }
 }

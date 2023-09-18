@@ -54,7 +54,6 @@ abstract class Authenticator(val host: String) {
     @Throws(AuthenticationException::class)
     abstract suspend fun authenticate(credentials: Credentials)
 
-    abstract suspend fun login(tokens: Map<String, String>);
 }
 
 
