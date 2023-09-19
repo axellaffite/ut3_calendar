@@ -4,6 +4,7 @@ import com.edt.ut3.backend.maps.Place
 import com.edt.ut3.backend.requests.JsonSerializer
 import io.ktor.client.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.*
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
@@ -34,9 +35,9 @@ class MapsService(val client: HttpClient) {
      */
     @Throws(IOException::class, SerializationException::class)
     suspend fun getCrousPlaces(): List<Place> {
-        val response = client.get<String>(CROUS_API_LINK) {
+        val response = client.get(CROUS_API_LINK) {
             header(HttpHeaders.Accept, ContentType.Text)
-        }
+        }.bodyAsText()
 
         return JsonSerializer.decodeFromString<PlacesRequest>(response).records.map { it.fields }
     }
@@ -52,9 +53,9 @@ class MapsService(val client: HttpClient) {
      */
     @Throws(java.io.IOException::class)
     suspend fun getPaulSabatierPlaces(): List<Place> {
-        val response =  client.get<String>(PAUL_SABATIER_PLACES_LINK) {
+        val response =  client.get(PAUL_SABATIER_PLACES_LINK) {
             header(HttpHeaders.Accept, ContentType.Text)
-        }
+        }.bodyAsText()
 
         return JsonSerializer.decodeFromString<PlacesRequest>(response).records.map { it.fields }
     }

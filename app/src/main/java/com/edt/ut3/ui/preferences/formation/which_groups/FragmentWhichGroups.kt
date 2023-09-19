@@ -16,28 +16,28 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.edt.ut3.R
 import com.edt.ut3.backend.formation_choice.School
+import com.edt.ut3.databinding.FragmentWhichGroupsBinding
 import com.edt.ut3.ui.custom_views.searchbar.SearchBar
 import com.edt.ut3.ui.custom_views.searchbar.SearchBarAdapter
 import com.edt.ut3.ui.custom_views.searchbar.SearchHandler
 import com.edt.ut3.ui.preferences.formation.FormationSelectionViewModel
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.fragment_which_groups.*
-import kotlinx.android.synthetic.main.layout_search_bar.view.*
-import kotlinx.android.synthetic.main.layout_search_bar.view.search_bar
-import kotlinx.android.synthetic.main.room_finder_fragment.view.*
 import kotlinx.coroutines.Job
 
 class FragmentWhichGroups: Fragment() {
 
     val viewModel: FormationSelectionViewModel by activityViewModels()
     lateinit var searchBar : SearchBar<School.Info.Group, GroupAdapter>
-
+    private lateinit var binding: FragmentWhichGroupsBinding
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? = inflater.inflate(R.layout.fragment_which_groups, container, false)
+    ): View?{
+        binding = FragmentWhichGroupsBinding.inflate(inflater)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -48,7 +48,7 @@ class FragmentWhichGroups: Fragment() {
 
     private fun setupSearchBar() {
         @Suppress("UNCHECKED_CAST")
-        searchBar = group_search_bar as SearchBar<School.Info.Group, GroupAdapter>
+        searchBar = binding.groupSearchBar as SearchBar<School.Info.Group, GroupAdapter>
         searchBar.configure(
             dataSet = viewModel.groups,
             converter = { it.text },
@@ -78,15 +78,15 @@ class FragmentWhichGroups: Fragment() {
             groupsStatus.observe(viewLifecycleOwner, ::handleStateChange)
             groupsFailure.observe(viewLifecycleOwner, ::handleError)
             resourceType.observe(viewLifecycleOwner) { res ->
-                res?.let { resource_type.setSelection(res.uiChoice) }
+                res?.let { binding.resourceType.setSelection(res.uiChoice) }
             }
         }
 
-        background.setOnClickListener {
+        binding.background.setOnClickListener {
             searchBar.hideResults()
         }
 
-        resource_type.onItemSelectedListener = object: AdapterView.OnItemSelectedListener {
+        binding.resourceType.onItemSelectedListener = object: AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 viewModel.selectResourceType(context ?: return, position)
             }
@@ -94,7 +94,7 @@ class FragmentWhichGroups: Fragment() {
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
 
-        searchBar.search_bar.setOnFocusChangeListener { v, hasFocus ->
+        searchBar.searchBar?.setOnFocusChangeListener { v, hasFocus ->
             Log.d("Which groups", "Search bar has focus: $hasFocus")
             if (hasFocus) {
                 searchBar.search()
@@ -107,24 +107,24 @@ class FragmentWhichGroups: Fragment() {
 
     private fun handleStateChange(state: WhichGroupsState?) : Unit = when (state) {
         WhichGroupsState.NotReady -> {
-            searchBar.search_bar?.isEnabled = false
-            selectedGroups?.visibility = VISIBLE
-            loading?.visibility = GONE
-            errorMessage?.visibility = GONE
+            searchBar.searchBar?.isEnabled = false
+            binding.selectedGroups.visibility = VISIBLE
+            binding.loading.visibility = GONE
+            binding.errorMessage.visibility = GONE
         }
 
         WhichGroupsState.Downloading -> {
-            searchBar.search_bar?.isEnabled = false
-            selectedGroups?.visibility = GONE
-            loading?.visibility = VISIBLE
-            errorMessage?.visibility = GONE
+            searchBar.searchBar?.isEnabled = false
+            binding.selectedGroups.visibility = GONE
+            binding.loading.visibility = VISIBLE
+            binding.errorMessage.visibility = GONE
         }
 
         WhichGroupsState.Ready -> {
-            searchBar.search_bar?.isEnabled = true
-            selectedGroups?.visibility = VISIBLE
-            loading?.visibility = GONE
-            errorMessage?.visibility = GONE
+            searchBar.searchBar?.isEnabled = true
+            binding.selectedGroups.visibility = VISIBLE
+            binding.loading.visibility = GONE
+            binding.errorMessage.visibility = GONE
         }
 
         else -> {}
@@ -133,13 +133,13 @@ class FragmentWhichGroups: Fragment() {
     private fun handleError(error: WhichGroupsFailure?){
         when (error) {
             WhichGroupsFailure.WrongCredentials, WhichGroupsFailure.UnknownError -> {
-                snack_container?.let {
+                binding.snackContainer.let {
                     Snackbar.make(it, error.reason(it.context), Snackbar.LENGTH_SHORT).show()
                 }
             }
 
             WhichGroupsFailure.GroupUpdateFailure -> {
-                snack_container?.let {
+                binding.snackContainer.let {
                     Snackbar.make(it, error.reason(it.context), Snackbar.LENGTH_INDEFINITE)
                         .setAction(R.string.action_retry) { v ->
                             viewModel.updateGroups(v.context)
@@ -155,9 +155,9 @@ class FragmentWhichGroups: Fragment() {
     }
 
     private fun updateChips(groups: Set<School.Info.Group>) {
-        selectedGroups?.removeAllViews()
+        binding.selectedGroups.removeAllViews()
         groups.forEach { group ->
-            selectedGroups?.addView(Chip(requireContext()).apply {
+            binding.selectedGroups.addView(Chip(requireContext()).apply {
                 text = if (group.text.length > 20) {
                     group.text.substring(0, 10) + "..." + group.text.substring(group.text.length - 10)
                 } else {

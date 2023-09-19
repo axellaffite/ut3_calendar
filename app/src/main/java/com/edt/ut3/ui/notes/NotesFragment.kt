@@ -19,12 +19,12 @@ import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.viewmodels.EventViewModel
 import com.edt.ut3.backend.database.viewmodels.NotesViewModel
 import com.edt.ut3.backend.note.Note
+import com.edt.ut3.databinding.FragmentNotesBinding
 import com.edt.ut3.ui.calendar.BottomSheetFragment
 import com.edt.ut3.ui.calendar.event_details.FragmentEventDetails
 import com.edt.ut3.ui.calendar.view_builders.EventView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
-import kotlinx.android.synthetic.main.fragment_notes.*
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -36,22 +36,23 @@ class NotesFragment : BottomSheetFragment() {
 
     private val notes = mutableListOf<Note>()
 
+    private lateinit var binding:FragmentNotesBinding
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_notes, container, false)
+        binding = FragmentNotesBinding.inflate(inflater)
+        return binding.root
     }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        notes_container.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-        notes_container.addItemDecoration(NoteAdapter.NoteSeparator())
+        binding.notesContainer.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        binding.notesContainer.addItemDecoration(NoteAdapter.NoteSeparator())
 
         setupBottomSheetManager()
         setupListeners()
     }
 
     private fun setupBottomSheetManager() {
-        bottomSheetManager.add(event_details_notes_container)
+        bottomSheetManager.add(binding.eventDetailsNotesContainer)
     }
 
     private fun setupListeners() {
@@ -61,9 +62,9 @@ class NotesFragment : BottomSheetFragment() {
             notes.addAll(newNotes)
 
             if (notes.isEmpty()) {
-                no_notes_layout.visibility = VISIBLE
+                binding.noNotesLayout.visibility = VISIBLE
             } else {
-                no_notes_layout.visibility = GONE
+                binding.noNotesLayout.visibility = GONE
             }
 
             updateRecyclerAdapter()
@@ -72,13 +73,13 @@ class NotesFragment : BottomSheetFragment() {
         val childFragment = childFragmentManager.findFragmentById(R.id.event_details_notes)
         if (childFragment is FragmentEventDetails) {
             childFragment.onReady = {
-                bottomSheetManager.setVisibleSheet(event_details_notes_container)
+                bottomSheetManager.setVisibleSheet(binding.eventDetailsNotesContainer)
             }
 
             childFragment.listenTo = notesViewModel.selectedEvent
         }
 
-        event_details_notes_container?.let {
+        binding.eventDetailsNotesContainer?.let {
             BottomSheetBehavior.from(it).addBottomSheetCallback(object: BottomSheetBehavior.BottomSheetCallback() {
                 override fun onStateChanged(bottomSheet: View, newState: Int) {
                     if (newState == STATE_COLLAPSED) {
@@ -108,8 +109,8 @@ class NotesFragment : BottomSheetFragment() {
     }
 
     private fun updateRecyclerAdapter() {
-        if (notes_container.adapter == null) {
-            notes_container.adapter = NoteAdapter(notes).apply {
+        if (binding.notesContainer.adapter == null) {
+            binding.notesContainer.adapter = NoteAdapter(notes).apply {
                 onItemClickListener = { note ->
                     val eventID = note.eventID
 
@@ -140,7 +141,7 @@ class NotesFragment : BottomSheetFragment() {
             }
         }
 
-        notes_container.adapter?.notifyDataSetChanged()
+        binding.notesContainer.adapter?.notifyDataSetChanged()
     }
 
     private fun askToDeleteNote(note: Note) {

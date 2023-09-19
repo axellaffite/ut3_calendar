@@ -4,12 +4,18 @@ import android.util.Log
 import com.edt.ut3.R
 import com.edt.ut3.backend.requests.getClient
 import io.ktor.client.*
-import io.ktor.client.features.cookies.*
+import io.ktor.client.call.receive
+import io.ktor.client.plugins.cookies.*
+import io.ktor.client.request.get
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import java.io.IOException
+import java.util.Dictionary
 import java.util.concurrent.TimeoutException
+import io.ktor.client.request.forms.*
 
 class AuthenticatorUT3(
     val client: HttpClient,
@@ -46,76 +52,106 @@ class AuthenticatorUT3(
     @Throws(IOException::class, TimeoutException::class, AuthenticationException::class)
     private suspend fun ensureAuthentication(credentials: Credentials, targetClient: HttpClient) {
         Log.d(this::class.simpleName, "Checking authentication..")
-        // Here we look for authentication cookies
-        // If there are no cookie available for authentication
-        // the resulting cookie is null.
-        val registeredCookies = targetClient.cookies(host)
-
-
-        // The authentication is considered successful
-        // if there is a cookie that is persistent
-        val authenticated = containsValidAuthenticationCookie(registeredCookies)
-
-
-        // If we're not logged in,
-        // we try to authenticate
-        Log.d(this::class.simpleName, "Already authenticated: $authenticated")
-        if (!authenticated) {
-            authenticate(credentials)
-        }
+        authenticate(credentials)
     }
 
 
     @Throws(IOException::class, TimeoutException::class, AuthenticationException::class)
     override suspend fun authenticate(credentials: Credentials) = authenticate(credentials, client)
-
-
     @Throws(IOException::class, TimeoutException::class, AuthenticationException::class)
     private suspend fun authenticate(credentials: Credentials, targetClient: HttpClient) {
-        Log.d(this@AuthenticatorUT3::class.simpleName, "Trying authentication to https://$host")
 
-        val response = targetClient.get<String>("$host/LdapLogin")
+        val response1: HttpResponse = targetClient.get("https://edt.univ-tlse3.fr/calendar2", )
+        Log.d("Auth", response1.request.url.toString())
+        val execution = response1.request.url.parameters["execution"]
+        Log.d("Auth", "Mode d'execution : " + execution)
 
-        val token = getTokenFromResponse(response)
-        if (token == null) {
-            throw AuthenticationException(R.string.error_unable_to_treat_server_response)
+        // On signale qu'on souhaite une nouvelle connection, pas de localStorage
+        val response2: HttpResponse = targetClient.submitForm(
+            url = "https://idp.univ-tlse3.fr/idp/profile/SAML2/Redirect/SSO",
+            formParameters  = Parameters.build {
+                append("_eventId_proceed","")
+                append("shib_idp_ls_exception.shib_idp_persistent_ss", "")
+                append("shib_idp_ls_exception.shib_idp_session_ss", "")
+                append("shib_idp_ls_success.shib_idp_persistent_ss", "true")
+                append("shib_idp_ls_success.shib_idp_session_ss", "true")
+                append("shib_idp_ls_supported", "true")
+                append("shib_idp_ls_value.shib_idp_persistent_ss", "")
+                append("shib_idp_ls_value.shib_idp_session_ss", "")
+            }
+        ) {
+            parameter("execution", "e1s1")
+        }
+        val txt: String = response2.bodyAsText()
+        val token = extract_execution_from_ut3_login_page(txt)
+            ?: throw AuthenticationException(R.string.error_during_authentication)
+
+        // On peut transmettre les credentials à cAS
+        val response3 = targetClient.submitForm("https://cas.univ-tlse3.fr/cas/login", formParameters = Parameters.build {
+            append("username", credentials.username)
+            append("password", credentials.password)
+            append("execution", token)
+            append("_eventId", "submit")
+            append("geolocation", "")
+        }) {
+            parameter("entityId", "https%3A%2F%2Fedt.univ-tlse3.fr%2Fcalendar2")
+            parameter("service", "https%3A%2F%2Fidp.univ-tlse3.fr%2Fidp%2FAuthn%2FExternal%3Fconversation%3De1s2")
         }
 
-
-        val authenticationSuccessful = token.let { token ->
-            // We launch the authentication
-            // The request doesn't return cookies as they
-            // are handled by the CookieProvider.
-            targetClient.submitForm<Unit>(
-                url = "$host/LdapLogin/Logon",
-                formParameters = Parameters.build {
-                    append("Name", credentials.username)
-                    append("Password", credentials.password)
-                    append("__RequestVerificationToken", token)
-                }
-            )
-
-            containsValidAuthenticationCookie(targetClient.cookies(host))
-        }
-
-        Log.d(this@AuthenticatorUT3::class.simpleName, "Authentication successful: $authenticationSuccessful")
-        if (!authenticationSuccessful) {
+        if(response3.status == HttpStatusCode.Unauthorized){
             throw AuthenticationException(R.string.error_wrong_credentials)
         }
+
+        // Attribution des droits d'accès à CELCAT (normalement one time only, mais ça marche jamais)
+        val response4 = targetClient.submitForm("https://idp.univ-tlse3.fr/idp/profile/SAML2/Redirect/SSO", formParameters = Parameters.build {
+            append("_eventId_proceed", "Accepter")
+            append("_shib_idp_consentIds", "displayName")
+            append("_shib_idp_consentIds", "eduPersonPrincipalName")
+            append("_shib_idp_consentIds", "mail")
+            append("_shib_idp_consentIds", "uid")
+            append("_shib_idp_consentOptions", "_shib_idp_globalConsent")
+        }){
+            parameter("execution", "e1s3")
+        }
+
+        val localStorage = extract_local_storage_function_calls(response4.bodyAsText())
+
+        val response5 = targetClient.submitForm("https://idp.univ-tlse3.fr/idp/profile/SAML2/Redirect/SSO", formParameters = Parameters.build {
+            append("_eventId_proceed", "")
+            append("shib_idp_ls_exception.shib_idp_persistent_ss", "")
+            append("shib_idp_ls_success.shib_idp_persistent_ss", "true")
+            append("shib_idp_ls_success.shib_idp_session_ss", "true")
+        }) {
+            parameter("execution", "e1s4")
+        }
+
+        val samlResponse =  extract_saml_response(response5.bodyAsText())
+        if(samlResponse == null){
+            Log.d("Auth", "No SAML response found")
+            throw AuthenticationException(R.string.error_during_authentication)
+        }
+        val response6 = targetClient.submitForm("https://edt.univ-tlse3.fr/calendar2/Saml/AssertionConsumerService", formParameters = Parameters.build{
+            append("SAMLResponse", samlResponse)
+        })
+        Log.d("Auth", "End of authentication process, last request status code : " + response5.status.toString())
+        Log.d("Cookies : ", targetClient.cookies("https://edt.univ-tlse3.fr/").toString())
     }
 
-
-    @Throws(IOException::class)
-    private fun getTokenFromResponse(body: String) = body.run {
-        val reg =
-            Regex("<input name=\"__RequestVerificationToken\" type=\"hidden\" value=\"(.*)\" />")
-
-        reg.find(body)?.groups?.get(1)?.value
+    private fun extract_execution_from_ut3_login_page(page: String): String?{
+        val reg = Regex("name=\"execution\" value=\"(.*?)\"")
+        return reg.find(page)?.groups?.get(1)?.value
     }
 
-
-    private fun containsValidAuthenticationCookie(cookies: List<Cookie>) : Boolean {
-        return cookies.find { it.name.matches(Regex(".Calendar.Cookies")) } != null
+    private fun extract_local_storage_function_calls(page: String): Map<String, String>{
+        val reg = Regex("""writeLocalStorage\("(.*?)", "(.*?)"\);""")
+        val matches = HashMap<String, String>()
+        for(match in reg.findAll(page)){
+            matches[match.groups[1]?.value!!] = match.groups[2]?.value!!
+        }
+        return matches
     }
 
+    private fun extract_saml_response(page: String): String? {
+        return Regex("name=\"SAMLResponse\" value=\"(.*?)\"").find(page)?.groups?.get(1)?.value
+    }
 }

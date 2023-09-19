@@ -117,6 +117,7 @@
     <string name="username">Username</string>
     <string name="title_authentication">Authentication</string>
     <string name="error_wrong_credentials">Incorrect credentials</string>
+    <string name="error_during_authentication">An unexpected error occurred during the authentication process</string>
     <string name="error_check_internet">Please check your internet connection</string>
     <string name="check_credentials">Checking credentials..</string>
     <string name="channel_course_title">Schedule update</string>

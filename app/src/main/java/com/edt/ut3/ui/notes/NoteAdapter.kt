@@ -9,8 +9,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.edt.ut3.R
 import com.edt.ut3.backend.note.Note
+import com.edt.ut3.databinding.LayoutNoteBinding
 import com.edt.ut3.misc.extensions.toDp
-import kotlinx.android.synthetic.main.layout_note.view.*
 import java.text.SimpleDateFormat
 
 class NoteAdapter(val dataset: MutableList<Note>) : RecyclerView.Adapter<NoteAdapter.NoteViewHolder>() {
@@ -23,10 +23,10 @@ class NoteAdapter(val dataset: MutableList<Note>) : RecyclerView.Adapter<NoteAda
 
     var onItemClickListener: ((Note) -> Unit)? = null
 
+    private lateinit var binding: LayoutNoteBinding
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
-        val rootView = LayoutInflater.from(parent.context).inflate(R.layout.layout_note, parent, false)
-
-        return NoteViewHolder(rootView)
+        binding = LayoutNoteBinding.inflate(LayoutInflater.from(parent.context))
+        return NoteViewHolder(binding.root)
     }
 
     @SuppressLint("SimpleDateFormat")
@@ -41,12 +41,12 @@ class NoteAdapter(val dataset: MutableList<Note>) : RecyclerView.Adapter<NoteAda
 
         holder.noteView.apply {
             currentNote.title?.let {
-                title.text = it
+                binding.title.text = it
             } ?: run {
-                title.visibility = GONE
+                binding.title.visibility = GONE
             }
 
-            short_desc.text = currentNote.contents
+            binding.shortDesc.text = currentNote.contents
 
             val reminderText = if (currentNote.reminder.isActive()) {
                 SimpleDateFormat("dd/MM/yyyy - HH:mm ").format(currentNote.reminder.getReminderDate()!!)
@@ -54,7 +54,7 @@ class NoteAdapter(val dataset: MutableList<Note>) : RecyclerView.Adapter<NoteAda
                 context.getString(R.string.no_reminder_set)
             }
 
-            reminder.text = context.getString(R.string.note_reminder_pictures)
+            binding.reminder.text = context.getString(R.string.note_reminder_pictures)
                 .format(reminderText, currentNote.pictures.size)
         }
     }

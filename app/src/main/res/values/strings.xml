@@ -122,6 +122,7 @@
     <string name="title_authentication">Authentification</string>
     <string name="summary_authentication">Bien que facultatif, saisir ses identifiants est recommandé pour obtenir toutes les informations de la part de Celcat.</string>
     <string name="error_wrong_credentials">Identifiants incorrects</string>
+    <string name="error_during_authentication">Une erreur inattendue c\'est produite durant le processus de connexion</string>
     <string name="error_check_internet">Veuillez vérifier votre connexion internet</string>
     <string name="check_credentials">Validation des identifiants..</string>
     <string name="channel_course_title">Changement dans l\'emploi du temps</string>

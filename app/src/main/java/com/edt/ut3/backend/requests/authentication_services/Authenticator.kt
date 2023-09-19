@@ -2,6 +2,7 @@ package com.edt.ut3.backend.requests.authentication_services
 
 import android.content.Context
 import androidx.annotation.StringRes
+import java.util.Dictionary
 
 abstract class Authenticator(val host: String) {
 
@@ -52,6 +53,7 @@ abstract class Authenticator(val host: String) {
      */
     @Throws(AuthenticationException::class)
     abstract suspend fun authenticate(credentials: Credentials)
+
 }
 
 

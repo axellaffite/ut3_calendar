@@ -2,9 +2,10 @@ package com.edt.ut3.ui.calendar.event_details
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.LayoutInflater
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.edt.ut3.R
-import kotlinx.android.synthetic.main.fragment_image_view_pager.view.*
+import com.edt.ut3.databinding.FragmentImageViewPagerBinding
 
 class ImageOverlayLayout(context: Context, attrs: AttributeSet?): ConstraintLayout(context, attrs) {
 
@@ -13,9 +14,9 @@ class ImageOverlayLayout(context: Context, attrs: AttributeSet?): ConstraintLayo
     var onDeleteRequest: (() -> Unit)? = null
 
     init {
-        val view = inflate(context, R.layout.fragment_image_view_pager, this)
+        val view = FragmentImageViewPagerBinding.inflate(LayoutInflater.from(context), this, false)
         view.run {
-            delete.setOnClickListener {
+            view.delete.setOnClickListener {
                 onDeleteRequest?.invoke()
             }
         }

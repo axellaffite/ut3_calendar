@@ -6,6 +6,8 @@ import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.misc.extensions.toCelcatDateStr
 import com.elzozor.yoda.utils.DateExtensions.add
 import io.ktor.client.*
+import io.ktor.client.request.get
+import io.ktor.client.call.body
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.http.*
@@ -43,29 +45,29 @@ class CelcatService(val client: HttpClient) {
             block = {
                 header(HttpHeaders.Accept, ContentType.Application.Json)
             }
-        )
+        ).body()
 
         return events.map { Event.fromJSON(it.jsonObject, classes, courses) }
     }
 
     suspend fun getClasses(link: String): List<String> {
-        return client.get<ClassesRequest>(link) {
+        return client.get(link) {
             header(HttpHeaders.Accept, ContentType.Application.Json.withCharset(Charsets.UTF_8))
-        }.results
+        }.body<ClassesRequest>().results
     }
 
     suspend fun getCoursesNames(link: String): Map<String, String> {
-        return client.get<CoursesRequest>(link).results
+        return client.get(link).body<CoursesRequest>().results
     }
 
     suspend fun getSchoolsURLs(): List<School> {
-        return client.get<SchoolsRequest>(
+        return client.get(
             "https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/data/formations/urls.json"
-        ).entries
+        ).body<SchoolsRequest>().entries
     }
 
     suspend fun getGroups(link: String): List<School.Info.Group> {
-        return client.get<GroupsRequest>(link).results
+        return client.get(link).body<GroupsRequest>().results
     }
 
 }
