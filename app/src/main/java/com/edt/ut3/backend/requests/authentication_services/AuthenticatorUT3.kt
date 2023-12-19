@@ -2,9 +2,7 @@ package com.edt.ut3.backend.requests.authentication_services
 
 import android.util.Log
 import com.edt.ut3.R
-import com.edt.ut3.backend.requests.getClient
 import io.ktor.client.*
-import io.ktor.client.call.receive
 import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.get
 import io.ktor.client.request.*
@@ -13,9 +11,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import java.io.IOException
-import java.util.Dictionary
 import java.util.concurrent.TimeoutException
-import io.ktor.client.request.forms.*
 
 class AuthenticatorUT3(
     val client: HttpClient,
@@ -48,11 +44,27 @@ class AuthenticatorUT3(
         ensureAuthentication(credentials, client)
     }
 
+    private suspend fun isConnected(targetClient: HttpClient) : Boolean{
+        Log.d("Auth", "Checking if connected")
+        if (targetClient.cookies("https://edt.univ-tlse3.fr").any { cookie -> cookie.name == "saml-session" }) {
+            val response1: HttpResponse = targetClient.get("https://edt.univ-tlse3.fr/calendar2", )
+            if(response1.request.url.fullPath != "/idp/profile/SAML2/Redirect/SSO" && response1.status == HttpStatusCode.OK){
+                Log.d("Auth", "Client already connected")
+                return true
+            }
+
+        }
+        Log.d("Auth", "Client not already connected")
+        return false
+    }
+
 
     @Throws(IOException::class, TimeoutException::class, AuthenticationException::class)
     private suspend fun ensureAuthentication(credentials: Credentials, targetClient: HttpClient) {
         Log.d(this::class.simpleName, "Checking authentication..")
-        authenticate(credentials)
+        if(!isConnected(targetClient)){
+            authenticate(credentials, targetClient)
+        }
     }
 
 
@@ -60,8 +72,12 @@ class AuthenticatorUT3(
     override suspend fun authenticate(credentials: Credentials) = authenticate(credentials, client)
     @Throws(IOException::class, TimeoutException::class, AuthenticationException::class)
     private suspend fun authenticate(credentials: Credentials, targetClient: HttpClient) {
+        if(isConnected(targetClient)) {
+            Log.d("Auth", "Client already authentified, skipping...")
+            return
+        }
 
-        val response1: HttpResponse = targetClient.get("https://edt.univ-tlse3.fr/calendar2", )
+        val response1: HttpResponse = targetClient.get("https://edt.univ-tlse3.fr/calendar2")
         Log.d("Auth", response1.request.url.toString())
         val execution = response1.request.url.parameters["execution"]
         Log.d("Auth", "Mode d'execution : " + execution)
