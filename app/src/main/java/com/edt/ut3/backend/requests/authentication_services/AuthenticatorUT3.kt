@@ -2,6 +2,7 @@ package com.edt.ut3.backend.requests.authentication_services
 
 import android.util.Log
 import com.edt.ut3.R
+import com.edt.ut3.backend.requests.getClient
 import io.ktor.client.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.get
