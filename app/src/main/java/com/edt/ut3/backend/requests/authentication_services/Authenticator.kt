@@ -75,12 +75,13 @@ class AuthenticationException(
 
 data class Credentials(
     val username: String,
-    val password: String
+    val password: String,
+    val disambiguationIdentity: String?
 ) {
     companion object {
-        fun from(username: String?, password: String?): Credentials? {
+        fun from(username: String?, password: String?, disambiguationIdentity: String?): Credentials? {
             return if (username != null && password != null) {
-                Credentials(username, password)
+                Credentials(username, password, disambiguationIdentity)
             } else {
                 null
             }

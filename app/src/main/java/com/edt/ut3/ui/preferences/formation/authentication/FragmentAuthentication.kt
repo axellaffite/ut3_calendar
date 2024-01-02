@@ -8,6 +8,8 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.Spinner
 import android.widget.Toast
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -54,8 +56,20 @@ class FragmentAuthentication: Fragment() {
         }
         setupField(binding.username)
         setupField(binding.password)
+        setupDropdown(binding.role)
     }
+    private fun setupDropdown(dropdown: Spinner?) = dropdown?.apply {
+        onItemSelectedListener = object:
+        AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+                updateViewModelCredentials()
+            }
 
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+                updateViewModelCredentials()
+            }
+        }
+    }
     /**
      * Setup a credential field in order to
      * handle the changes from it and update
@@ -152,11 +166,14 @@ class FragmentAuthentication: Fragment() {
     private fun updateViewModelCredentials() {
         val username = binding.username.text.takeIf { !it.isNullOrBlank() }
         val password = binding.password.text.takeIf { !it.isNullOrBlank() }
+        val roleId = binding.role.selectedItemId.toInt()
+        val roleString = resources.getStringArray(R.array.roles_values)[roleId]
 
         viewModel.updateCredentials(
             Credentials.from(
                 username?.toString(),
-                password?.toString()
+                password?.toString(),
+                roleString
             )
         )
     }
@@ -173,10 +190,13 @@ class FragmentAuthentication: Fragment() {
      */
     private fun handleCredentialsUpdate(credentials: Credentials?) {
         val newUsername = credentials?.username ?: return
-        val newPassword = credentials?.password
-
+        val newPassword = credentials.password
+        val newRole = credentials.disambiguationIdentity
+        val roleIndex = resources.getStringArray(R.array.roles_values).indexOf(newRole)
         binding.username.updateIfNecessary(newUsername)
         binding.password.updateIfNecessary(newPassword)
+        binding.role.setSelection(roleIndex)
+
     }
 
     /**
@@ -204,6 +224,7 @@ class FragmentAuthentication: Fragment() {
             AuthenticationState.Unauthenticated -> {
                 binding.username.isEnabled = true
                 binding.password.isEnabled = true
+                binding.role.isEnabled = true
 
                 context?.let {
                     val parent = parentFragment
@@ -225,6 +246,7 @@ class FragmentAuthentication: Fragment() {
 
                 binding.username.isEnabled = false
                 binding.password.isEnabled = false
+                binding.role.isEnabled = false
             }
 
             AuthenticationState.Authenticated -> {
@@ -235,6 +257,8 @@ class FragmentAuthentication: Fragment() {
 
                 binding.username.isEnabled = true
                 binding.password.isEnabled = true
+                binding.role.isEnabled = true
+
             }
 
             else -> {}
