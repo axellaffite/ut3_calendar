@@ -149,10 +149,51 @@ class AuthenticatorUT3(
         }
         val response6 = targetClient.submitForm("https://edt.univ-tlse3.fr/calendar2/Saml/AssertionConsumerService", formParameters = Parameters.build{
             append("SAMLResponse", samlResponse)
-        })
+        }) {
+            accept(ContentType.Text.Html)
+            accept(ContentType.Application.Xml)
+            accept(ContentType.Image.Any)
+        }
+
+        if(needs_disambiguation(response6)){
+            val body = response6.bodyAsText()
+            val requestToken = disambiguation_extract_request_token(body)
+            val res7_token = disambiguation_extract_token(body)
+            if(res7_token == null || requestToken == null || credentials.disambiguationIdentity == null){
+                Log.d("Auth","No disambiguation token found, or credentials do not specify disambiguation information")
+                Log.d("Auth","Request token : $requestToken")
+                Log.d("Auth","Token : $token")
+                Log.d("Auth","Disambiguation identity : ${credentials.disambiguationIdentity}")
+                throw AuthenticationException(R.string.error_during_authentication)
+            }
+            val response7 = targetClient.submitForm("https://edt.univ-tlse3.fr/calendar2/Disambiguate/Disambiguated", formParameters = Parameters.build {
+                append("Token", res7_token)
+                append("__RequestVerificationToken", requestToken)
+                append("submit", credentials.disambiguationIdentity)
+            })
+        }
+
+
         Log.d("Auth", "End of authentication process, last request status code : " + response5.status.toString())
         Log.d("Cookies : ", targetClient.cookies("https://edt.univ-tlse3.fr/").toString())
     }
+
+
+    private fun needs_disambiguation(response: HttpResponse): Boolean{
+        return response.request.url.fullPath.contains("Disambiguate")
+    }
+
+    private fun disambiguation_extract_request_token(page: String): String? {
+        val reg = Regex("name=\"__RequestVerificationToken\" .*? value=\"(.*?)\"")
+        return reg.find(page)?.groups?.get(1)?.value
+    }
+
+    private fun disambiguation_extract_token(page: String): String? {
+        val reg = Regex("name=\"Token\" value=\"(.*?)\"")
+        return reg.find(page)?.groups?.get(1)?.value
+    }
+
+
 
     private fun extract_execution_from_ut3_login_page(page: String): String?{
         val reg = Regex("name=\"execution\" value=\"(.*?)\"")

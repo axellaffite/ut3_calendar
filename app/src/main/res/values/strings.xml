@@ -143,9 +143,19 @@
     <string name="delete_note">Voulez-vous supprimer la note ?</string>
     <string name="error_missing_credentials">Vos identifiants doivent être précisés pour vous connecter</string>
     <string name="error_unable_to_treat_server_response">Impossible de traiter la réponse du serveur</string>
+    <string name="role_label">Statut au sein de l\'université :</string>
 
     <string-array name="resource_type_possibilities">
         <item>Groupe</item>
         <item>Matières</item>
+    </string-array>
+
+    <string-array name="roles">
+        <item>Étudiant</item>
+        <item>Membre du personnel</item>
+    </string-array>
+    <string-array name="roles_values" translatable="false">
+        <item>student0</item>
+        <item>staff0</item>
     </string-array>
 </resources>

@@ -54,6 +54,7 @@ class CredentialsManager private constructor(val context: Context) {
         getCredentialsPreferenceFile().edit {
             putString("username", credentials.username)
             putString("password", credentials.password)
+            putString("disambiguationIdentity", credentials.disambiguationIdentity)
         }
     }
 
@@ -67,8 +68,9 @@ class CredentialsManager private constructor(val context: Context) {
         getCredentialsPreferenceFile().run {
             val username = getString("username", null)
             val password = getString("password", null)
+            val disambiguationIdentity = getString("disambiguationIdentity", null)
 
-            Credentials.from(username, password)
+            Credentials.from(username, password, disambiguationIdentity)
         }
     }
 
@@ -79,6 +81,7 @@ class CredentialsManager private constructor(val context: Context) {
         getCredentialsPreferenceFile().edit {
             putString("username", null)
             putString("password", null)
+            putString("disambiguationIdentity", null)
         }
     }
 

@@ -140,6 +140,12 @@
     <string name="error_missing_credentials">Your credentials must be specified in order to get connected</string>
     <string name="error_unable_to_treat_server_response">Unable to treat server response</string>
 
+    <string name="role_label">Status within the University: </string>
+    <string-array name="roles">
+        <item>Student</item>
+        <item>Staff member</item>
+    </string-array>
+
     <string-array name="resource_type_possibilities">
         <item>Groups</item>
         <item>Courses</item>
