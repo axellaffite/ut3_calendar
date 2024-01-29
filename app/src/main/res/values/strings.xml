@@ -17,7 +17,7 @@
     <string name="update_failed">La mise à jour a échoué, veuillez vérifier votre connexion internet</string>
     <string name="action_retry">Réessayer</string>
     <string name="update_succeeded">Emploi du temps mis à jour avec succès !</string>
-    <string name="map_search_hint">Un batiment, un restaurant, …</string>
+    <string name="map_search_hint">Un bâtiment, un restaurant, …</string>
     <string name="unknown_error">Une erreur est survenue</string>
     <string name="unable_to_retrieve_data">Impossible de récupérer les lieux, vérifiez votre connexion internet.</string>
     <string name="unknow_error">Impossible de traiter les données reçues</string>
@@ -34,7 +34,7 @@
     <string name="all_day">Toute la journée</string>
     <string name="from">De :</string>
     <string name="to">A :</string>
-    <string name="no_value_selected">Pas de valeur selectionnée</string>
+    <string name="no_value_selected">Pas de valeur sélectionnée</string>
     <string name="starting_hour">Heure de début</string>
     <string name="ending_hour">Heure de fin</string>
     <string name="dark_theme_bounds_title">Horaires pour le thème sombre</string>
@@ -47,13 +47,13 @@
     <string name="title_room_finder">Salle libre</string>
     <string name="building_search">Sélectionnez un bâtiment</string>
     <string name="searching_room">À la recherche d\'une salle vide pour toi ❤️</string>
-    <string name="find_a_free_room">Trouves une salle de libre grâce à\nhttps://rooms-finder.goulin.fr</string>
+    <string name="find_a_free_room">Trouve une salle libre grâce à\nhttps://rooms-finder.goulin.fr</string>
     <string name="hour_format" translatable="false">HH:mm</string>
     <string name="from_to_format">De %s à %s</string>
     <string name="data_update_failed">Impossible de récupérer les données, veuillez vérifier votre connexion internet</string>
     <string name="since_now">À partir de maintenant</string>
     <string name="smartphone_theme">Thème du smartphone</string>
-    <string name="no_reminder_set">"Pas de rappel définit "</string>
+    <string name="no_reminder_set">"Pas de rappel défini "</string>
     <string name="empty_day">Rien à signaler pour ce jour ! %s</string>
     <string name="data_update">Mise à jour des données..</string>
     <string name="reminder_none">Pas de rappel</string>
@@ -73,7 +73,7 @@
         \n
         Vous souhaitez participer au projet en devenant bêta testeur,
         en devenant développeur ou simplement en aidant pour de la traduction, documentation ou
-        tout autre chose ? Rejoingez le Discord de l\'application !\n
+        tout autre chose ? Rejoignez le Discord de l\'application !\n
         https://discord.gg/6KPZmQa\n
         \n
         Le code source est disponible sur notre Github : \n
@@ -120,20 +120,20 @@
     <string name="password">Mot de passe</string>
     <string name="username">Identifiant</string>
     <string name="title_authentication">Authentification</string>
-    <string name="summary_authentication">Bien que facultatif, saisir ses identifiants est recommandé pour obtenir toutes les informations de la part de Celcat.</string>
+    <string name="summary_authentication">Saisir ses identifiants est nécessaire pour obtenir les informations de la part de Celcat.</string>
     <string name="error_wrong_credentials">Identifiants incorrects</string>
-    <string name="error_during_authentication">Une erreur inattendue c\'est produite durant le processus de connexion</string>
+    <string name="error_during_authentication">Une erreur inattendue s\'est produite durant le processus de connexion</string>
     <string name="error_check_internet">Veuillez vérifier votre connexion internet</string>
     <string name="check_credentials">Validation des identifiants..</string>
     <string name="channel_course_title">Changement dans l\'emploi du temps</string>
     <string name="channel_course_description">Notification de changement dans l\'emploi du temps</string>
     <string name="channel_reminder_title">Rappel</string>
-    <string name="channel_reminder_description">Rappel définit par l\'utilisateur</string>
+    <string name="channel_reminder_description">Rappel défini par l\'utilisateur</string>
     <string name="step_check_credentials">Vérifier</string>
     <string name="step_checking_credentials">Vérification..</string>
     <string name="error_complete_configuration">Vous devez finir la configuration</string>
-    <string name="lets_go">C\'est partit !</string>
-    <string name="first_launch_message">Salut à toi et bienvenue dans EDT UT3 !\n\nAvant de commencer, nous devons te demander quelques informations, notamment les groupes auxquels tu appartiens.\n\nAvant de commencer, sâches que tes identifiants seront stockés sur ton téléphone et non pas envoyés sur un serveur distant. L\'étape de l\'authentification est d\'ailleurs optionnelle :)</string>
+    <string name="lets_go">C\'est parti !</string>
+    <string name="first_launch_message">Salut à toi et bienvenue dans EDT UT3 !\n\nAvant de commencer, nous devons te demander quelques informations, notamment les groupes auxquels tu appartiens.\n\nAvant de commencer, sache que tes identifiants seront stockés sur ton téléphone et non pas envoyés sur un serveur distant.</string>
     <string name="step_skip">Passer</string>
     <string name="personnal_note">Note personnelle</string>
     <string name="downloading_groups">Téléchargement des groupes..</string>
@@ -141,11 +141,21 @@
     <string name="channel_firebase_description">Channel de notification servant à diffuser des informations à l\'ensemble des utilisateurs</string>
     <string name="event_not_found">Événement introuvable</string>
     <string name="delete_note">Voulez-vous supprimer la note ?</string>
-    <string name="error_missing_credentials">Vos identifiants doivent etre précisés pour vous connecter</string>
+    <string name="error_missing_credentials">Vos identifiants doivent être précisés pour vous connecter</string>
     <string name="error_unable_to_treat_server_response">Impossible de traiter la réponse du serveur</string>
+    <string name="role_label">Statut au sein de l\'université :</string>
 
     <string-array name="resource_type_possibilities">
         <item>Groupe</item>
         <item>Matières</item>
+    </string-array>
+
+    <string-array name="roles">
+        <item>Étudiant</item>
+        <item>Membre du personnel</item>
+    </string-array>
+    <string-array name="roles_values" translatable="false">
+        <item>student0</item>
+        <item>staff0</item>
     </string-array>
 </resources>

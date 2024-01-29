@@ -23,10 +23,11 @@ class SearchBar<Data, Adapter: SearchBarAdapter<Data, *>> (context: Context, att
 {
     private var binding: LayoutSearchBarBinding
     // parce qu'il y a du code ailleurs qui en a besoin...
-    public var searchBar: EditText? = null
+    public val searchBar: EditText
     public var results: RecyclerView? = null
     init {
         binding = LayoutSearchBarBinding.inflate(LayoutInflater.from(context), this)
+        searchBar = binding.searchBar
         context.theme.obtainStyledAttributes(
             attrs,
             R.styleable.SearchBar,

@@ -4,7 +4,6 @@ import android.util.Log
 import com.edt.ut3.R
 import com.edt.ut3.backend.requests.getClient
 import io.ktor.client.*
-import io.ktor.client.call.receive
 import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.get
 import io.ktor.client.request.*
@@ -13,9 +12,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import java.io.IOException
-import java.util.Dictionary
 import java.util.concurrent.TimeoutException
-import io.ktor.client.request.forms.*
 
 class AuthenticatorUT3(
     val client: HttpClient,
@@ -48,11 +45,27 @@ class AuthenticatorUT3(
         ensureAuthentication(credentials, client)
     }
 
+    private suspend fun isConnected(targetClient: HttpClient) : Boolean{
+        Log.d("Auth", "Checking if connected")
+        if (targetClient.cookies("https://edt.univ-tlse3.fr").any { cookie -> cookie.name == "saml-session" }) {
+            val response1: HttpResponse = targetClient.get("https://edt.univ-tlse3.fr/calendar2", )
+            if(response1.request.url.fullPath != "/idp/profile/SAML2/Redirect/SSO" && response1.status == HttpStatusCode.OK){
+                Log.d("Auth", "Client already connected")
+                return true
+            }
+
+        }
+        Log.d("Auth", "Client not already connected")
+        return false
+    }
+
 
     @Throws(IOException::class, TimeoutException::class, AuthenticationException::class)
     private suspend fun ensureAuthentication(credentials: Credentials, targetClient: HttpClient) {
         Log.d(this::class.simpleName, "Checking authentication..")
-        authenticate(credentials)
+        if(!isConnected(targetClient)){
+            authenticate(credentials, targetClient)
+        }
     }
 
 
@@ -60,8 +73,12 @@ class AuthenticatorUT3(
     override suspend fun authenticate(credentials: Credentials) = authenticate(credentials, client)
     @Throws(IOException::class, TimeoutException::class, AuthenticationException::class)
     private suspend fun authenticate(credentials: Credentials, targetClient: HttpClient) {
+        if(isConnected(targetClient)) {
+            Log.d("Auth", "Client already authentified, skipping...")
+            return
+        }
 
-        val response1: HttpResponse = targetClient.get("https://edt.univ-tlse3.fr/calendar2", )
+        val response1: HttpResponse = targetClient.get("https://edt.univ-tlse3.fr/calendar2")
         Log.d("Auth", response1.request.url.toString())
         val execution = response1.request.url.parameters["execution"]
         Log.d("Auth", "Mode d'execution : " + execution)
@@ -132,10 +149,51 @@ class AuthenticatorUT3(
         }
         val response6 = targetClient.submitForm("https://edt.univ-tlse3.fr/calendar2/Saml/AssertionConsumerService", formParameters = Parameters.build{
             append("SAMLResponse", samlResponse)
-        })
+        }) {
+            accept(ContentType.Text.Html)
+            accept(ContentType.Application.Xml)
+            accept(ContentType.Image.Any)
+        }
+
+        if(needs_disambiguation(response6)){
+            val body = response6.bodyAsText()
+            val requestToken = disambiguation_extract_request_token(body)
+            val res7_token = disambiguation_extract_token(body)
+            if(res7_token == null || requestToken == null || credentials.disambiguationIdentity == null){
+                Log.d("Auth","No disambiguation token found, or credentials do not specify disambiguation information")
+                Log.d("Auth","Request token : $requestToken")
+                Log.d("Auth","Token : $token")
+                Log.d("Auth","Disambiguation identity : ${credentials.disambiguationIdentity}")
+                throw AuthenticationException(R.string.error_during_authentication)
+            }
+            val response7 = targetClient.submitForm("https://edt.univ-tlse3.fr/calendar2/Disambiguate/Disambiguated", formParameters = Parameters.build {
+                append("Token", res7_token)
+                append("__RequestVerificationToken", requestToken)
+                append("submit", credentials.disambiguationIdentity)
+            })
+        }
+
+
         Log.d("Auth", "End of authentication process, last request status code : " + response5.status.toString())
         Log.d("Cookies : ", targetClient.cookies("https://edt.univ-tlse3.fr/").toString())
     }
+
+
+    private fun needs_disambiguation(response: HttpResponse): Boolean{
+        return response.request.url.fullPath.contains("Disambiguate")
+    }
+
+    private fun disambiguation_extract_request_token(page: String): String? {
+        val reg = Regex("name=\"__RequestVerificationToken\" .*? value=\"(.*?)\"")
+        return reg.find(page)?.groups?.get(1)?.value
+    }
+
+    private fun disambiguation_extract_token(page: String): String? {
+        val reg = Regex("name=\"Token\" value=\"(.*?)\"")
+        return reg.find(page)?.groups?.get(1)?.value
+    }
+
+
 
     private fun extract_execution_from_ut3_login_page(page: String): String?{
         val reg = Regex("name=\"execution\" value=\"(.*?)\"")

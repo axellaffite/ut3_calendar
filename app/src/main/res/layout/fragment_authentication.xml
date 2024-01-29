@@ -71,6 +71,22 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:text="@string/role_label" />
+
+            <Spinner
+                android:id="@+id/role"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:entries="@array/roles" />
+
         </LinearLayout>
 
     </ScrollView>

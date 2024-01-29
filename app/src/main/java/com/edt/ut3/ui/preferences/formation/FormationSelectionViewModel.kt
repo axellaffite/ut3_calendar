@@ -90,7 +90,7 @@ class FormationSelectionViewModel: ViewModel() {
         } else {
             _authenticationState.value = AuthenticationState.Authenticating
             try {
-                AuthenticatorUT3(client).checkCredentials(credentials)
+                AuthenticatorUT3(client).ensureAuthentication(credentials)
                 _authenticationState.value = AuthenticationState.Authenticated
                 true
             } catch (e: Exception) {

@@ -15,7 +15,7 @@ class LayoutAllDay(context: Context, attributeSet: AttributeSet?): LinearLayout(
     constructor(context: Context) : this(context, null)
     private val binding: LayoutAllDayBinding
     init {
-        binding = LayoutAllDayBinding.inflate(LayoutInflater.from(context), this, false)
+        binding = LayoutAllDayBinding.inflate(LayoutInflater.from(context), this, true)
     }
 
     fun setEvents(events: List<EventWrapper>, builder: (EventWrapper) -> View) {
