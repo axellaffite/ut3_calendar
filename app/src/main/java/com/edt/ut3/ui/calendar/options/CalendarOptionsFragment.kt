@@ -25,12 +25,15 @@ import kotlinx.coroutines.launch
 class CalendarOptionsFragment: Fragment() {
 
     private lateinit var binding: FragmentCalendarOptionsBinding
+    private val viewModel: CalendarViewModel by activityViewModels()
     override fun onCreateView(inflater: LayoutInflater,
                               container: ViewGroup?,
                               savedInstanceState: Bundle?): View?
     {
         binding = FragmentCalendarOptionsBinding.inflate(layoutInflater)
-        return binding.root
+        return binding.root.also {
+            viewModel.getCoursesVisibility(requireContext()).observe(viewLifecycleOwner, ::generateCoursesChips)
+        }
     }
 
     private fun generateCoursesChips(courses: List<Course>) {
