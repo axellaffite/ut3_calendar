@@ -264,11 +264,9 @@ class NotificationManager private constructor(val context: Context) {
 
         Log.d(this::class.simpleName, "schedule: ${note.reminder.getReminderDate()}")
         Log.d(this::class.simpleName, "Second before firing: $secondsBeforeFiring")
-        when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ->
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent)
-            else ->
-                alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && alarmManager.canScheduleExactAlarms()) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent)
         }
     }
 
