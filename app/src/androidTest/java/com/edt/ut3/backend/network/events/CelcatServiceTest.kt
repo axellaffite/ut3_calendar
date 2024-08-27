@@ -14,7 +14,7 @@ class CelcatServiceTest {
     fun downloadEvents() {
         runBlocking {
             val result = CelcatService(getClient()).getEvents(
-                link = "https://edt.univ-tlse3.fr/calendar2",
+                link = "https://edt.univ-tlse3.fr/calendar",
                 start = Date().minus(Calendar.YEAR, 1),
                 formations = listOf("MINDLIHM8TPA22"),
                 classes = emptySet(),
