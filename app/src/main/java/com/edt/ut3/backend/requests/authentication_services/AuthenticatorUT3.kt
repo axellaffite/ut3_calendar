@@ -16,8 +16,8 @@ import java.util.concurrent.TimeoutException
 
 class AuthenticatorUT3(
     val client: HttpClient,
-    host: String = "https://edt.univ-tlse3.fr/calendar2"
-) : Authenticator(host) {
+    host: String = "https://edt.univ-tlse3.fr/calendar"
+) : Authenticator(host) {   
 
     @Throws(AuthenticationException::class)
     override suspend fun connect(credentials: Credentials?) {
@@ -48,7 +48,7 @@ class AuthenticatorUT3(
     private suspend fun isConnected(targetClient: HttpClient) : Boolean{
         Log.d("Auth", "Checking if connected")
         if (targetClient.cookies("https://edt.univ-tlse3.fr").any { cookie -> cookie.name == "saml-session" }) {
-            val response1: HttpResponse = targetClient.get("https://edt.univ-tlse3.fr/calendar2", )
+            val response1: HttpResponse = targetClient.get("https://edt.univ-tlse3.fr/calendar", )
             if(response1.request.url.fullPath != "/idp/profile/SAML2/Redirect/SSO" && response1.status == HttpStatusCode.OK){
                 Log.d("Auth", "Client already connected")
                 return true
@@ -78,7 +78,7 @@ class AuthenticatorUT3(
             return
         }
 
-        val response1: HttpResponse = targetClient.get("https://edt.univ-tlse3.fr/calendar2")
+        val response1: HttpResponse = targetClient.get("https://edt.univ-tlse3.fr/calendar")
         Log.d("Auth", response1.request.url.toString())
         val execution = response1.request.url.parameters["execution"]
         Log.d("Auth", "Mode d'execution : " + execution)
@@ -111,7 +111,7 @@ class AuthenticatorUT3(
             append("_eventId", "submit")
             append("geolocation", "")
         }) {
-            parameter("entityId", "https%3A%2F%2Fedt.univ-tlse3.fr%2Fcalendar2")
+            parameter("entityId", "https%3A%2F%2Fedt.univ-tlse3.fr%2Fcalendar")
             parameter("service", "https%3A%2F%2Fidp.univ-tlse3.fr%2Fidp%2FAuthn%2FExternal%3Fconversation%3De1s2")
         }
 
@@ -147,7 +147,7 @@ class AuthenticatorUT3(
             Log.d("Auth", "No SAML response found")
             throw AuthenticationException(R.string.error_during_authentication)
         }
-        val response6 = targetClient.submitForm("https://edt.univ-tlse3.fr/calendar2/Saml/AssertionConsumerService", formParameters = Parameters.build{
+        val response6 = targetClient.submitForm("https://edt.univ-tlse3.fr/calendar/Saml/AssertionConsumerService", formParameters = Parameters.build{
             append("SAMLResponse", samlResponse)
         }) {
             accept(ContentType.Text.Html)
@@ -166,7 +166,7 @@ class AuthenticatorUT3(
                 Log.d("Auth","Disambiguation identity : ${credentials.disambiguationIdentity}")
                 throw AuthenticationException(R.string.error_during_authentication)
             }
-            val response7 = targetClient.submitForm("https://edt.univ-tlse3.fr/calendar2/Disambiguate/Disambiguated", formParameters = Parameters.build {
+            val response7 = targetClient.submitForm("https://edt.univ-tlse3.fr/calendar/Disambiguate/Disambiguated", formParameters = Parameters.build {
                 append("Token", res7_token)
                 append("__RequestVerificationToken", requestToken)
                 append("submit", credentials.disambiguationIdentity)

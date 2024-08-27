@@ -153,7 +153,7 @@ dependencies {
     // Name : stfalcon-imageviewer
     // Summary : Display images simply with few lines of code.
     // Documentation : https://github.com/stfalcon-studio/StfalconImageViewer
-    implementation 'com.github.stfalcon:stfalcon-imageviewer:1.0.1'
+    implementation 'com.github.stfalcon-studio:StfalconImageViewer:v1.0.1'
 
     // Name : Android-SpinKit
     // Summary : Display loading animations
@@ -163,7 +163,7 @@ dependencies {
     // Name : AnimatedBottomBar
     // Summary : A customizable and easy to use bottom bar view with sleek animations.
     // Documentation : https://github.com/Droppers/AnimatedBottomBar
-    implementation 'nl.joery.animatedbottombar:library:1.0.8'
+    implementation 'nl.joery.animatedbottombar:library:1.1.0'
 
     implementation 'com.github.liip:SweetPreferences:1.0.3'
 

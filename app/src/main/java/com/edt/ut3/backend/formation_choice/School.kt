@@ -28,10 +28,10 @@ data class School(
             info = listOf(
                 Info(
                     name="FSI",
-                    url="https://edt.univ-tlse3.fr/calendar2",
-                    groups="https://edt.univ-tlse3.fr/calendar2/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=100000&pageNumber=1&resType=103&_=1601408259547",
-                    rooms="https://edt.univ-tlse3.fr/calendar2/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=100000&pageNumber=1&resType=102&_=1601408259546",
-                    courses="https://edt.univ-tlse3.fr/calendar2/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=100000&pageNumber=1&resType=100&_=1601408259545"
+                    url="https://edt.univ-tlse3.fr/calendar",
+                    groups="https://edt.univ-tlse3.fr/calendar/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=100000&pageNumber=1&resType=103&_=1601408259547",
+                    rooms="https://edt.univ-tlse3.fr/calendar/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=100000&pageNumber=1&resType=102&_=1601408259546",
+                    courses="https://edt.univ-tlse3.fr/calendar/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=100000&pageNumber=1&resType=100&_=1601408259545"
                 )
             )
         )
@@ -134,7 +134,7 @@ data class School(
              */
             private fun guessGroupsLink(link: String): String {
                 val search =
-                    if (link.contains("calendar2")) { "___" }
+                    if (link.contains("calendar")) { "___" }
                     else { "__" }
 
                 return "$link/Home/ReadResourceListItems?myResources=false&searchTerm=$search&pageSize=100000&pageNumber=1&resType=103"
@@ -148,7 +148,7 @@ data class School(
              */
             private fun guessRoomsLink(link: String): String {
                 val search =
-                    if (link.contains("calendar2")) { "___" }
+                    if (link.contains("calendar")) { "___" }
                     else { "__" }
 
                 return "$link/Home/ReadResourceListItems?myResources=false&searchTerm=$search&pageSize=1000000&pageNumber=1&resType=102"
@@ -162,7 +162,7 @@ data class School(
              */
             private fun guessCoursesLink(link: String): String {
                 val search =
-                    if (link.contains("calendar2")) { "___" }
+                    if (link.contains("calendar")) { "___" }
                     else { "__" }
 
                 return "$link/Home/ReadResourceListItems?myResources=false&searchTerm=$search&pageSize=10000000&pageNumber=1&resType=100"
