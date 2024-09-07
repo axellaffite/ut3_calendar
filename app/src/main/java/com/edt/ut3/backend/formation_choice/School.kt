@@ -24,22 +24,23 @@ data class School(
          * with all its [information][Info].
          */
         val default = School(
-            name="IUT MFJA",
+            name="Université Paul Sabatier",
             info = listOf(
                 Info(
-                    name="MJFA",
-                    url="https://edt.iut-tlse3.fr/calendar-mfja",
-                    groups="https://edt.iut-tlse3.fr/calendar-mfja/Home/ReadResourceListItems?myResources=false&searchTerm=__&pageSize=100000&pageNumber=1&resType=103",
-                    rooms="https://edt.iut-tlse3.fr/calendar-mfja/Home/ReadResourceListItems?myResources=false&searchTerm=__&pageSize=100000&pageNumber=1&resType=102",
-                    courses="https://edt.iut-tlse3.fr/calendar-mfja/Home/ReadResourceListItems?myResources=false&searchTerm=__&pageSize=100000&pageNumber=1&resType=100"
+                    name="FSI",
+                    url="https://edt.univ-tlse3.fr/calendar",
+                    groups="https://edt.univ-tlse3.fr/calendar/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=100000&pageNumber=1&resType=103&_=1601408259547",
+                    rooms="https://edt.univ-tlse3.fr/calendar/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=100000&pageNumber=1&resType=102&_=1601408259546",
+                    courses="https://edt.univ-tlse3.fr/calendar/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=100000&pageNumber=1&resType=100&_=1601408259545"
                 )
             )
         )
     }
+
     /**
      * Represent a [school][School] information.
      *
-     * @property name The faculty name&_=1601408259545
+     * @property name The faculty name
      * @property url The faculty schedule url
      * @property groups The link to get all the groups
      * @property rooms The link to get all the rooms
