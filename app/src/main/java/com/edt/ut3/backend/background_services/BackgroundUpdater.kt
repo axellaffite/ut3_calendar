@@ -98,18 +98,17 @@ class BackgroundUpdater(appContext: Context, workerParams: WorkerParameters) :
 
         firstUpdate = inputData.getBoolean("firstUpdate", false)
 
-
         try {
             val groups = prefManager.groups ?: throw IllegalStateException("Groups must be set")
-            val link = prefManager.link ?: throw IllegalStateException("Link must be set")
+            val link = prefManager.school ?: throw IllegalStateException("Link must be set")
             val resourceType = prefManager.resourceType
 
             val updater = getUpdater {
                 authenticateIfNeeded(applicationContext, AuthenticatorUT3(this, link.url))
             }
 
-            val classes = updater.getClasses(link.rooms).toSet()
-            val courses = updater.getCoursesNames(link.courses)
+            val classes = updater.getClasses(link.get(ResourceType.Classes)).toSet()
+            val courses = updater.getCoursesNames(link.get(ResourceType.Courses))
             val incomingEvents = updater.getEvents(link, resourceType, groups, classes, courses, firstUpdate)
             val changes = computeEventUpdate(incomingEvents)
 

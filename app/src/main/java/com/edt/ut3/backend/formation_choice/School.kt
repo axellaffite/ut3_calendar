@@ -1,11 +1,18 @@
 package com.edt.ut3.backend.formation_choice
 
 import android.net.Uri
-import androidx.core.net.toUri
-import com.edt.ut3.R
 import com.edt.ut3.backend.background_services.updaters.ResourceType
 import com.edt.ut3.backend.formation_choice.School.Info
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+
+@Serializable
+enum class AuthenticationMethod{
+    @SerialName("none")
+    NONE,
+    @SerialName("ut3_fsi")
+    UT3_FSI
+}
 
 /**
  * Represents a School by its name and [information][Info].
@@ -16,49 +23,30 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class School(
     val name: String,
-    val info: List<Info>
+    val info: Info
 ){
-    companion object {
-        /**
-         * Returns the default School which is Paul Sabatier
-         * with all its [information][Info].
-         */
-        val default = School(
-            name="IUT MFJA",
-            info = listOf(
-                Info(
-                    name="MJFA",
-                    url="https://edt.iut-tlse3.fr/calendar-mfja",
-                    groups="https://edt.iut-tlse3.fr/calendar-mfja/Home/ReadResourceListItems?myResources=false&searchTerm=__&pageSize=100000&pageNumber=1&resType=103",
-                    rooms="https://edt.iut-tlse3.fr/calendar-mfja/Home/ReadResourceListItems?myResources=false&searchTerm=__&pageSize=100000&pageNumber=1&resType=102",
-                    courses="https://edt.iut-tlse3.fr/calendar-mfja/Home/ReadResourceListItems?myResources=false&searchTerm=        __&pageSize=100000&pageNumber=1&resType=100"
-                )
-            )
-        )
-    }
 
     /**
      * Represent a [school][School] information.
      *
-     * @property name The faculty name
-     * @property url The faculty schedule url
-     * @property groups The link to get all the groups
-     * @property rooms The link to get all the rooms
-     * @property courses The link to get all the courses
+     * @property label The label associated wih the faculty
+     * @property baseUrl The base CELCAT url
+     * @property authentication The authentication method used by the CELCAT instance
+     * @property searchPlaceHolder The placeholder used in search queries to get all the entries
      */
     @Serializable
     data class Info (
-        val name: String,
-        val url: String,
-        val groups: String,
-        val rooms: String,
-        val courses: String
+        val label: String,
+        val baseUrl: String,
+        val authentication: AuthenticationMethod,
+        val searchPlaceHolder: String
     ){
-        fun get(resourceType: ResourceType?) = when (resourceType) {
-            ResourceType.Groups -> groups
-            ResourceType.Courses -> courses
-            null -> groups
+        fun get(resourceType: ResourceType) = when (resourceType) {
+            ResourceType.Groups -> getGroupLink(baseUrl, searchPlaceHolder)
+            ResourceType.Courses -> getCoursesLink(baseUrl, searchPlaceHolder)
+            ResourceType.Classes -> getRoomsLink(baseUrl, searchPlaceHolder)
         }
+
 
 
         companion object {
@@ -68,6 +56,7 @@ data class School(
              * @param uri The celcat url
              * @return All found fids.
              */
+
             private fun extractFids(uri: Uri): List<String> {
                 /**
                  * Extract the fids until the next fid
@@ -88,70 +77,26 @@ data class School(
                 return extract()
             }
 
-
-
-            val celcatLinkPattern = Regex("(.*)/cal.*")
             /**
-             * Try to converts a classic link to and [Info].
-             * The link must match [this pattern][celcatLinkPattern]
-             *
-             * @InvalidLinkException If the link isn't valid. It contains the error
-             * as an ID which is traduced in several languages.
-             * @param link The link to parse
-             * @return A pair containing an [Info] and a list of fids.
-             */
-            @Throws(InvalidLinkException::class)
-            fun fromClassicLink(link: String): Pair<Info, List<String>> {
-                try {
-                    val baseLink = celcatLinkPattern.find(link)?.value
-                    val fids = extractFids(link.toUri())
-
-                    if (baseLink.isNullOrBlank()) {
-                        throw InvalidLinkException(R.string.error_invalid_link)
-                    }
-
-                    if (fids.isEmpty()) {
-                        throw InvalidLinkException(R.string.error_link_groups)
-                    }
-
-                    val name = ""
-                    val url = celcatLinkPattern.find(link)?.groups?.get(1)?.value!!
-                    val groups = guessGroupsLink(url)
-                    val rooms = guessRoomsLink(url)
-                    val courses = guessCoursesLink(url)
-
-                    return Pair(Info(name, url, groups, rooms, courses), fids)
-                } catch (e: UnsupportedOperationException) {
-                    throw InvalidLinkException(R.string.error_invalid_link)
-                }
-            }
-
-            /**
-             * Tries to guess the link to retrieve all the groups.
+             * Returns the link to retrieve all the groups.
              *
              * @param link The base link
+             * @param searchPlaceHolder The string used as placeholder to fetch all entries (varies between CELCAT instances)
              * @return The group link
              */
-            private fun guessGroupsLink(link: String): String {
-                val search =
-                    if (link.contains("calendar")) { "___" }
-                    else { "__" }
-
-                return "$link/Home/ReadResourceListItems?myResources=false&searchTerm=$search&pageSize=100000&pageNumber=1&resType=103"
+            private fun getGroupLink(link: String, searchPlaceHolder: String): String {
+                return "$link/Home/ReadResourceListItems?myResources=false&searchTerm=$searchPlaceHolder&pageSize=100000&pageNumber=1&resType=103"
             }
 
             /**
              * Tries to guess the link to retrieve all the rooms.
              *
              * @param link The base link
+             * @param searchPlaceHolder The string used as placeholder to fetch all entries (varies between CELCAT instances)
              * @return The rooms link
              */
-            private fun guessRoomsLink(link: String): String {
-                val search =
-                    if (link.contains("calendar")) { "___" }
-                    else { "__" }
-
-                return "$link/Home/ReadResourceListItems?myResources=false&searchTerm=$search&pageSize=1000000&pageNumber=1&resType=102"
+            private fun getRoomsLink(link: String, searchPlaceHolder: String): String {
+                return "$link/Home/ReadResourceListItems?myResources=false&searchTerm=$searchPlaceHolder&pageSize=1000000&pageNumber=1&resType=102"
             }
 
             /**
@@ -160,23 +105,10 @@ data class School(
              * @param link The base link
              * @return The courses link
              */
-            private fun guessCoursesLink(link: String): String {
-                val search =
-                    if (link.contains("calendar")) { "___" }
-                    else { "__" }
-
-                return "$link/Home/ReadResourceListItems?myResources=false&searchTerm=$search&pageSize=10000000&pageNumber=1&resType=100"
+            private fun getCoursesLink(link: String, searchPlaceHolder: String): String {
+                return "$link/Home/ReadResourceListItems?myResources=false&searchTerm=$searchPlaceHolder&pageSize=10000000&pageNumber=1&resType=100"
             }
         }
-
-        /**
-         * Thrown if the given link is invalid.
-         *
-         * @property reason A resource id pointing to
-         * the current error. (Can be used to display
-         * errors to the final user ).
-         */
-        class InvalidLinkException(val reason: Int): Exception()
 
         /**
          * Represent a faculty group.

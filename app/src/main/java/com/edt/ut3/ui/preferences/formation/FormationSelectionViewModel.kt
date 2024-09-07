@@ -57,6 +57,21 @@ class FormationSelectionViewModel: ViewModel() {
     val groups : List<School.Info.Group>
         get() = synchronized(_groups) {_groups}
 
+    private val _schools = mutableListOf<School.Info>()
+    init {
+        val schoolsJson = application.assets.open("schools.json")
+        val schoolsString = schoolsJson.readAllBytes().decodeToString()
+        _schools.addAll(Json.decodeFromString(schoolsString))
+    }
+
+    private val _selectedSchool = MutableLiveData<School.Info>(null)
+    val selectedSchool : LiveData<School.Info>
+        get() = _selectedSchool
+
+
+    val schools: List<School.Info>
+        get() = synchronized(_schools) {_schools}
+
     private val _groupsLD = MutableLiveData(groups)
     val groupsLD : LiveData<List<School.Info.Group>>
         get() = _groupsLD
@@ -112,8 +127,7 @@ class FormationSelectionViewModel: ViewModel() {
         groupsDownloadJob = viewModelScope.launch {
             _groupsStatus.value = WhichGroupsState.Downloading
             val success: Boolean = try {
-                val link = School.default.info.first().get(resourceType.value)
-                val newGroups = CelcatService(client).getGroups(link)
+                val newGroups = CelcatService(client).getGroups(selectedSchool.value!!.get(ResourceType.Groups))
                 synchronized(groups) {
                     _groups.clear()
                     _groups.addAll(newGroups)
@@ -177,6 +191,14 @@ class FormationSelectionViewModel: ViewModel() {
 
     fun validateGroups() : Boolean = _selectedGroups.value?.isNotEmpty().isTrue()
 
+    fun setSchool(school: School.Info) {
+        _selectedSchool.value = school
+        authenticator = getAuthenticator(selectedSchool.value!!.authentication, client, selectedSchool.value!!.baseUrl)
+        triggerAuthenticationButton()
+    }
+
+    fun validateSchool(): Boolean = _selectedSchool.value != null
+
     fun clearFailure(error: BaseState.Failure?) = when (error) {
         is AuthenticationFailure -> {
             _authenticationFailure.value = null
@@ -198,6 +220,12 @@ class FormationSelectionViewModel: ViewModel() {
         }
     }
 
+    fun saveSchool(context: Context){
+        PreferencesManager.getInstance(context).let { preferences ->
+            preferences.school = selectedSchool.value
+        }
+    }
+
     fun saveGroups(context: Context) {
         PreferencesManager.getInstance(context).let { preferences ->
             val oldGroupsTemp = preferences.groups ?: emptyList()
@@ -213,7 +241,7 @@ class FormationSelectionViewModel: ViewModel() {
     }
 
     fun checkConfiguration(it: Context) = PreferencesManager.getInstance(it).run {
-        val configurationValid = (link != null && !groups.isNullOrEmpty())
+        val configurationValid = (school != null && !groups.isNullOrEmpty())
         if (!configurationValid) {
             _authenticationFailure.value = AuthenticationFailure.ConfigurationNotFinished
         }

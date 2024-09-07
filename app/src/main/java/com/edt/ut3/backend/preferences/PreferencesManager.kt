@@ -49,7 +49,7 @@ class PreferencesManager private constructor(
      */
     sealed class PreferenceKeys<T>(val key: String, val defValue: T) {
         object THEME: PreferenceKeys<ThemePreference>("theme", ThemePreference.SMARTPHONE)
-        object LINK: PreferenceKeys<String?>("link", null)
+        object SCHOOL: PreferenceKeys<String?>("school", null)
         object RESOURCE: PreferenceKeys<ResourceType>("resource", ResourceType.Groups)
         object GROUPS: PreferenceKeys<List<String>?>("groups", null)
         object OLD_GROUPS: PreferenceKeys<List<String>?>("old_groups", null)
@@ -70,9 +70,9 @@ class PreferencesManager private constructor(
         manager = ThemePreferenceManager
     )
 
-    var link : School.Info? by simplePreference.Delegate(
-        key = PreferenceKeys.LINK.key,
-        defValue = PreferenceKeys.LINK.defValue,
+    var school : School.Info? by simplePreference.Delegate(
+        key = PreferenceKeys.SCHOOL.key,
+        defValue = PreferenceKeys.SCHOOL.defValue,
         converter = InfoConverter,
         manager = InfoManager
     )

@@ -10,7 +10,8 @@ package com.edt.ut3.backend.background_services.updaters
  */
 enum class ResourceType(val uiChoice: Int, val resType: String) {
     Groups(uiChoice = 0, resType = "103"),
-    Courses(uiChoice = 1, resType = "100");
+    Courses(uiChoice = 1, resType = "100"),
+    Classes(uiChoice = 2, resType = "102");
 
     companion object {
         fun fromUiSource(uiChoice: Int) =
