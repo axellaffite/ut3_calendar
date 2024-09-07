@@ -8,7 +8,6 @@ import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.PreferencesManager
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class CompatibilityManager {
@@ -68,11 +67,9 @@ class CompatibilityManager {
     }
 
     private fun migrateFrom(version: Int, context: Context): Int = when (version) {
-        in 0 .. 28 -> to29(context)
-
-        29 -> to30(context)
-
+        in 0 .. 29 -> to30(context)
         in 30 .. 32 -> to33(context)
+        in 33 .. 42 -> to44(context)
 
         else -> {
             Log.d(
@@ -84,23 +81,6 @@ class CompatibilityManager {
 
             version + 1
         }
-    }
-
-    private fun to29(context: Context): Int {
-        try {
-            androidPreferencesManager.run {
-                edit {
-                    putString(
-                            PreferencesManager.PreferenceKeys.LINK.key,
-                            Json.encodeToString(School.default.info.first())
-                    )
-                }
-            }
-        } catch (e: Exception) {
-
-        }
-
-        return 29
     }
 
     private fun to30(context: Context): Int = preferencesManager.run {
@@ -147,6 +127,16 @@ class CompatibilityManager {
 
     private fun to33(context: Context): Int {
         return 33
+    }
+
+    private fun to44(context: Context): Int {
+        PreferencesManager.getInstance(context).school = context.assets
+            .open("schools.json")
+            .use { it.bufferedReader().readText() }
+            .let { schoolsJson -> Json.decodeFromString<Array<School.Info>>(schoolsJson) }
+            .first { school -> school.label == "ut3_fsi" }
+
+        return 43
     }
 
 }

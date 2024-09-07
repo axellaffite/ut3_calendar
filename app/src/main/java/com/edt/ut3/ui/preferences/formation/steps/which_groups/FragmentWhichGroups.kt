@@ -1,4 +1,4 @@
-package com.edt.ut3.ui.preferences.formation.which_groups
+package com.edt.ut3.ui.preferences.formation.steps.which_groups
 
 import android.os.Bundle
 import android.util.Log
@@ -34,7 +34,7 @@ class FragmentWhichGroups: Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View?{
+    ): View{
         binding = FragmentWhichGroupsBinding.inflate(inflater)
         return binding.root
     }

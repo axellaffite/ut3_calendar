@@ -1,4 +1,4 @@
-package com.edt.ut3.ui.preferences.formation.authentication
+package com.edt.ut3.ui.preferences.formation.steps.authentication
 
 import android.content.Context
 import android.os.Bundle
@@ -16,13 +16,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.edt.ut3.R
 import com.edt.ut3.backend.requests.authentication_services.Credentials
+import com.edt.ut3.backend.requests.authentication_services.getAuthenticator
 import com.edt.ut3.databinding.FragmentAuthenticationBinding
 import com.edt.ut3.misc.extensions.hideKeyboard
 import com.edt.ut3.misc.extensions.isTrue
 import com.edt.ut3.misc.extensions.updateIfNecessary
 import com.edt.ut3.ui.custom_views.TextInputEditText2
 import com.edt.ut3.ui.preferences.formation.FormationSelectionViewModel
-import com.edt.ut3.ui.preferences.formation.state_fragment.StateFragment
+import com.edt.ut3.ui.preferences.formation.steps.state_fragment.StateFragment
 
 class FragmentAuthentication: Fragment() {
 
@@ -32,15 +33,22 @@ class FragmentAuthentication: Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentAuthenticationBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        if(viewModel.needsAuthentication() == false){
+            (parentFragment as? StateFragment)?.requestNext()
+            return
+        }
         setupListeners(view.context)
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
     }
 
     /**

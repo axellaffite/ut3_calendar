@@ -32,7 +32,7 @@ class CelcatUpdater(client: HttpClient) : Updater {
         val startDate = if (isFirstUpdate) today.minus(Calendar.YEAR, 1) else today
 
         return service.getEvents(
-            link.url,
+            link.baseUrl,
             start = startDate,
             resType = resourceType,
             groups,

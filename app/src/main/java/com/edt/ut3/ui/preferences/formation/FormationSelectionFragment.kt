@@ -4,18 +4,37 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.edt.ut3.R
 import com.edt.ut3.backend.background_services.BackgroundUpdater
-import com.edt.ut3.ui.preferences.formation.authentication.FragmentAuthentication
-import com.edt.ut3.ui.preferences.formation.state_fragment.StateFragment
-import com.edt.ut3.ui.preferences.formation.which_groups.FragmentWhichGroups
+import com.edt.ut3.databinding.FragmentWhichSchoolBinding
+import com.edt.ut3.ui.preferences.formation.steps.authentication.FragmentAuthentication
+import com.edt.ut3.ui.preferences.formation.steps.state_fragment.StateFragment
+import com.edt.ut3.ui.preferences.formation.steps.which_groups.FragmentWhichGroups
+import com.edt.ut3.ui.preferences.formation.steps.which_school.FragmentWhichSchool
 
-class FormationSelectionFragment: StateFragment() {
+class FormationSelectionFragment : StateFragment() {
     private val viewModel: FormationSelectionViewModel by activityViewModels()
 
     override fun initFragments(): List<StateFragmentBuilder> = listOf(
         StateFragmentBuilder(
+            title = R.string.title_which_school,
+            summary = R.string.summary_which_school,
+            builder = ::FragmentWhichSchool,
+            onNext = {
+                context?.let { context ->
+                    viewModel.run {
+                        saveSchool(context)
+                    }
+                }
+                next()
+            },
+            onBack = { back() },
+            onRequestBack = { true },
+            onRequestNext = { viewModel.validateSchool() },
+            actionButtonsVisible = false
+        ),
+        StateFragmentBuilder(
             title = R.string.title_authentication,
             summary = R.string.summary_authentication,
-            builder = { FragmentAuthentication() },
+            builder = ::FragmentAuthentication,
             onRequestNext = {
                 context?.let {
                     viewModel.validateCredentials()
@@ -28,7 +47,7 @@ class FormationSelectionFragment: StateFragment() {
             },
             onBack = { onCancel() },
             onNext = {
-                nextTo(null)
+                next()
                 context?.let {
                     viewModel.run {
                         saveCredentials(it)
@@ -41,7 +60,8 @@ class FormationSelectionFragment: StateFragment() {
         StateFragmentBuilder(
             title = R.string.title_which_groups,
             summary = R.string.summary_which_groups,
-            builder = { FragmentWhichGroups() },
+            builder = ::FragmentWhichGroups,
+
             onRequestNext = { viewModel.validateGroups() },
             onRequestBack = { true },
             onBack = { back(); triggerAuthenticationButton() },

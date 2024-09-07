@@ -11,4 +11,14 @@
         <item>@string/light</item>
         <item>@string/dark</item>
     </string-array>
+
+    <string-array name="school_labels">
+        <item>ut3_fsi</item>
+        <item>mfja</item>
+    </string-array>
+
+    <array name="school_icons">
+        <item>@drawable/school_ut3_paul_sabatier</item>
+        <item>@drawable/school_mfja</item>
+    </array>
 </resources>

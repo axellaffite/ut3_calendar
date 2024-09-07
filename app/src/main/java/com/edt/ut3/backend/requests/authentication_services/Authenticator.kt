@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.annotation.StringRes
 import java.util.Dictionary
 
-abstract class Authenticator(val host: String) {
-
+abstract class Authenticator(val baseUrl: String) {
+    open val needsAuthentication = true
     /**
      * Connects the client to the [host] provided in the constructor.
      *

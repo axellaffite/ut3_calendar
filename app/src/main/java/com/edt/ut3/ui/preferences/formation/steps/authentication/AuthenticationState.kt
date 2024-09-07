@@ -1,4 +1,4 @@
-package com.edt.ut3.ui.preferences.formation.authentication
+package com.edt.ut3.ui.preferences.formation.steps.authentication
 
 import android.content.Context
 import com.edt.ut3.R

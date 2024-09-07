@@ -1,5 +1,6 @@
 package com.edt.ut3.ui.preferences.formation
 
+import android.app.Application
 import android.content.Context
 import androidx.lifecycle.*
 import com.edt.ut3.backend.background_services.updaters.ResourceType
@@ -8,65 +9,87 @@ import com.edt.ut3.backend.firebase_services.FirebaseMessagingHandler
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.authentication_services.AuthenticationException
-import com.edt.ut3.backend.requests.authentication_services.AuthenticatorUT3
+import com.edt.ut3.backend.requests.authentication_services.Authenticator
 import com.edt.ut3.backend.requests.authentication_services.Credentials
+import com.edt.ut3.backend.requests.authentication_services.getAuthenticator
 import com.edt.ut3.backend.requests.celcat.CelcatService
 import com.edt.ut3.backend.requests.getClient
 import com.edt.ut3.misc.BaseState
 import com.edt.ut3.misc.extensions.isTrue
 import com.edt.ut3.misc.extensions.toList
 import com.edt.ut3.misc.extensions.trigger
-import com.edt.ut3.ui.preferences.formation.authentication.AuthenticationFailure
-import com.edt.ut3.ui.preferences.formation.authentication.AuthenticationState
-import com.edt.ut3.ui.preferences.formation.which_groups.WhichGroupsFailure
-import com.edt.ut3.ui.preferences.formation.which_groups.WhichGroupsState
+import com.edt.ut3.ui.preferences.formation.steps.authentication.AuthenticationFailure
+import com.edt.ut3.ui.preferences.formation.steps.authentication.AuthenticationState
+import com.edt.ut3.ui.preferences.formation.steps.which_groups.WhichGroupsFailure
+import com.edt.ut3.ui.preferences.formation.steps.which_groups.WhichGroupsState
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import org.json.JSONArray
 import org.json.JSONException
 import java.io.IOException
 
-class FormationSelectionViewModel: ViewModel() {
+class FormationSelectionViewModel(application: Application) : AndroidViewModel(application) {
+
     private var groupsDownloadJob: Job? = null
 
     private var client = getClient()
 
     private val _authenticationFailure = MutableLiveData<AuthenticationFailure?>(null)
-    val authenticationFailure : LiveData<AuthenticationFailure?>
+    val authenticationFailure: LiveData<AuthenticationFailure?>
         get() = _authenticationFailure
 
     private val _authenticationState = MutableLiveData<AuthenticationState?>(
         AuthenticationState.Unauthenticated
     )
-    val authenticationState : LiveData<AuthenticationState?>
+    val authenticationState: LiveData<AuthenticationState?>
         get() = _authenticationState
 
     private val _groupsFailure = MutableLiveData<WhichGroupsFailure?>(null)
-    val groupsFailure : LiveData<WhichGroupsFailure?>
+    val groupsFailure: LiveData<WhichGroupsFailure?>
         get() = _groupsFailure
 
     private val _groupsStatus = MutableLiveData<WhichGroupsState>(null)
-    val groupsStatus : LiveData<WhichGroupsState>
+    val groupsStatus: LiveData<WhichGroupsState>
         get() = _groupsStatus
 
     private val _credentials = MutableLiveData<Credentials?>()
 
     private val _groups = mutableListOf<School.Info.Group>()
-    val groups : List<School.Info.Group>
-        get() = synchronized(_groups) {_groups}
+    val groups: List<School.Info.Group>
+        get() = synchronized(_groups) { _groups }
+
+    private val _schools: MutableList<School.Info> = application.assets
+        .open("schools.json")
+        .use { it.bufferedReader().readText() }
+        .let(Json::decodeFromString)
+
+    private val _selectedSchool = MutableLiveData<School.Info>(null)
+    val selectedSchool: LiveData<School.Info>
+        get() = _selectedSchool
+
+
+    val schools: List<School.Info>
+        get() = synchronized(_schools) { _schools }
 
     private val _groupsLD = MutableLiveData(groups)
-    val groupsLD : LiveData<List<School.Info.Group>>
+    val groupsLD: LiveData<List<School.Info.Group>>
         get() = _groupsLD
 
     private val _selectedGroups = MutableLiveData<Set<School.Info.Group>>(setOf())
-    val selectedGroups : LiveData<Set<School.Info.Group>>
+    val selectedGroups: LiveData<Set<School.Info.Group>>
         get() = _selectedGroups
 
     private val _resourceType = MutableLiveData(ResourceType.Groups)
     val resourceType get(): LiveData<ResourceType> = _resourceType
+
+    private var authenticator: Authenticator? = null
+
+    fun needsAuthentication(): Boolean? {
+        return authenticator?.needsAuthentication
+    }
 
     var firstCredentialsGet = true
     fun getCredentials(context: Context): LiveData<Credentials?> = synchronized(this) {
@@ -85,24 +108,28 @@ class FormationSelectionViewModel: ViewModel() {
 
     suspend fun validateCredentials(): Boolean {
         val credentials = _credentials.value
-        return if (credentials == null || _authenticationState.value is AuthenticationState.Authenticated) {
-            true
-        } else {
-            _authenticationState.value = AuthenticationState.Authenticating
-            try {
-                AuthenticatorUT3(client).ensureAuthentication(credentials)
-                _authenticationState.value = AuthenticationState.Authenticated
-                true
-            } catch (e: Exception) {
-                _authenticationFailure.value = when (e) {
-                    is AuthenticationException -> AuthenticationFailure.WrongCredentials
-                    is IOException -> AuthenticationFailure.InternetFailure
-                    else -> AuthenticationFailure.UnknownError
-                }
+        return when {
+            selectedSchool.value == null || authenticator == null -> false
+            credentials == null || _authenticationState.value is AuthenticationState.Authenticated || !authenticator!!.needsAuthentication -> true
+            else -> ensureAuth(credentials)
+        }
+    }
 
-                _authenticationState.value = AuthenticationState.Unauthenticated
-                false
+    private suspend fun ensureAuth(credentials: Credentials): Boolean {
+        _authenticationState.value = AuthenticationState.Authenticating
+        return try {
+            authenticator!!.ensureAuthentication(credentials)
+            _authenticationState.value = AuthenticationState.Authenticated
+            true
+        } catch (e: Exception) {
+            _authenticationFailure.value = when (e) {
+                is AuthenticationException -> AuthenticationFailure.WrongCredentials
+                is IOException -> AuthenticationFailure.InternetFailure
+                else -> AuthenticationFailure.UnknownError
             }
+
+            _authenticationState.value = AuthenticationState.Unauthenticated
+            false
         }
     }
 
@@ -112,8 +139,8 @@ class FormationSelectionViewModel: ViewModel() {
         groupsDownloadJob = viewModelScope.launch {
             _groupsStatus.value = WhichGroupsState.Downloading
             val success: Boolean = try {
-                val link = School.default.info.first().get(resourceType.value)
-                val newGroups = CelcatService(client).getGroups(link)
+                val groupsLink = selectedSchool.value!!.getResource(ResourceType.Groups)
+                val newGroups = CelcatService(client).getGroups(groupsLink)
                 synchronized(groups) {
                     _groups.clear()
                     _groups.addAll(newGroups)
@@ -175,7 +202,19 @@ class FormationSelectionViewModel: ViewModel() {
         _selectedGroups.value = (_selectedGroups.value ?: setOf()) - group
     }
 
-    fun validateGroups() : Boolean = _selectedGroups.value?.isNotEmpty().isTrue()
+    fun validateGroups(): Boolean = _selectedGroups.value?.isNotEmpty().isTrue()
+
+    fun setSchool(school: School.Info) {
+        _selectedSchool.value = school
+        authenticator = getAuthenticator(
+            selectedSchool.value!!.authentication,
+            client,
+            selectedSchool.value!!.baseUrl
+        )
+        triggerAuthenticationButton()
+    }
+
+    fun validateSchool(): Boolean = _selectedSchool.value != null
 
     fun clearFailure(error: BaseState.Failure?) = when (error) {
         is AuthenticationFailure -> {
@@ -190,11 +229,21 @@ class FormationSelectionViewModel: ViewModel() {
     }
 
     fun saveCredentials(context: Context) {
+        if (authenticator?.needsAuthentication != true) {
+            return
+        }
+
         CredentialsManager.getInstance(context).run {
             when (val credentials = _credentials.value) {
                 null -> clearCredentials()
                 else -> saveCredentials(credentials)
             }
+        }
+    }
+
+    fun saveSchool(context: Context) {
+        PreferencesManager.getInstance(context).let { preferences ->
+            preferences.school = selectedSchool.value
         }
     }
 
@@ -205,7 +254,6 @@ class FormationSelectionViewModel: ViewModel() {
 
             preferences.oldGroups = oldGroupsTemp - newGroupsTemp
             preferences.groups = newGroupsTemp
-            preferences.link = School.default.info.first()
             preferences.resourceType = resourceType.value ?: ResourceType.Groups
         }
 
@@ -213,7 +261,7 @@ class FormationSelectionViewModel: ViewModel() {
     }
 
     fun checkConfiguration(it: Context) = PreferencesManager.getInstance(it).run {
-        val configurationValid = (link != null && !groups.isNullOrEmpty())
+        val configurationValid = (school != null && !groups.isNullOrEmpty())
         if (!configurationValid) {
             _authenticationFailure.value = AuthenticationFailure.ConfigurationNotFinished
         }

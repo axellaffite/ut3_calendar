@@ -1,4 +1,4 @@
-package com.edt.ut3.ui.preferences.formation.state_fragment
+package com.edt.ut3.ui.preferences.formation.steps.state_fragment
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -29,11 +29,8 @@ class StateViewModel: ViewModel() {
         _position.pop()
     }
 
-    fun nextTo(fragmentIndex: Int?) {
-        val next = when (fragmentIndex) {
-            null -> _position.peek() + 1
-            else -> fragmentIndex
-        }
+    fun next() {
+        val next = _position.peek() + 1
 
         val shouldInsert = _position.peek() < next
         if (shouldInsert) {

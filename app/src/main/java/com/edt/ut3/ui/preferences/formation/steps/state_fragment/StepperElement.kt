@@ -1,9 +1,9 @@
-package com.edt.ut3.ui.preferences.formation.state_fragment
+package com.edt.ut3.ui.preferences.formation.steps.state_fragment
 
 import androidx.fragment.app.Fragment
 import com.edt.ut3.R
-import com.edt.ut3.ui.preferences.formation.authentication.FragmentAuthentication
-import com.edt.ut3.ui.preferences.formation.which_groups.FragmentWhichGroups
+import com.edt.ut3.ui.preferences.formation.steps.authentication.FragmentAuthentication
+import com.edt.ut3.ui.preferences.formation.steps.which_groups.FragmentWhichGroups
 
 abstract class StepperElement: Fragment() {
 

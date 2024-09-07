@@ -1,0 +1,14 @@
+[
+  {
+    "label": "ut3_fsi",
+    "authentication": "ut3_fsi",
+    "baseUrl": "https://edt.univ-tlse3.fr/calendar",
+    "searchPlaceHolder": "___"
+  },
+  {
+    "label": "mfja",
+    "authentication": "none",
+    "baseUrl": "https://edt.iut-tlse3.fr/calendar-mfja",
+    "searchPlaceHolder": "__"
+  }
+]

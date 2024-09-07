@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.work.*
+import com.edt.ut3.backend.background_services.updaters.ResourceType
 import com.edt.ut3.backend.background_services.updaters.getUpdater
 import com.edt.ut3.backend.celcat.Course
 import com.edt.ut3.backend.celcat.Event
@@ -15,7 +16,7 @@ import com.edt.ut3.backend.requests.authenticateIfNeeded
 import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.authentication_services.AuthenticationException
-import com.edt.ut3.backend.requests.authentication_services.AuthenticatorUT3
+import com.edt.ut3.backend.requests.authentication_services.getAuthenticator
 import com.edt.ut3.misc.extensions.timeCleaned
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.coroutineScope
@@ -98,19 +99,18 @@ class BackgroundUpdater(appContext: Context, workerParams: WorkerParameters) :
 
         firstUpdate = inputData.getBoolean("firstUpdate", false)
 
-
         try {
             val groups = prefManager.groups ?: throw IllegalStateException("Groups must be set")
-            val link = prefManager.link ?: throw IllegalStateException("Link must be set")
+            val school = prefManager.school ?: throw IllegalStateException("Link must be set")
             val resourceType = prefManager.resourceType
 
             val updater = getUpdater {
-                authenticateIfNeeded(applicationContext, AuthenticatorUT3(this, link.url))
+                authenticateIfNeeded(applicationContext, getAuthenticator(school.authentication,this, school.baseUrl))
             }
 
-            val classes = updater.getClasses(link.rooms).toSet()
-            val courses = updater.getCoursesNames(link.courses)
-            val incomingEvents = updater.getEvents(link, resourceType, groups, classes, courses, firstUpdate)
+            val classes = updater.getClasses(school.getResource(ResourceType.Classes)).toSet()
+            val courses = updater.getCoursesNames(school.getResource(ResourceType.Courses))
+            val incomingEvents = updater.getEvents(school, resourceType, groups, classes, courses, firstUpdate)
             val changes = computeEventUpdate(incomingEvents)
 
             updateDatabaseContents(changes)
@@ -120,23 +120,6 @@ class BackgroundUpdater(appContext: Context, workerParams: WorkerParameters) :
             Result.success()
         } catch (e: Exception) {
             e.printStackTrace()
-            //TODO ("Catch exceptions properly")
-            when (e) {
-                is IOException -> {
-                }
-                is SerializationException -> {
-                }
-                is AuthenticationException -> {
-                    
-                }
-                is IllegalStateException -> {
-                }
-                else -> {
-                }
-            }
-
-            e.printStackTrace()
-
             Result.failure()
         } finally {
             setProgress(workDataOf(Progress to 100))

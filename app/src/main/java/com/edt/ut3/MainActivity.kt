@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         CompatibilityManager().ensureCompatibility(this)
         val shouldConfigure: Boolean
         PreferencesManager.getInstance(this).apply {
-            shouldConfigure = (link == null || groups.isNullOrEmpty())
+            shouldConfigure = (school == null || groups.isNullOrEmpty())
             setupDefaultPreferences()
             observe(this@MainActivity)
             setupTheme()

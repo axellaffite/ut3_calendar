@@ -7,6 +7,8 @@
     <color name="fontColor">#EEEEEE</color>
     <color name="dividerColor">#343434</color>
     <color name="colorOnAccent">@android:color/white</color>
+    <color name="colorLink">#95B1F6</color>
+
 
     <color name="backgroundColor">@color/colorPrimary</color>
     <color name="foregroundColor">@color/colorPrimaryDark</color>

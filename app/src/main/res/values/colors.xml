@@ -6,6 +6,7 @@
     <color name="fontColor">#111111</color>
     <color name="dividerColor">#DDDDDD</color>
     <color name="colorOnAccent">@android:color/white</color>
+    <color name="colorLink">#0341fc</color>
 
 
     <color name="backgroundColor">@android:color/white</color>

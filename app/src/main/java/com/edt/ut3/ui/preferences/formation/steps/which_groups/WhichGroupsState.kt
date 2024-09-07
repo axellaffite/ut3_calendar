@@ -1,4 +1,4 @@
-package com.edt.ut3.ui.preferences.formation.which_groups
+package com.edt.ut3.ui.preferences.formation.steps.which_groups
 
 import android.content.Context
 import com.edt.ut3.R
