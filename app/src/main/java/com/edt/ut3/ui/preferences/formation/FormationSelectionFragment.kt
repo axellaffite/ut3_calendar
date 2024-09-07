@@ -12,12 +12,36 @@ class FormationSelectionFragment: StateFragment() {
     private val viewModel: FormationSelectionViewModel by activityViewModels()
 
     override fun initFragments(): List<StateFragmentBuilder> = listOf(
+        StateFragmentBuilder(
+            title = R.string.title_authentication,
+            summary = R.string.summary_authentication,
+            builder = { FragmentAuthentication() },
+            onRequestNext = {
+                context?.let {
+                    viewModel.validateCredentials()
+                } ?: false
+            },
+            onRequestBack = {
+                context?.let {
+                    viewModel.checkConfiguration(it)
+                } ?: false
+            },
+            onBack = { onCancel() },
+            onNext = {
+                nextTo(null)
+                context?.let {
+                    viewModel.run {
+                        saveCredentials(it)
+                        updateGroups(it)
+                    }
+                }
+            }
+        ),
 
         StateFragmentBuilder(
             title = R.string.title_which_groups,
             summary = R.string.summary_which_groups,
-            builder = {context?.let{viewModel.updateGroups(it)}; FragmentWhichGroups() },
-
+            builder = { FragmentWhichGroups() },
             onRequestNext = { viewModel.validateGroups() },
             onRequestBack = { true },
             onBack = { back(); triggerAuthenticationButton() },
