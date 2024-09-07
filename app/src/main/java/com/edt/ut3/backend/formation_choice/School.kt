@@ -31,16 +31,15 @@ data class School(
                     url="https://edt.iut-tlse3.fr/calendar-mfja",
                     groups="https://edt.iut-tlse3.fr/calendar-mfja/Home/ReadResourceListItems?myResources=false&searchTerm=__&pageSize=100000&pageNumber=1&resType=103",
                     rooms="https://edt.iut-tlse3.fr/calendar-mfja/Home/ReadResourceListItems?myResources=false&searchTerm=__&pageSize=100000&pageNumber=1&resType=102",
-                    courses="https://edt.iut-tlse3.fr/calendar-mfja/Home/ReadResourceListItems?myResources=false&searchTerm=        __&pageSize=100000&pageNumber=1&resType=100"
+                    courses="https://edt.iut-tlse3.fr/calendar-mfja/Home/ReadResourceListItems?myResources=false&searchTerm=__&pageSize=100000&pageNumber=1&resType=100"
                 )
             )
         )
     }
-
     /**
      * Represent a [school][School] information.
      *
-     * @property name The faculty name
+     * @property name The faculty name&_=1601408259545
      * @property url The faculty schedule url
      * @property groups The link to get all the groups
      * @property rooms The link to get all the rooms
