@@ -68,11 +68,9 @@ class CompatibilityManager {
     }
 
     private fun migrateFrom(version: Int, context: Context): Int = when (version) {
-        in 0 .. 28 -> to29(context)
-
-        29 -> to30(context)
-
+        in 0 .. 29 -> to30(context)
         in 30 .. 32 -> to33(context)
+        in 33 .. 42 -> to43(context)
 
         else -> {
             Log.d(
@@ -84,23 +82,6 @@ class CompatibilityManager {
 
             version + 1
         }
-    }
-
-    private fun to29(context: Context): Int {
-        try {
-            androidPreferencesManager.run {
-                edit {
-                    putString(
-                            PreferencesManager.PreferenceKeys.LINK.key,
-                            Json.encodeToString(School.default.info.first())
-                    )
-                }
-            }
-        } catch (e: Exception) {
-
-        }
-
-        return 29
     }
 
     private fun to30(context: Context): Int = preferencesManager.run {
@@ -147,6 +128,10 @@ class CompatibilityManager {
 
     private fun to33(context: Context): Int {
         return 33
+    }
+
+    private fun to43(context: Context): Int {
+        return 43
     }
 
 }
