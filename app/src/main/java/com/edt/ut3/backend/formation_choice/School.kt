@@ -24,14 +24,14 @@ data class School(
          * with all its [information][Info].
          */
         val default = School(
-            name="Université Paul Sabatier",
+            name="IUT MFJA",
             info = listOf(
                 Info(
-                    name="FSI",
-                    url="https://edt.univ-tlse3.fr/calendar",
-                    groups="https://edt.univ-tlse3.fr/calendar/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=100000&pageNumber=1&resType=103&_=1601408259547",
-                    rooms="https://edt.univ-tlse3.fr/calendar/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=100000&pageNumber=1&resType=102&_=1601408259546",
-                    courses="https://edt.univ-tlse3.fr/calendar/Home/ReadResourceListItems?myResources=false&searchTerm=___&pageSize=100000&pageNumber=1&resType=100&_=1601408259545"
+                    name="MJFA",
+                    url="https://edt.iut-tlse3.fr/calendar-mfja",
+                    groups="https://edt.iut-tlse3.fr/calendar-mfja/Home/ReadResourceListItems?myResources=false&searchTerm=__&pageSize=100000&pageNumber=1&resType=103",
+                    rooms="https://edt.iut-tlse3.fr/calendar-mfja/Home/ReadResourceListItems?myResources=false&searchTerm=__&pageSize=100000&pageNumber=1&resType=102",
+                    courses="https://edt.iut-tlse3.fr/calendar-mfja/Home/ReadResourceListItems?myResources=false&searchTerm=        __&pageSize=100000&pageNumber=1&resType=100"
                 )
             )
         )

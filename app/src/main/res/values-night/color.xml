@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Customize your theme here. -->
-    <color name="colorPrimary">#122A40</color>
-    <color name="colorPrimaryDark">#0A1926</color>
-    <color name="colorAccent">#006064</color>
+    <color name="colorPrimary">#401212</color>
+    <color name="colorPrimaryDark">#240a0a</color>
+    <color name="colorAccent">#600</color>
     <color name="fontColor">#EEEEEE</color>
     <color name="dividerColor">#343434</color>
     <color name="colorOnAccent">@android:color/white</color>
