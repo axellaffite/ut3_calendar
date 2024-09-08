@@ -5,19 +5,27 @@ import com.edt.ut3.R
 import com.edt.ut3.backend.requests.getClient
 import io.ktor.client.*
 import io.ktor.client.plugins.cookies.*
-import io.ktor.client.request.get
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
-import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.net.URL
+import java.net.URLEncoder
 import java.util.concurrent.TimeoutException
+import kotlin.collections.HashMap
+import kotlin.collections.Map
+import kotlin.collections.any
+import kotlin.collections.joinToString
+import kotlin.collections.set
+import kotlin.collections.slice
 
 class AuthenticatorUT3(
     val client: HttpClient,
-    host: String = "https://edt.univ-tlse3.fr/calendar"
-) : Authenticator(host) {   
+    baseUrl: String
+) : Authenticator(baseUrl) {
 
     @Throws(AuthenticationException::class)
     override suspend fun connect(credentials: Credentials?) {
@@ -55,7 +63,6 @@ class AuthenticatorUT3(
             }
 
         }
-        Log.d("Auth", "Client not already connected")
         return false
     }
 
@@ -71,21 +78,31 @@ class AuthenticatorUT3(
 
     @Throws(IOException::class, TimeoutException::class, AuthenticationException::class)
     override suspend fun authenticate(credentials: Credentials) = authenticate(credentials, client)
+
     @Throws(IOException::class, TimeoutException::class, AuthenticationException::class)
     private suspend fun authenticate(credentials: Credentials, targetClient: HttpClient) {
         if(isConnected(targetClient)) {
             Log.d("Auth", "Client already authentified, skipping...")
             return
         }
+        // ex: edt.univ-tlse3.fr/calendar
+        val baseURL = URL(baseUrl)
+        val urlencodedBaseURL = withContext(Dispatchers.IO) {
+            URLEncoder.encode(baseUrl, "utf-8")
+        }
+        // ex : edt.univ-tlse3.fr
+        val baseHost = baseURL.host
+        // ex : ["edt", "univ-tlse3", "fr"]
+        val hostDomains = baseHost.split(".")
+        // ex : univ-tlse3.fr
+        val primaryDomain = hostDomains.slice(hostDomains.size - 2 until hostDomains.size).joinToString(".")
 
-        val response1: HttpResponse = targetClient.get("https://edt.univ-tlse3.fr/calendar")
-        Log.d("Auth", response1.request.url.toString())
+        val response1: HttpResponse = targetClient.get("https://${baseHost}/calendar")
         val execution = response1.request.url.parameters["execution"]
-        Log.d("Auth", "Mode d'execution : " + execution)
 
         // On signale qu'on souhaite une nouvelle connection, pas de localStorage
         val response2: HttpResponse = targetClient.submitForm(
-            url = "https://idp.univ-tlse3.fr/idp/profile/SAML2/Redirect/SSO",
+            url = "https://idp.${primaryDomain}/idp/profile/SAML2/Redirect/SSO",
             formParameters  = Parameters.build {
                 append("_eventId_proceed","")
                 append("shib_idp_ls_exception.shib_idp_persistent_ss", "")
@@ -104,15 +121,15 @@ class AuthenticatorUT3(
             ?: throw AuthenticationException(R.string.error_during_authentication)
 
         // On peut transmettre les credentials à cAS
-        val response3 = targetClient.submitForm("https://cas.univ-tlse3.fr/cas/login", formParameters = Parameters.build {
+        val response3 = targetClient.submitForm("https://cas.${primaryDomain}/cas/login", formParameters = Parameters.build {
             append("username", credentials.username)
             append("password", credentials.password)
             append("execution", token)
             append("_eventId", "submit")
             append("geolocation", "")
         }) {
-            parameter("entityId", "https%3A%2F%2Fedt.univ-tlse3.fr%2Fcalendar")
-            parameter("service", "https%3A%2F%2Fidp.univ-tlse3.fr%2Fidp%2FAuthn%2FExternal%3Fconversation%3De1s2")
+            parameter("entityId", urlencodedBaseURL)
+            parameter("service", "https%3A%2F%2Fidp.${primaryDomain}%2Fidp%2FAuthn%2FExternal%3Fconversation%3De1s2")
         }
 
         if(response3.status == HttpStatusCode.Unauthorized){
@@ -120,7 +137,7 @@ class AuthenticatorUT3(
         }
 
         // Attribution des droits d'accès à CELCAT (normalement one time only, mais ça marche jamais)
-        val response4 = targetClient.submitForm("https://idp.univ-tlse3.fr/idp/profile/SAML2/Redirect/SSO", formParameters = Parameters.build {
+        val response4 = targetClient.submitForm("https://idp.${primaryDomain}/idp/profile/SAML2/Redirect/SSO", formParameters = Parameters.build {
             append("_eventId_proceed", "Accepter")
             append("_shib_idp_consentIds", "displayName")
             append("_shib_idp_consentIds", "eduPersonPrincipalName")
@@ -133,7 +150,7 @@ class AuthenticatorUT3(
 
         val localStorage = extract_local_storage_function_calls(response4.bodyAsText())
 
-        val response5 = targetClient.submitForm("https://idp.univ-tlse3.fr/idp/profile/SAML2/Redirect/SSO", formParameters = Parameters.build {
+        val response5 = targetClient.submitForm("https://idp.${primaryDomain}/idp/profile/SAML2/Redirect/SSO", formParameters = Parameters.build {
             append("_eventId_proceed", "")
             append("shib_idp_ls_exception.shib_idp_persistent_ss", "")
             append("shib_idp_ls_success.shib_idp_persistent_ss", "true")
@@ -147,7 +164,7 @@ class AuthenticatorUT3(
             Log.d("Auth", "No SAML response found")
             throw AuthenticationException(R.string.error_during_authentication)
         }
-        val response6 = targetClient.submitForm("https://edt.univ-tlse3.fr/calendar/Saml/AssertionConsumerService", formParameters = Parameters.build{
+        val response6 = targetClient.submitForm("${baseUrl}/Saml/AssertionConsumerService", formParameters = Parameters.build{
             append("SAMLResponse", samlResponse)
         }) {
             accept(ContentType.Text.Html)
@@ -166,7 +183,7 @@ class AuthenticatorUT3(
                 Log.d("Auth","Disambiguation identity : ${credentials.disambiguationIdentity}")
                 throw AuthenticationException(R.string.error_during_authentication)
             }
-            val response7 = targetClient.submitForm("https://edt.univ-tlse3.fr/calendar/Disambiguate/Disambiguated", formParameters = Parameters.build {
+            val response7 = targetClient.submitForm("${baseUrl}/Disambiguate/Disambiguated", formParameters = Parameters.build {
                 append("Token", res7_token)
                 append("__RequestVerificationToken", requestToken)
                 append("submit", credentials.disambiguationIdentity)
@@ -175,7 +192,6 @@ class AuthenticatorUT3(
 
 
         Log.d("Auth", "End of authentication process, last request status code : " + response5.status.toString())
-        Log.d("Cookies : ", targetClient.cookies("https://edt.univ-tlse3.fr/").toString())
     }
 
 

@@ -47,9 +47,11 @@ suspend fun HttpClient.authenticateIfNeeded(
     context: Context,
     authenticator: Authenticator
 ): HttpClient {
-    val credentials = CredentialsManager.getInstance(context).getCredentials()
-    if (credentials != null) {
-        authenticator.authenticate(credentials)
+    if(authenticator.needsAuthentication){
+        val credentials = CredentialsManager.getInstance(context).getCredentials()
+        if (credentials != null) {
+            authenticator.authenticate(credentials)
+        }
     }
 
     return this

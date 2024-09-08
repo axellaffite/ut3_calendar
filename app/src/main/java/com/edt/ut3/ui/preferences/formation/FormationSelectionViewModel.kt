@@ -1,5 +1,6 @@
 package com.edt.ut3.ui.preferences.formation
 
+import android.app.Application
 import android.content.Context
 import androidx.lifecycle.*
 import com.edt.ut3.backend.background_services.updaters.ResourceType
@@ -8,8 +9,10 @@ import com.edt.ut3.backend.firebase_services.FirebaseMessagingHandler
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.authentication_services.AuthenticationException
+import com.edt.ut3.backend.requests.authentication_services.Authenticator
 import com.edt.ut3.backend.requests.authentication_services.AuthenticatorUT3
 import com.edt.ut3.backend.requests.authentication_services.Credentials
+import com.edt.ut3.backend.requests.authentication_services.getAuthenticator
 import com.edt.ut3.backend.requests.celcat.CelcatService
 import com.edt.ut3.backend.requests.getClient
 import com.edt.ut3.misc.BaseState
@@ -24,11 +27,13 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import org.json.JSONArray
 import org.json.JSONException
 import java.io.IOException
 
-class FormationSelectionViewModel: ViewModel() {
+class FormationSelectionViewModel(application: Application): AndroidViewModel(application) {
+
     private var groupsDownloadJob: Job? = null
 
     private var client = getClient()
@@ -83,6 +88,10 @@ class FormationSelectionViewModel: ViewModel() {
     private val _resourceType = MutableLiveData(ResourceType.Groups)
     val resourceType get(): LiveData<ResourceType> = _resourceType
 
+    private var authenticator: Authenticator? = null
+
+    fun needsAuthentication(): Boolean? {return authenticator?.needsAuthentication}
+
     var firstCredentialsGet = true
     fun getCredentials(context: Context): LiveData<Credentials?> = synchronized(this) {
         if (firstCredentialsGet) {
@@ -100,12 +109,15 @@ class FormationSelectionViewModel: ViewModel() {
 
     suspend fun validateCredentials(): Boolean {
         val credentials = _credentials.value
-        return if (credentials == null || _authenticationState.value is AuthenticationState.Authenticated) {
+        return if(selectedSchool.value == null || authenticator == null) {
+            false
+        }
+        else if (credentials == null || _authenticationState.value is AuthenticationState.Authenticated || !authenticator!!.needsAuthentication) {
             true
         } else {
             _authenticationState.value = AuthenticationState.Authenticating
             try {
-                AuthenticatorUT3(client).ensureAuthentication(credentials)
+                authenticator!!.ensureAuthentication(credentials)
                 _authenticationState.value = AuthenticationState.Authenticated
                 true
             } catch (e: Exception) {
@@ -212,6 +224,9 @@ class FormationSelectionViewModel: ViewModel() {
     }
 
     fun saveCredentials(context: Context) {
+        if(!authenticator!!.needsAuthentication){
+            return
+        }
         CredentialsManager.getInstance(context).run {
             when (val credentials = _credentials.value) {
                 null -> clearCredentials()
@@ -233,7 +248,6 @@ class FormationSelectionViewModel: ViewModel() {
 
             preferences.oldGroups = oldGroupsTemp - newGroupsTemp
             preferences.groups = newGroupsTemp
-            preferences.link = School.default.info.first()
             preferences.resourceType = resourceType.value ?: ResourceType.Groups
         }
 

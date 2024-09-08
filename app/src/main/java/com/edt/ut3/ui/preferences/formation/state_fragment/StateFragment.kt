@@ -54,6 +54,7 @@ abstract class StateFragment: Fragment() {
                 resetNextText()
                 setTitle(builders[position.current ?: 0].title)
                 setSummary(builders[position.current ?: 0].summary)
+                setActionButtonsVisibility(if (builders[position.current ?: 0].actionButtonsVisible) View.VISIBLE else View.GONE)
             }
 
             title.observe(viewLifecycleOwner) {
@@ -70,7 +71,7 @@ abstract class StateFragment: Fragment() {
         binding.next.setOnClickListener { requestNext() }
     }
 
-    private fun requestBack() = synchronized(this) {
+    fun requestBack() = synchronized(this) {
         onRequestBackJob?.cancel()
         onRequestBackJob = lifecycleScope.launchWhenResumed {
             val current = viewModel.currentPosition()
@@ -81,7 +82,7 @@ abstract class StateFragment: Fragment() {
         }
     }
 
-    private fun requestNext() = synchronized(this) {
+    fun requestNext() = synchronized(this) {
         onRequestNextJob?.cancel()
         onRequestNextJob = lifecycleScope.launchWhenResumed {
             val current = viewModel.currentPosition()
@@ -144,7 +145,8 @@ abstract class StateFragment: Fragment() {
         val onRequestNext: suspend (position: Int) -> Boolean,
         val onRequestBack: suspend () -> Boolean,
         val onNext: suspend () -> Unit,
-        val onBack: suspend () -> Unit
+        val onBack: suspend () -> Unit,
+        val actionButtonsVisible: Boolean = true
     )
 
     class StateAdapter(

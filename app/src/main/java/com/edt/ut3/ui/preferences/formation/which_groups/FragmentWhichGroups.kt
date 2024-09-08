@@ -34,7 +34,7 @@ class FragmentWhichGroups: Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View?{
+    ): View{
         binding = FragmentWhichGroupsBinding.inflate(inflater)
         return binding.root
     }

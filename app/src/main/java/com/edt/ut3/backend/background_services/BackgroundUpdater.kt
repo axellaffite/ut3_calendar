@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.work.*
+import com.edt.ut3.backend.background_services.updaters.ResourceType
 import com.edt.ut3.backend.background_services.updaters.getUpdater
 import com.edt.ut3.backend.celcat.Course
 import com.edt.ut3.backend.celcat.Event
@@ -16,6 +17,7 @@ import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.authentication_services.AuthenticationException
 import com.edt.ut3.backend.requests.authentication_services.AuthenticatorUT3
+import com.edt.ut3.backend.requests.authentication_services.getAuthenticator
 import com.edt.ut3.misc.extensions.timeCleaned
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.coroutineScope
@@ -104,7 +106,7 @@ class BackgroundUpdater(appContext: Context, workerParams: WorkerParameters) :
             val resourceType = prefManager.resourceType
 
             val updater = getUpdater {
-                authenticateIfNeeded(applicationContext, AuthenticatorUT3(this, link.url))
+                authenticateIfNeeded(applicationContext, getAuthenticator(link.authentication,this, link.baseUrl))
             }
 
             val classes = updater.getClasses(link.get(ResourceType.Classes)).toSet()
