@@ -8,7 +8,6 @@ import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.PreferencesManager
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class CompatibilityManager {
@@ -131,6 +130,13 @@ class CompatibilityManager {
     }
 
     private fun to43(context: Context): Int {
+        val schoolsJson = context.assets.open("schools.json")
+        schoolsJson.bufferedReader().use{
+            val schoolString = it.readText()
+            val schools = Json.decodeFromString<Array<School.Info>>(schoolString)
+            val defaultSchool = schools.first { school -> school.label == "ut3_fsi" }
+            PreferencesManager.getInstance(context).school = defaultSchool
+        }
         return 43
     }
 
