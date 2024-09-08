@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams
-import android.widget.RadioGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.res.ResourcesCompat
@@ -23,7 +23,7 @@ class FragmentWhichSchool : Fragment() {
     val viewModel: FormationSelectionViewModel by activityViewModels()
     private lateinit var binding: FragmentWhichSchoolBinding
 
-    lateinit var schoolsRadioGroup: RadioGroup
+    lateinit var schoolsList: LinearLayout
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,7 +40,7 @@ class FragmentWhichSchool : Fragment() {
     }
 
     private fun setupSchools() {
-        schoolsRadioGroup = binding.schoolGroup
+        schoolsList = binding.schoolGroup
         binding.missingSchoolLink.setOnClickListener {
             val builder = AlertDialog.Builder(requireContext()).let {
                 it.setMessage(R.string.school_not_in_list_dialog)

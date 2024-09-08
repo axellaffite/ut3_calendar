@@ -7,32 +7,30 @@
     android:background="@color/foregroundColor"
     android:orientation="vertical">
 
-    <FrameLayout
+
+    <ScrollView
+        android:id="@+id/scrollView4"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/missingSchoolLink"
+        android:layout_gravity="top"
+        android:background="@color/backgroundColor"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@id/missingSchoolLink"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ScrollView
+        <LinearLayout
+            android:id="@+id/school_group"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_gravity="top"
-            android:background="@color/backgroundColor"
-            android:fillViewport="true">
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <RadioGroup
-                android:id="@+id/school_group"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="top"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+    </ScrollView>
 
-        </ScrollView>
-
-    </FrameLayout>
 
     <TextView
         android:id="@+id/missingSchoolLink"
