@@ -150,4 +150,15 @@
         <item>Groups</item>
         <item>Courses</item>
     </string-array>
+
+    <string-array name="school_names">
+        <item>Paul Sabatier University</item>
+        <item>IUT MFJA</item>
+    </string-array>
+    <string name="school_not_in_list_msg"><u>Your school is not present in the list ?</u></string>
+    <string name="school_not_in_list_dialog">
+        School names are only provided as a hint. What actually matters is that the URL you use to connect to CELCAT is the same as the one listed here. \n
+        If none of the links correspond, feel free to tell us on our <a href="https://discord.com/invite/6KPZmQa">Discord</a>, we might be able to add it to the list.
+    </string>
+    <string name="school_not_in_list_dialog_close">Close</string>
 </resources>

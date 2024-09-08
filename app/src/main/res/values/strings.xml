@@ -96,7 +96,7 @@
     <string name="calendar_updated">Emploi du temps mis à jour !</string>
     <string name="provider_name" translatable="false">light_theme_provider</string>
     <string name="next">Suivant</string>
-    <string name="title_which_school">École</string>
+    <string name="title_which_school">Établissement</string>
     <string name="title_which_link">Lien</string>
     <string name="title_which_groups">Groupes</string>
     <string name="cannot_access_location">Impossible d\'afficher la localisation</string>
@@ -106,7 +106,10 @@
     <string name="title_which_link_custom">Lien personnalisé</string>
     <string name="step_next">Suivant</string>
     <string name="step_back">Retour</string>
-    <string name="summary_which_school">Sélectionnez l\'école à laquelle vous appartenez</string>
+    <string name="summary_which_school">
+        Sélectionnez l\'établissement auquel vous êtes rattaché.\n
+        Le début de l\'URL qui vous sert à accéder à CELCAT doit correspondre à celui affiché.
+    </string>
     <string name="summary_which_link">Choisissez le lien qui correspond à votre emploi du temps</string>
     <string name="summary_which_groups">Sélectionnez les groupes auxquels vous appartenez</string>
     <string name="summary_which_link_custom">Saisissez le lien de votre emploi du temps</string>
@@ -145,6 +148,14 @@
     <string name="error_unable_to_treat_server_response">Impossible de traiter la réponse du serveur</string>
     <string name="role_label">Statut au sein de l\'université :</string>
 
+    <string name="school_not_in_list_msg"><u>Votre établissement ne se trouve pas dans la liste ?</u></string>
+    <string name="school_not_in_list_dialog">
+        Les noms d\'établissement sont donnés à titre indicatif, il vous suffit de vous assurer que l\'URL dont vous vous servez pour accéder à CELCAT sur internet soit identique à un des choix proposés.\n\n
+
+        Si aucune des entrées proposées ne correspond, signalez-le nous sur <a href="https://discord.com/invite/6KPZmQa">Discord</a>, nous serons peut-être en mesure d\'ajouter l\'option.
+    </string>
+    <string name="school_not_in_list_dialog_close">Fermer</string>
+
     <string-array name="resource_type_possibilities">
         <item>Groupe</item>
         <item>Matières</item>
@@ -157,5 +168,10 @@
     <string-array name="roles_values" translatable="false">
         <item>student0</item>
         <item>staff0</item>
+    </string-array>
+
+    <string-array name="school_names">
+        <item>UT3 Paul Sabatier</item>
+        <item>IUT MFJA</item>
     </string-array>
 </resources>
