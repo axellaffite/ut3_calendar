@@ -272,7 +272,7 @@ class NotificationManager private constructor(val context: Context) {
 
     private fun createNoteNotificationIntent() = Intent(context, NotificationReceiver::class.java)
 
-    private fun createNoteNotificationPendingIntent(note: Note, notificationIntent: Intent): PendingIntent? {
+    private fun createNoteNotificationPendingIntent(note: Note, notificationIntent: Intent): PendingIntent {
         return PendingIntent.getBroadcast(
             context,
             note.id.toInt(),

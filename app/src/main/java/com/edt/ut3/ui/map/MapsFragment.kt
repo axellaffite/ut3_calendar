@@ -10,14 +10,17 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
+import android.view.View.inflate
 import android.view.ViewGroup
 import androidx.activity.addCallback
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import com.axellaffite.fastgallery.FastGallery
 import com.axellaffite.fastgallery.ImageLoader
@@ -498,7 +501,6 @@ class MapsFragment : Fragment() {
         theSearchBar?.showResults()
         theSearchBar?.showFilters()
         from(binding.placeInfoContainer).state = STATE_HIDDEN
-
     }
 
     private fun displayPlaceInfo() {
@@ -508,10 +510,12 @@ class MapsFragment : Fragment() {
             theSearchBar?.hideFilters()
             hideKeyboard()
 
-            lifecycleScope.launchWhenStarted {
-                delay(500)
-                binding.placeInfoContainer.let {
-                    from(it).state = STATE_EXPANDED
+            viewLifecycleOwner.lifecycleScope.launch {
+                lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    delay(500)
+                    binding.placeInfoContainer.let {
+                        from(it).state = STATE_EXPANDED
+                    }
                 }
             }
 
@@ -541,11 +545,13 @@ class MapsFragment : Fragment() {
                 FastGallery.Builder<Pair<String?, Int>>()
                     .withImages(listOf(image))
                     .withConverter { pair: Pair<String?, Int>, loader: ImageLoader<Pair<String?, Int>> ->
-                        lifecycleScope.launchWhenResumed {
-                            pair.first?.let {
-                                loader.fromURL(it, true)
-                            } ?: run {
-                                loader.fromResource(pair.second)
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                                pair.first?.let {
+                                    loader.fromURL(it, true)
+                                } ?: run {
+                                    loader.fromResource(pair.second)
+                                }
                             }
                         }
                     }
@@ -572,15 +578,16 @@ class MapsFragment : Fragment() {
 
     private inner class MapsSearchBarHandler: SearchHandler() {
         override fun searchLauncher(searchFunction: suspend () -> Unit): Job {
-            return viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-                searchFunction.invoke()
+            return viewLifecycleOwner.lifecycleScope.launch {
+                lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                    searchFunction.invoke()
+                }
             }
         }
     }
 
     private class MapsSearchBarAdapter : SearchBarAdapter<Place, MapsSearchBarAdapter.ViewHolder>() {
         private var dataset: List<Place>? = null
-        public var search_bar = null
         var onItemClicked : ((item: View, position: Int, place: Place) -> Unit)? = null
 
         override fun setDataSet(dataSet: List<Place>) {
@@ -589,16 +596,17 @@ class MapsFragment : Fragment() {
 
         private lateinit var binding: SearchPlaceBinding
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val inflater = LayoutInflater.from(parent.context)
-            binding = SearchPlaceBinding.inflate(inflater)
-            return ViewHolder(binding.root as ConstraintLayout)
+            binding = SearchPlaceBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            return ViewHolder(binding.root)
         }
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val item = dataset!![position]
+            holder.setIsRecyclable(false)
             holder.v.run {
                 binding.icon.setImageResource(item.getIcon())
                 binding.name.text = item.title
+                Log.d("place", item.title)
 
                 setOnClickListener {
                     onItemClicked?.invoke(it, position, item)

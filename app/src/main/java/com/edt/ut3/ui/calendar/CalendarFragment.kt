@@ -55,7 +55,7 @@ class CalendarFragment : BottomSheetFragment(),
     private lateinit var preferences: PreferencesManager
 
     private val preferenceChangeListener =
-        SharedPreferences.OnSharedPreferenceChangeListener { pref: SharedPreferences, key: String ->
+        SharedPreferences.OnSharedPreferenceChangeListener { pref: SharedPreferences, key: String? ->
             when (key) {
                 PreferencesManager.PreferenceKeys.CALENDAR_MODE.key -> {
                     val newPreference = preferences.calendarMode

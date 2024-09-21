@@ -11,7 +11,8 @@ import com.google.android.material.button.MaterialButton
 import com.squareup.picasso.Picasso
 
 class PlaceInfoView(context: Context, attrs: AttributeSet?): NestedScrollView(context, attrs) {
-    private var binding: PlaceInfoBinding
+    private var binding: PlaceInfoBinding =
+        PlaceInfoBinding.inflate(LayoutInflater.from(context), this, true)
     public var goTo: MaterialButton
     public var image: ImageView
 
@@ -43,7 +44,6 @@ class PlaceInfoView(context: Context, attrs: AttributeSet?): NestedScrollView(co
         }
 
     init {
-        binding = PlaceInfoBinding.inflate(LayoutInflater.from(context), this, false)
         goTo = binding.goTo
         image = binding.image
     }

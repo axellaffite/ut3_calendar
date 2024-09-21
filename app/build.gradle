@@ -18,10 +18,10 @@ android {
     defaultConfig {
         applicationId "com.edt.ut3"
         minSdkVersion 23
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode 44
         versionName "2.5.4"
-        compileSdkVersion 33
+        compileSdkVersion 34
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -60,6 +60,7 @@ android {
     buildFeatures{
         viewBinding = true
     }
+    namespace 'com.edt.ut3'
 
 }
 
@@ -69,7 +70,7 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation 'androidx.core:core-ktx:1.10.1'
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
 
@@ -79,7 +80,7 @@ dependencies {
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
     implementation 'androidx.work:work-runtime:2.8.1'
-    implementation 'com.google.android.gms:play-services-maps:18.1.0'
+    implementation 'com.google.android.gms:play-services-maps:19.0.0'
     implementation 'androidx.fragment:fragment-ktx:1.6.1'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.google.firebase:firebase-inappmessaging-display:20.3.3'
@@ -180,8 +181,8 @@ dependencies {
 
     // Name: Firebase
     // Summary : Useful to display notifications and more
-    // Documentation :
-    implementation platform('com.google.firebase:firebase-bom:28.4.0')
+    // Documentation :q
+    implementation platform('com.google.firebase:firebase-bom:33.3.0')
     implementation 'com.google.firebase:firebase-analytics-ktx'
     implementation 'com.google.firebase:firebase-messaging-ktx'
 

@@ -22,6 +22,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/icon"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_margin="8dp"/>
+        android:layout_margin="8dp"
+        android:textColor="@color/textColor"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
