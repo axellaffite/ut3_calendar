@@ -239,7 +239,7 @@ class NotificationManager private constructor(val context: Context) {
             context,
             notificationId,
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val notification = NotificationCompat.Builder(context, channel.id)
@@ -259,14 +259,22 @@ class NotificationManager private constructor(val context: Context) {
 
         val pendingIntent = createNoteNotificationPendingIntent(note, notificationIntent)
 
-        val time = note.reminder.getReminderDate()!!.time
-        val secondsBeforeFiring = (note.reminder.getReminderDate()!!.time - System.currentTimeMillis()) / 1000
+        val reminderDate = note.reminder.getReminderDate()!!
+        val time = reminderDate.time
+        val secondsBeforeFiring = (reminderDate.time - System.currentTimeMillis()) / 1000
 
         Log.d(this::class.simpleName, "schedule: ${note.reminder.getReminderDate()}")
         Log.d(this::class.simpleName, "Second before firing: $secondsBeforeFiring")
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && alarmManager.canScheduleExactAlarms()) {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+        when {
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms() -> {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+                Log.d("NotificationManager", "Notification scheduled for $reminderDate")
+            }
+
+            else -> {
+                Log.e("NotificationManager", "Notification not scheduled, no permission to do it")
+            }
         }
     }
 
