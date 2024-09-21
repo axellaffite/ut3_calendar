@@ -25,7 +25,7 @@ class NoteAdapter(val dataset: MutableList<Note>) : RecyclerView.Adapter<NoteAda
 
     private lateinit var binding: LayoutNoteBinding
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
-        binding = LayoutNoteBinding.inflate(LayoutInflater.from(parent.context))
+        binding = LayoutNoteBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return NoteViewHolder(binding.root)
     }
 
