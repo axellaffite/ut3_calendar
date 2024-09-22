@@ -2,6 +2,7 @@ package com.edt.ut3.ui.preferences.formation.steps.authentication
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -67,6 +68,8 @@ class FragmentAuthentication: Fragment() {
         setupDropdown(binding.role)
     }
     private fun setupDropdown(dropdown: Spinner?) = dropdown?.apply {
+        val current_role_string = viewModel.getCredentials(context).value?.disambiguationIdentity
+        Log.d("FramgentAUthentication", current_role_string ?: "none")
         onItemSelectedListener = object:
         AdapterView.OnItemSelectedListener {
             override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
@@ -167,6 +170,18 @@ class FragmentAuthentication: Fragment() {
     }
 
     /**
+     * Can be set to false, preventing a field update to trigger a credentials update in the backend.
+     * Useful during setup, where the fields are set to the starting value.
+     */
+    private var fieldsReactivityEnabled = true
+
+    private fun withReactivityDisabled(f: () -> Unit){
+        fieldsReactivityEnabled =  false
+        f()
+        fieldsReactivityEnabled = true
+    }
+
+    /**
      * Sets the credentials into the [viewModel].
      * If one of the field is null or blank,
      * we just pass null to the [viewModel].
@@ -176,14 +191,15 @@ class FragmentAuthentication: Fragment() {
         val password = binding.password.text.takeIf { !it.isNullOrBlank() }
         val roleId = binding.role.selectedItemId.toInt()
         val roleString = resources.getStringArray(R.array.roles_values)[roleId]
-
-        viewModel.updateCredentials(
-            Credentials.from(
-                username?.toString(),
-                password?.toString(),
-                roleString
+        if(fieldsReactivityEnabled){
+            viewModel.updateCredentials(
+                Credentials.from(
+                    username?.toString(),
+                    password?.toString(),
+                    roleString
+                )
             )
-        )
+        }
     }
 
     /**
@@ -201,9 +217,11 @@ class FragmentAuthentication: Fragment() {
         val newPassword = credentials.password
         val newRole = credentials.disambiguationIdentity
         val roleIndex = resources.getStringArray(R.array.roles_values).indexOf(newRole)
-        binding.username.updateIfNecessary(newUsername)
-        binding.password.updateIfNecessary(newPassword)
-        binding.role.setSelection(roleIndex)
+        withReactivityDisabled {
+            binding.username.updateIfNecessary(newUsername)
+            binding.password.updateIfNecessary(newPassword)
+            binding.role.setSelection(roleIndex)
+        }
 
     }
 
