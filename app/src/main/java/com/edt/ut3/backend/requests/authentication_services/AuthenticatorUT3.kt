@@ -99,22 +99,27 @@ class AuthenticatorUT3(
 
         val response1: HttpResponse = targetClient.get("https://${baseHost}/calendar")
         val execution = response1.request.url.parameters["execution"]
+        val csrfToken = extractCsrfToken(response1.bodyAsText()) // this needs to be passed to the next step
 
         // On signale qu'on souhaite une nouvelle connection, pas de localStorage
         val response2: HttpResponse = targetClient.submitForm(
             url = "https://idp.${primaryDomain}/idp/profile/SAML2/Redirect/SSO",
             formParameters  = Parameters.build {
-                append("_eventId_proceed","")
-                append("shib_idp_ls_exception.shib_idp_persistent_ss", "")
+                // TODO : clean this, learn about safe/null checks
+                if (csrfToken != null) {
+                    append("csrf_token", csrfToken/*!!*/)
+                }
                 append("shib_idp_ls_exception.shib_idp_session_ss", "")
-                append("shib_idp_ls_success.shib_idp_persistent_ss", "true")
                 append("shib_idp_ls_success.shib_idp_session_ss", "true")
-                append("shib_idp_ls_supported", "true")
-                append("shib_idp_ls_value.shib_idp_persistent_ss", "")
                 append("shib_idp_ls_value.shib_idp_session_ss", "")
+                append("shib_idp_ls_exception.shib_idp_persistent_ss", "")
+                append("shib_idp_ls_success.shib_idp_persistent_ss", "true")
+                append("shib_idp_ls_value.shib_idp_persistent_ss", "")
+                append("shib_idp_ls_supported", "")
+                append("_eventId_proceed","")
             }
         ) {
-            parameter("execution", "e1s1")
+            parameter("execution", execution)
         }
         val txt: String = response2.bodyAsText()
         val token = extract_execution_from_ut3_login_page(txt)
@@ -135,9 +140,12 @@ class AuthenticatorUT3(
         if(response3.status == HttpStatusCode.Unauthorized){
             throw AuthenticationException(R.string.error_wrong_credentials)
         }
-
+        val csrfToken2 = extractCsrfToken(response3.bodyAsText())
         // Attribution des droits d'accès à CELCAT (normalement one time only, mais ça marche jamais)
         val response4 = targetClient.submitForm("https://idp.${primaryDomain}/idp/profile/SAML2/Redirect/SSO", formParameters = Parameters.build {
+            if (csrfToken2 != null) {
+                append("csrf_token", csrfToken2/*!!*/)
+            }
             append("_eventId_proceed", "Accepter")
             append("_shib_idp_consentIds", "displayName")
             append("_shib_idp_consentIds", "eduPersonPrincipalName")
@@ -150,6 +158,8 @@ class AuthenticatorUT3(
 
         val localStorage = extract_local_storage_function_calls(response4.bodyAsText())
 
+/*
+        // this part is not needed anymore it seems
         val response5 = targetClient.submitForm("https://idp.${primaryDomain}/idp/profile/SAML2/Redirect/SSO", formParameters = Parameters.build {
             append("_eventId_proceed", "")
             append("shib_idp_ls_exception.shib_idp_persistent_ss", "")
@@ -158,8 +168,9 @@ class AuthenticatorUT3(
         }) {
             parameter("execution", "e1s4")
         }
+*/
 
-        val samlResponse =  extract_saml_response(response5.bodyAsText())
+        val samlResponse =  extract_saml_response(response4.bodyAsText())
         if(samlResponse == null){
             Log.d("Auth", "No SAML response found")
             throw AuthenticationException(R.string.error_during_authentication)
@@ -191,9 +202,13 @@ class AuthenticatorUT3(
         }
 
 
-        Log.d("Auth", "End of authentication process, last request status code : " + response5.status.toString())
+        Log.d("Auth", "End of authentication process, last request status code : " + response4.status.toString())
     }
 
+    private fun extractCsrfToken(page: String): String? {
+        val reg = Regex("name=\"csrf_token\" value=\"(.*?)\"")
+        return reg.find(page)?.groups?.get(1)?.value
+    }
 
     private fun needs_disambiguation(response: HttpResponse): Boolean{
         return response.request.url.fullPath.contains("Disambiguate")
