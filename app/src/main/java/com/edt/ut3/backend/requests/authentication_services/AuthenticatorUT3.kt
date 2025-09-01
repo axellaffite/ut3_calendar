@@ -105,9 +105,8 @@ class AuthenticatorUT3(
         val response2: HttpResponse = targetClient.submitForm(
             url = "https://idp.${primaryDomain}/idp/profile/SAML2/Redirect/SSO",
             formParameters  = Parameters.build {
-                // TODO : clean this, learn about safe/null checks
                 if (csrfToken != null) {
-                    append("csrf_token", csrfToken/*!!*/)
+                    append("csrf_token", csrfToken)
                 }
                 append("shib_idp_ls_exception.shib_idp_session_ss", "")
                 append("shib_idp_ls_success.shib_idp_session_ss", "true")
@@ -144,7 +143,7 @@ class AuthenticatorUT3(
         // Attribution des droits d'accès à CELCAT (normalement one time only, mais ça marche jamais)
         val response4 = targetClient.submitForm("https://idp.${primaryDomain}/idp/profile/SAML2/Redirect/SSO", formParameters = Parameters.build {
             if (csrfToken2 != null) {
-                append("csrf_token", csrfToken2/*!!*/)
+                append("csrf_token", csrfToken2)
             }
             append("_eventId_proceed", "Accepter")
             append("_shib_idp_consentIds", "displayName")
@@ -157,18 +156,6 @@ class AuthenticatorUT3(
         }
 
         val localStorage = extract_local_storage_function_calls(response4.bodyAsText())
-
-/*
-        // this part is not needed anymore it seems
-        val response5 = targetClient.submitForm("https://idp.${primaryDomain}/idp/profile/SAML2/Redirect/SSO", formParameters = Parameters.build {
-            append("_eventId_proceed", "")
-            append("shib_idp_ls_exception.shib_idp_persistent_ss", "")
-            append("shib_idp_ls_success.shib_idp_persistent_ss", "true")
-            append("shib_idp_ls_success.shib_idp_session_ss", "true")
-        }) {
-            parameter("execution", "e1s4")
-        }
-*/
 
         val samlResponse =  extract_saml_response(response4.bodyAsText())
         if(samlResponse == null){
