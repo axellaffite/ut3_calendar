@@ -4,10 +4,6 @@ import android.view.View
 import androidx.viewpager2.widget.ViewPager2
 
 class ZoomOutPageTransformer : ViewPager2.PageTransformer {
-
-    private val MIN_SCALE = 0.85f
-    private val MIN_ALPHA = 0.5f
-
     override fun transformPage(view: View, position: Float) {
         view.apply {
             val pageWidth = width
@@ -42,5 +38,10 @@ class ZoomOutPageTransformer : ViewPager2.PageTransformer {
                 }
             }
         }
+    }
+
+    companion object {
+        private const val MIN_SCALE = 0.85f
+        private const val MIN_ALPHA = 0.5f
     }
 }

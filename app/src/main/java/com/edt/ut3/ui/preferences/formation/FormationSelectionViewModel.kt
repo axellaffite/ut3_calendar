@@ -5,7 +5,6 @@ import android.content.Context
 import androidx.lifecycle.*
 import com.edt.ut3.backend.background_services.updaters.ResourceType
 import com.edt.ut3.backend.credentials.CredentialsManager
-import com.edt.ut3.backend.firebase_services.FirebaseMessagingHandler
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.backend.requests.authentication_services.AuthenticationException
@@ -256,8 +255,6 @@ class FormationSelectionViewModel(application: Application) : AndroidViewModel(a
             preferences.groups = newGroupsTemp
             preferences.resourceType = resourceType.value ?: ResourceType.Groups
         }
-
-        FirebaseMessagingHandler.ensureGroupRegistration(context)
     }
 
     fun checkConfiguration(it: Context) = PreferencesManager.getInstance(it).run {

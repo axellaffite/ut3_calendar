@@ -36,13 +36,4 @@ sealed class NotificationChannelInformation (
         description = R.string.channel_reminder_description
     )
 
-    object FirebaseChannel : NotificationChannelInformation (
-        id = "FIREBASE",
-        summaryID = 2,
-        importance = IMPORTANCE_DEFAULT,
-        visibility = NotificationCompat.VISIBILITY_PUBLIC,
-        title = R.string.channel_firebase_title,
-        description = R.string.channel_firebase_description
-    )
-
 }
