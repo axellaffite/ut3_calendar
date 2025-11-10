@@ -1,13 +1,16 @@
 package com.edt.ut3.backend.requests.maps
 
+
 import com.edt.ut3.backend.maps.Place
-import com.edt.ut3.backend.requests.JsonSerializer
-import io.ktor.client.*
-import io.ktor.client.request.*
+import com.edt.ut3.backend.requests.objectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.*
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.decodeFromString
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import org.json.JSONException
 import java.io.IOException
 
 class MapsService(val client: HttpClient) {
@@ -33,13 +36,13 @@ class MapsService(val client: HttpClient) {
      *
      * @return The data as a Response
      */
-    @Throws(IOException::class, SerializationException::class)
+    @Throws(IOException::class, JSONException::class)
     suspend fun getCrousPlaces(): List<Place> {
         val response = client.get(CROUS_API_LINK) {
             header(HttpHeaders.Accept, ContentType.Text)
         }.bodyAsText()
 
-        return JsonSerializer.decodeFromString<PlacesRequest>(response).records.map { it.fields }
+        return objectMapper.readValue<PlacesRequest>(response).records.map { it.fields }
     }
 
     /**
@@ -51,13 +54,13 @@ class MapsService(val client: HttpClient) {
      *
      * @return A response that contains places
      */
-    @Throws(java.io.IOException::class)
+    @Throws(IOException::class)
     suspend fun getPaulSabatierPlaces(): List<Place> {
-        val response =  client.get(PAUL_SABATIER_PLACES_LINK) {
+        val response = client.get(PAUL_SABATIER_PLACES_LINK) {
             header(HttpHeaders.Accept, ContentType.Text)
         }.bodyAsText()
 
-        return JsonSerializer.decodeFromString<PlacesRequest>(response).records.map { it.fields }
+        return objectMapper.readValue<PlacesRequest>(response).records.map { it.fields }
     }
 
 }

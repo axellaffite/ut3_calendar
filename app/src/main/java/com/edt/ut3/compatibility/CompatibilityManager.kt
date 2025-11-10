@@ -8,7 +8,9 @@ import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.PreferencesManager
-import kotlinx.serialization.json.Json
+import com.edt.ut3.backend.requests.objectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+
 
 class CompatibilityManager {
 
@@ -16,7 +18,7 @@ class CompatibilityManager {
         get() {
             return if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.P) {
                 versionCode
-            } else{
+            } else {
                 (longVersionCode and 0xFFFF).toInt()
             }
         }
@@ -25,23 +27,23 @@ class CompatibilityManager {
         get() = packageManager.getPackageInfo(packageName, 0)
 
     private lateinit var preferencesManager: PreferencesManager
-    private lateinit var androidPreferencesManager : SharedPreferences
+    private lateinit var androidPreferencesManager: SharedPreferences
 
     fun ensureCompatibility(context: Context) {
         preferencesManager = PreferencesManager.getInstance(context)
         androidPreferencesManager = PreferenceManager.getDefaultSharedPreferences(context)
 
-        var oldVersion : Int = androidPreferencesManager.run {
+        var oldVersion: Int = androidPreferencesManager.run {
             try {
                 return@run getString(
-                        PreferencesManager.PreferenceKeys.CODE_VERSION.key,
-                        PreferencesManager.PreferenceKeys.CODE_VERSION.defValue.toString()
+                    PreferencesManager.PreferenceKeys.CODE_VERSION.key,
+                    PreferencesManager.PreferenceKeys.CODE_VERSION.defValue.toString()
                 )?.toInt() ?: PreferencesManager.PreferenceKeys.CODE_VERSION.defValue
             } catch (e: Exception) {
                 try {
                     return@run getInt(
-                            PreferencesManager.PreferenceKeys.CODE_VERSION.key,
-                            PreferencesManager.PreferenceKeys.CODE_VERSION.defValue
+                        PreferencesManager.PreferenceKeys.CODE_VERSION.key,
+                        PreferencesManager.PreferenceKeys.CODE_VERSION.defValue
                     )
                 } catch (e: Exception) {
                     return@run 0
@@ -67,9 +69,9 @@ class CompatibilityManager {
     }
 
     private fun migrateFrom(version: Int, context: Context): Int = when (version) {
-        in 0 .. 29 -> to30(context)
-        in 30 .. 32 -> to33(context)
-        in 33 .. 42 -> to44(context)
+        in 0..29 -> to30(context)
+        in 30..32 -> to33(context)
+        in 33..42 -> to44(context)
 
         else -> {
             Log.d(
@@ -91,8 +93,8 @@ class CompatibilityManager {
                     val notification = PreferencesManager.PreferenceKeys.NOTIFICATION
                     val notificationValue = preferencesManager.deprecated_notification.toBoolean()
                     putBoolean(
-                            notification.key,
-                            notificationValue
+                        notification.key,
+                        notificationValue
                     )
                 } catch (e: Exception) {
 
@@ -102,8 +104,8 @@ class CompatibilityManager {
                     val firstLaunch = PreferencesManager.PreferenceKeys.FIRST_LAUNCH
                     val firstLaunchValue = preferencesManager.deprecated_firstLaunch.toBoolean()
                     putBoolean(
-                            firstLaunch.key,
-                            firstLaunchValue
+                        firstLaunch.key,
+                        firstLaunchValue
                     )
                 } catch (e: Exception) {
 
@@ -112,9 +114,9 @@ class CompatibilityManager {
                 try {
                     val codeVersion = PreferencesManager.PreferenceKeys.CODE_VERSION
                     putInt(
-                            PreferencesManager.PreferenceKeys.NOTIFICATION.key,
-                            (getString(codeVersion.key, null)
-                                    ?: codeVersion.defValue.toString()).toInt()
+                        PreferencesManager.PreferenceKeys.NOTIFICATION.key,
+                        (getString(codeVersion.key, null)
+                            ?: codeVersion.defValue.toString()).toInt()
                     )
                 } catch (e: Exception) {
 
@@ -133,7 +135,7 @@ class CompatibilityManager {
         PreferencesManager.getInstance(context).school = context.assets
             .open("schools.json")
             .use { it.bufferedReader().readText() }
-            .let { schoolsJson -> Json.decodeFromString<Array<School.Info>>(schoolsJson) }
+            .let { schoolsJson -> objectMapper.readValue<Array<School.Info>>(schoolsJson) }
             .first { school -> school.label == "ut3_fsi" }
 
         return 43

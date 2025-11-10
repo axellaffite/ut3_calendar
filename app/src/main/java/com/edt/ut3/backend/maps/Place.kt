@@ -4,29 +4,29 @@ import androidx.room.Entity
 import androidx.room.TypeConverters
 import com.edt.ut3.R
 import com.edt.ut3.backend.database.Converter
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonDeserializer
+import com.fasterxml.jackson.databind.JsonSerializer
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.osmdroid.util.GeoPoint
-import java.util.*
+import java.util.Locale
 
 @Entity(
     tableName = "place_info",
     primaryKeys = ["title", "type"]
 )
-@Serializable
-data class Place (
+
+data class Place(
     var id: String? = null,
     var title: String,
     var short_desc: String? = null,
     @TypeConverters(Converter::class)
-    @Serializable(with = GeoPointSerializer::class)
+    @field:JsonDeserialize(using = GeoPointDeserializer::class)
+    @field:JsonSerialize(using = GeoPointSerializer::class)
     var geolocalisation: GeoPoint,
     var type: String,
     var photo: String? = null,
@@ -41,23 +41,24 @@ data class Place (
     }
 }
 
+class GeoPointDeserializer : JsonDeserializer<GeoPoint>() {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): GeoPoint {
+        val node = p.codec.readTree<com.fasterxml.jackson.databind.JsonNode>(p)
+        val coordinates = mutableListOf<Double>()
 
+        node.forEach { coordinate ->
+            coordinates.add(coordinate.asDouble())
+        }
 
-object GeoPointSerializer: KSerializer<GeoPoint> {
-
-    private val serializer = ListSerializer(Double.serializer())
-
-    override val descriptor: SerialDescriptor
-        get() = PrimitiveSerialDescriptor("GeoPoint", PrimitiveKind.DOUBLE)
-
-    override fun deserialize(decoder: Decoder): GeoPoint {
-        val localisation = decoder.decodeSerializableValue(serializer)
-        return GeoPoint(localisation[0], localisation[1])
+        return GeoPoint(coordinates[0], coordinates[1])
     }
+}
 
-    override fun serialize(encoder: Encoder, value: GeoPoint) {
-        val localisation = listOf(value.latitude, value.longitude)
-        encoder.encodeSerializableValue(serializer, localisation)
+class GeoPointSerializer : JsonSerializer<GeoPoint>() {
+    override fun serialize(value: GeoPoint, gen: JsonGenerator, serializers: SerializerProvider) {
+        gen.writeStartArray()
+        gen.writeNumber(value.latitude)
+        gen.writeNumber(value.longitude)
+        gen.writeEndArray()
     }
-
 }

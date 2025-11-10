@@ -2,75 +2,52 @@ package com.edt.ut3.backend.requests.celcat
 
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.misc.extensions.fromHTML
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonDeserializer
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 
-
-@Serializable
 data class CoursesRequest(
-    @Serializable(with = CourseSerializer::class)
+    @field:JsonDeserialize(using = CourseDeserializer::class)
     val results: Map<String, String>
 )
 
-object CourseSerializer: KSerializer<Map<String, String>> {
+class CourseDeserializer : JsonDeserializer<Map<String, String>>() {
+    data class JsonCourse(val id: String, val text: String)
 
-    @Serializable
-    private data class JsonCourse(val id: String, val text: String)
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): Map<String, String> {
+        val node: JsonNode = p.codec.readTree(p)
+        val courses = mutableMapOf<String, String>()
 
-    override val descriptor: SerialDescriptor
-        get() = PrimitiveSerialDescriptor("Course", PrimitiveKind.STRING)
+        node.forEach { courseNode ->
+            val id = courseNode.get("id").asText()
+            val text = courseNode.get("text").asText()
+            courses[id] = text
+            courses[text] = text
+        }
 
-    override fun deserialize(decoder: Decoder): Map<String, String> {
-        val serializer = ListSerializer(JsonCourse.serializer())
-
-        return decoder
-            .decodeSerializableValue(serializer)
-            .fold(listOf<Pair<String, String>>()) { acc, jsonCourse ->
-                acc + (jsonCourse.id to jsonCourse.text) + (jsonCourse.text to jsonCourse.text)
-            }.toMap()
-    }
-
-    override fun serialize(encoder: Encoder, value: Map<String, String>) {
-        encoder.encodeSerializableValue(MapSerializer(String.serializer(), String.serializer()), value)
+        return courses
     }
 }
 
-@Serializable
+
 data class ClassesRequest(
-    @Serializable(with = ClassSerializer::class)
+    @field:JsonDeserialize(using = ClassDeserializer::class)
     val results: List<String>
 )
 
-object ClassSerializer: KSerializer<List<String>> {
+class ClassDeserializer : JsonDeserializer<List<String>>() {
+    data class JsonClass(val id: String)
 
-    @Serializable
-    private data class JsonClass(val id: String)
-
-    override val descriptor: SerialDescriptor
-        get() = PrimitiveSerialDescriptor("Class", PrimitiveKind.STRING)
-
-    override fun deserialize(decoder: Decoder): List<String> {
-        val serializer = ListSerializer(JsonClass.serializer())
-
-        return decoder.decodeSerializableValue(serializer).map { it.id.fromHTML().trim() }
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): List<String> {
+        val node: JsonNode = p.codec.readTree(p)
+        return node.map { it.get("id").asText().fromHTML().trim() }
     }
-
-    override fun serialize(encoder: Encoder, value: List<String>) {
-        encoder.encodeSerializableValue(ListSerializer(String.serializer()), value  )
-    }
-
 }
 
-@Serializable
+
 data class SchoolsRequest(val entries: List<School>)
 
-@Serializable
+
 data class GroupsRequest(val results: List<School.Info.Group>)

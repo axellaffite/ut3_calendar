@@ -9,7 +9,7 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import org.osmdroid.util.GeoPoint
-import java.util.*
+import java.util.Date
 
 class Converter {
     @Throws(JSONException::class)
@@ -51,7 +51,7 @@ class Converter {
     }.toString()
 
     @TypeConverter
-    fun deserializeGeoPoint(str: String) = GeoPoint(0.0,0.0).apply {
+    fun deserializeGeoPoint(str: String) = GeoPoint(0.0, 0.0).apply {
         JSONObject(str).run {
             latitude = getDouble("lat")
             longitude = getDouble("lon")

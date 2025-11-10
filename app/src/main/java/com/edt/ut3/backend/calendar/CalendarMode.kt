@@ -1,7 +1,5 @@
 package com.edt.ut3.backend.calendar
 
-import com.edt.ut3.backend.calendar.CalendarMode.Mode
-import kotlinx.serialization.Serializable
 
 /**
  * Used to save the current CalendarMode
@@ -13,7 +11,7 @@ import kotlinx.serialization.Serializable
  * the Calendar to be displayed in [Mode.WEEK] mode
  * event if it's in portrait.
  */
-@Serializable
+
 data class CalendarMode(
     val mode: Mode = Mode.AGENDA,
     val forceWeek: Boolean = false

@@ -4,21 +4,29 @@ import android.content.Context
 import com.edt.ut3.backend.credentials.CredentialsManager
 import com.edt.ut3.backend.requests.authentication_services.Authenticator
 import com.edt.ut3.misc.RedirectFixerPlugin
-import io.ktor.client.engine.cio.*
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpRedirect
-import io.ktor.client.plugins.cookies.HttpCookies
-import io.ktor.client.plugins.logging.*
-import io.ktor.serialization.kotlinx.json.*
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
-import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.plugins.logging.DEFAULT
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.serialization.jackson.jackson
 
-import kotlinx.serialization.json.Json as JsonSerializerBase
+val objectMapper = ObjectMapper().setup()
 
-val JsonSerializer = JsonSerializerBase {
-    encodeDefaults = true
-    isLenient = true
-    ignoreUnknownKeys = true
+fun ObjectMapper.setup(): ObjectMapper {
+    registerKotlinModule()
+    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+    return this
 }
 
 fun getClient() = HttpClient(CIO) {
@@ -27,7 +35,9 @@ fun getClient() = HttpClient(CIO) {
     }
 
     install(ContentNegotiation) {
-        json(JsonSerializer)
+        jackson {
+            setup()
+        }
     }
 
     install(Logging) {
@@ -39,7 +49,7 @@ fun getClient() = HttpClient(CIO) {
         checkHttpMethod = false
 
     }
-    install(RedirectFixerPlugin){}
+    install(RedirectFixerPlugin) {}
 
 }
 
@@ -47,7 +57,7 @@ suspend fun HttpClient.authenticateIfNeeded(
     context: Context,
     authenticator: Authenticator
 ): HttpClient {
-    if(authenticator.needsAuthentication){
+    if (authenticator.needsAuthentication) {
         val credentials = CredentialsManager.getInstance(context).getCredentials()
         if (credentials != null) {
             authenticator.authenticate(credentials)

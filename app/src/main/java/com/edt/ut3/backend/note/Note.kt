@@ -13,7 +13,10 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.Objects
 
 @Entity(tableName = "note")
 data class Note(
@@ -25,10 +28,10 @@ data class Note(
     var color: String?,
     var textColor: String?,
     @TypeConverters(Converter::class) val reminder: Reminder = Reminder(date),
-    @TypeConverters(Converter::class) val pictures: MutableList<Picture> = mutableListOf())
-{
+    @TypeConverters(Converter::class) val pictures: MutableList<Picture> = mutableListOf()
+) {
 
-    private constructor(id: Long, note: Note): this(
+    private constructor(id: Long, note: Note) : this(
         id = id,
         eventID = note.eventID,
         title = note.title,
@@ -52,7 +55,8 @@ data class Note(
             event?.let {
                 date = it.start
 
-                val dateTitle = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(event.start)
+                val dateTitle =
+                    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(event.start)
                 title = "$dateTitle - ${it.courseName ?: it.category}"
             }
 
@@ -60,8 +64,8 @@ data class Note(
         }
     }
 
-    fun isEmpty() : Boolean {
-        return  (!eventID.isNullOrBlank() || title.isNullOrBlank())
+    fun isEmpty(): Boolean {
+        return (!eventID.isNullOrBlank() || title.isNullOrBlank())
                 && !reminder.isActive()
                 && contents.isBlank()
                 && pictures.isEmpty()
@@ -75,7 +79,7 @@ data class Note(
     }
 
     fun removePictureAt(position: Int) {
-        if (position in 0 .. pictures.lastIndex) {
+        if (position in 0..pictures.lastIndex) {
             val picture = pictures[position]
             pictures.removeAt(position)
             cleanPictureData(picture)
@@ -109,7 +113,7 @@ data class Note(
      */
     data class Reminder(
         var date: Date
-    ){
+    ) {
 
         private var type: ReminderType = ReminderType.NONE
         private var customDate: Date? = null
@@ -195,8 +199,11 @@ data class Note(
                 return Reminder(Date(json.getLong("date"))).apply {
                     type = ReminderType.valueOf(json.getString("type"))
                     customDate =
-                        if (json.isNull("custom_date")) { null }
-                        else { Date(json.getLong("custom_date")) }
+                        if (json.isNull("custom_date")) {
+                            null
+                        } else {
+                            Date(json.getLong("custom_date"))
+                        }
                 }
             }
         }

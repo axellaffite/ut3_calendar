@@ -1,10 +1,9 @@
 package com.edt.ut3.misc.extensions
 
-import kotlinx.serialization.json.JsonNull
-import kotlinx.serialization.json.JsonObject
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.NullNode
 import org.json.JSONArray
 import org.json.JSONException
-import org.json.JSONObject
 
 @Throws(JSONException::class)
 fun <T> JSONArray.toList(): List<T> =
@@ -12,9 +11,10 @@ fun <T> JSONArray.toList(): List<T> =
         get(it) as T
     }
 
-@Throws(JSONException::class)
-fun  JsonObject.toStringMap(): Map<String, String> {
-    return mapValues { (_, value) -> value.toString() }
+fun JsonNode.toStringMap(): Map<String, String> {
+    return fields().asSequence().associate { (key, value) ->
+        key to value.asText()
+    }
 }
 
 fun <T> JSONArray.map(consumer: (Any?) -> T) =
@@ -29,15 +29,15 @@ fun JSONArray.forEach(consumer: (Any?) -> Unit) {
 }
 
 @Suppress("UNCHECKED_CAST")
-fun<T> JSONObject.realOpt(key: String): T? {
-    return if (isNull(key)) {
-        null
-    } else {
+fun <T> JsonNode.realOpt(key: String): T? {
+    return if (hasNonNull(key)) {
         get(key) as T
+    } else {
+        null
     }
 }
 
-fun JsonObject.getNotNull(key: String) = when (val value = get(key)) {
-    null, is JsonNull -> null
-    else -> value
+fun JsonNode.getNotNull(key: String): JsonNode? = when {
+    !has(key) || get(key) is NullNode || get(key).isNull -> null
+    else -> get(key)
 }

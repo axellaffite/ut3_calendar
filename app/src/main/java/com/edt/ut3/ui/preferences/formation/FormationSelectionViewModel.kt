@@ -2,7 +2,10 @@ package com.edt.ut3.ui.preferences.formation
 
 import android.app.Application
 import android.content.Context
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.edt.ut3.backend.background_services.updaters.ResourceType
 import com.edt.ut3.backend.credentials.CredentialsManager
 import com.edt.ut3.backend.formation_choice.School
@@ -13,6 +16,7 @@ import com.edt.ut3.backend.requests.authentication_services.Credentials
 import com.edt.ut3.backend.requests.authentication_services.getAuthenticator
 import com.edt.ut3.backend.requests.celcat.CelcatService
 import com.edt.ut3.backend.requests.getClient
+import com.edt.ut3.backend.requests.objectMapper
 import com.edt.ut3.misc.BaseState
 import com.edt.ut3.misc.extensions.isTrue
 import com.edt.ut3.misc.extensions.toList
@@ -21,11 +25,11 @@ import com.edt.ut3.ui.preferences.formation.steps.authentication.AuthenticationF
 import com.edt.ut3.ui.preferences.formation.steps.authentication.AuthenticationState
 import com.edt.ut3.ui.preferences.formation.steps.which_groups.WhichGroupsFailure
 import com.edt.ut3.ui.preferences.formation.steps.which_groups.WhichGroupsState
+import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 import org.json.JSONArray
 import org.json.JSONException
 import java.io.IOException
@@ -63,7 +67,7 @@ class FormationSelectionViewModel(application: Application) : AndroidViewModel(a
     private val _schools: MutableList<School.Info> = application.assets
         .open("schools.json")
         .use { it.bufferedReader().readText() }
-        .let(Json::decodeFromString)
+        .let { objectMapper.readValue<MutableList<School.Info>>(it) }
 
     private val _selectedSchool = MutableLiveData<School.Info>(null)
     val selectedSchool: LiveData<School.Info>

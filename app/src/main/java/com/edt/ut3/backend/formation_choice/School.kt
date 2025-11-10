@@ -2,16 +2,12 @@ package com.edt.ut3.backend.formation_choice
 
 import android.net.Uri
 import com.edt.ut3.backend.background_services.updaters.ResourceType
-import com.edt.ut3.backend.formation_choice.School.Info
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import com.fasterxml.jackson.annotation.JsonValue
 
-@Serializable
-enum class AuthenticationMethod {
-    @SerialName("none")
-    NONE,
-    @SerialName("ut3_fsi")
-    UT3_FSI
+
+enum class AuthenticationMethod(@JsonValue val jsonValue: String) {
+    NONE("none"),
+    UT3_FSI("ut3_fsi")
 }
 
 /**
@@ -20,11 +16,11 @@ enum class AuthenticationMethod {
  * @property name
  * @property info
  */
-@Serializable
+
 data class School(
     val name: String,
     val info: Info
-){
+) {
 
     /**
      * Represent a [school][School] information.
@@ -34,19 +30,17 @@ data class School(
      * @property authentication The authentication method used by the CELCAT instance
      * @property searchPlaceHolder The placeholder used in search queries to get all the entries
      */
-    @Serializable
-    data class Info (
+    data class Info(
         val label: String,
         val baseUrl: String,
         val authentication: AuthenticationMethod,
         val searchPlaceHolder: String
-    ){
+    ) {
         fun getResource(resourceType: ResourceType) = when (resourceType) {
             ResourceType.Groups -> getGroupLink(baseUrl, searchPlaceHolder)
             ResourceType.Courses -> getCoursesLink(baseUrl, searchPlaceHolder)
             ResourceType.Classes -> getRoomsLink(baseUrl, searchPlaceHolder)
         }
-
 
 
         companion object {
@@ -116,8 +110,7 @@ data class School(
          * @property id The group id
          * @property text The textual representation
          */
-        @Serializable
-        data class Group (
+        data class Group(
             val id: String,
             val text: String
         )

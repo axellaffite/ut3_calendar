@@ -5,25 +5,31 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
-import androidx.work.*
+import androidx.work.CoroutineWorker
+import androidx.work.Data
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import com.edt.ut3.backend.background_services.updaters.ResourceType
 import com.edt.ut3.backend.background_services.updaters.getUpdater
 import com.edt.ut3.backend.celcat.Course
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.viewmodels.CoursesViewModel
 import com.edt.ut3.backend.database.viewmodels.EventViewModel
-import com.edt.ut3.backend.requests.authenticateIfNeeded
 import com.edt.ut3.backend.notification.NotificationManager
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.backend.requests.authentication_services.AuthenticationException
+import com.edt.ut3.backend.requests.authenticateIfNeeded
 import com.edt.ut3.backend.requests.authentication_services.getAuthenticator
 import com.edt.ut3.misc.extensions.timeCleaned
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.SerializationException
-import java.io.IOException
-import java.util.*
+import java.util.Date
 import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
 
@@ -70,9 +76,9 @@ class BackgroundUpdater(appContext: Context, workerParams: WorkerParameters) :
          */
         fun forceUpdate(
             context: Context,
-            firstUpdate : Boolean = false,
+            firstUpdate: Boolean = false,
             viewLifecycleOwner: LifecycleOwner? = null,
-            observer: Observer<WorkInfo>? = null
+            observer: Observer<WorkInfo?>? = null
         ) {
             val inputData = Data.Builder().putBoolean("firstUpdate", firstUpdate).build()
 
@@ -105,12 +111,16 @@ class BackgroundUpdater(appContext: Context, workerParams: WorkerParameters) :
             val resourceType = prefManager.resourceType
 
             val updater = getUpdater {
-                authenticateIfNeeded(applicationContext, getAuthenticator(school.authentication,this, school.baseUrl))
+                authenticateIfNeeded(
+                    applicationContext,
+                    getAuthenticator(school.authentication, this, school.baseUrl)
+                )
             }
 
             val classes = updater.getClasses(school.getResource(ResourceType.Classes)).toSet()
             val courses = updater.getCoursesNames(school.getResource(ResourceType.Courses))
-            val incomingEvents = updater.getEvents(school, resourceType, groups, classes, courses, firstUpdate)
+            val incomingEvents =
+                updater.getEvents(school, resourceType, groups, classes, courses, firstUpdate)
             val changes = computeEventUpdate(incomingEvents)
 
             updateDatabaseContents(changes)
@@ -136,7 +146,7 @@ class BackgroundUpdater(appContext: Context, workerParams: WorkerParameters) :
      */
     private suspend fun computeEventUpdate(
         incomingEvents: List<Event>
-    ) : EventChanges = withContext(IO) {
+    ): EventChanges = withContext(IO) {
         /* get all the event and their id before the update */
         val oldEvent: List<Event> = eventViewModel.getEvents()
         val oldEventID = oldEvent.map { it.id }.toHashSet()
@@ -223,7 +233,7 @@ class BackgroundUpdater(appContext: Context, workerParams: WorkerParameters) :
     }
 
 
-    private data class EventChanges (
+    private data class EventChanges(
         val new: List<Event>,
         val updated: List<Event>,
         val deleted: List<Event>

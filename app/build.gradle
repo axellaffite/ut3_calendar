@@ -2,8 +2,7 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
     id 'kotlin-parcelize'
-    id 'kotlinx-serialization'
-    id 'com.google.devtools.ksp' version '1.8.22-1.0.11'
+    id 'com.google.devtools.ksp'
 }
 
 
@@ -14,7 +13,7 @@ android {
         targetSdkVersion 35
         versionCode 47
         versionName "2.6.1"
-        compileSdk 34
+        compileSdk 35
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -71,6 +70,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.9.4'
 
     def nav_version = "2.5.3"
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
@@ -162,8 +162,12 @@ dependencies {
     implementation 'com.github.liip:SweetPreferences:1.0.3'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version" // or "kotlin-stdlib-jdk8"
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.1" // JVM dependency
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1"
+
+    // Jackson for JSON parsing
+    def jackson_version = "2.15.2"
+    implementation "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jackson_version"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson_version"
 
     // Name: Dexter
     // Summary : Simplified permissions for Android
@@ -196,11 +200,10 @@ dependencies {
     def ktor_version = "2.3.4"
     implementation "io.ktor:ktor-client-core:$ktor_version"
     implementation "io.ktor:ktor-client-cio:$ktor_version"
-    implementation "io.ktor:ktor-client-serialization:$ktor_version"
     implementation "io.ktor:ktor-client-logging:$ktor_version"
     implementation "ch.qos.logback:logback-classic:1.2.3"
     implementation "io.ktor:ktor-client-content-negotiation:$ktor_version"
-    implementation "io.ktor:ktor-serialization-kotlinx-json:$ktor_version"
+    implementation "io.ktor:ktor-serialization-jackson:$ktor_version"
 
 
     implementation "io.grpc:grpc-okhttp:1.52.1"

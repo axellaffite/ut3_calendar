@@ -7,16 +7,58 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.edt.ut3.R
+import com.edt.ut3.backend.celcat.Event.ParsedDescription
 import com.edt.ut3.backend.database.Converter
 import com.edt.ut3.misc.DestructedColor
 import com.edt.ut3.misc.Emoji
-import com.edt.ut3.misc.extensions.fromCelcatString
 import com.edt.ut3.misc.extensions.fromHTML
-import com.edt.ut3.misc.extensions.getNotNull
 import com.elzozor.yoda.events.EventWrapper
-import kotlinx.serialization.json.*
+import com.fasterxml.jackson.annotation.JsonFormat
 import java.io.IOException
-import java.util.*
+import java.util.Date
+
+/**
+ * Base class that we receive from the Celcat server
+ */
+data class RawEvent(
+    val id: String,
+    val eventCategory: String?,
+    val description: String?,
+    @field:JsonFormat(timezone = "Europe/Paris")
+    val start: Date,
+    @field:JsonFormat(timezone = "Europe/Paris")
+    val end: Date? = null,
+    val sites: List<String>? = null,
+    val allDay: Boolean? = null,
+    val backgroundColor: String,
+    val textColor: String? = null,
+)
+
+fun RawEvent.toParsedEvent(classes: Set<String>, courses: Map<String, String>): Event {
+    val category = eventCategory?.fromHTML()
+    val parsedDescription = ParsedDescription(
+        category,
+        description?.fromHTML(),
+        classes,
+        courses
+    )
+    val sites = sites?.map { it.fromHTML() } ?: emptyList()
+
+    return Event(
+        id = id.fromHTML(),
+        category = category,
+        description = parsedDescription.precisions,
+        courseName = parsedDescription.course,
+        locations = parsedDescription.classes,
+        sites = sites.sorted(),
+        start = start,
+        end = end ?: start,
+        allday = allDay ?: false || end == null,
+        backgroundColor = backgroundColor.fromHTML(),
+        textColor = textColor?.fromHTML(),
+        noteID = null
+    )
+}
 
 @Entity(tableName = "event")
 data class Event(
@@ -24,58 +66,15 @@ data class Event(
     var category: String?,
     var description: String?,
     var courseName: String?,
-    @TypeConverters(Converter::class) var locations: List<String>,
-    @TypeConverters(Converter::class) var sites: List<String>,
-    @TypeConverters(Converter::class) var start: Date,
-    @TypeConverters(Converter::class) var end: Date?,
+    @field:TypeConverters(Converter::class) var locations: List<String>,
+    @field:TypeConverters(Converter::class) var sites: List<String>,
+    @field:TypeConverters(Converter::class) var start: Date,
+    @field:TypeConverters(Converter::class) var end: Date?,
     var allday: Boolean,
     var backgroundColor: String?,
     var textColor: String?,
     @ColumnInfo(name = "note_id") var noteID: Long?
 ) {
-    companion object {
-        @Throws(Exception::class)
-        fun fromJSON(obj: JsonObject, classes: Set<String>, courses: Map<String, String>) = obj.run {
-                val category = getNotNull("eventCategory")?.jsonPrimitive?.content?.fromHTML()
-                val parsedDescription = ParsedDescription(
-                    category,
-                    getNotNull("description")?.jsonPrimitive?.content?.fromHTML(),
-                    classes,
-                    courses
-                )
-
-                val start = Date().fromCelcatString(getValue("start").jsonPrimitive.content)
-
-                val end = getNotNull("end")?.let {
-                    Date().fromCelcatString(it.jsonPrimitive.content)
-                } ?: start
-
-                val sites = getNotNull("sites")?.let { json ->
-                    json.jsonArray
-                        .filterIsInstance<JsonPrimitive>()
-                        .map { it.content.fromHTML().trim() }
-                } ?: listOf()
-
-                Event(
-                    id = getValue("id").jsonPrimitive.content.fromHTML(),
-                    category = category,
-                    description = parsedDescription.precisions,
-                    courseName = parsedDescription.course,
-                    locations = parsedDescription.classes,
-                    sites = sites.sorted(),
-                    start = start,
-                    end = end,
-                    allday = getNotNull("allDay")?.jsonPrimitive?.boolean == true
-                            || getNotNull("end") == null,
-                    backgroundColor = getValue("backgroundColor").jsonPrimitive.content.fromHTML(),
-                    textColor = getNotNull("textColor")?.jsonPrimitive?.content?.fromHTML()
-                        ?: "#000000",
-                    noteID = null
-                )
-            }
-
-    }
-
     fun categoryWithEmotions(): String? {
         return category?.let {
             when {

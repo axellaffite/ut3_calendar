@@ -3,16 +3,19 @@ package com.edt.ut3.backend.preferences
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
-import androidx.appcompat.app.AppCompatDelegate.*
+import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
+import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+import androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode
 import androidx.preference.PreferenceManager
 import com.edt.ut3.backend.background_services.updaters.ResourceType
 import com.edt.ut3.backend.calendar.CalendarMode
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.simple_preference.SimplePreference
+import com.edt.ut3.backend.requests.objectMapper
 import com.edt.ut3.ui.preferences.Theme
 import com.edt.ut3.ui.preferences.ThemePreference
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+
 
 /**
  * Used to manage the application preferences.
@@ -48,92 +51,92 @@ class PreferencesManager private constructor(
      * the preference.
      */
     sealed class PreferenceKeys<T>(val key: String, val defValue: T) {
-        object THEME: PreferenceKeys<ThemePreference>("theme", ThemePreference.SMARTPHONE)
-        object SCHOOL: PreferenceKeys<String?>("school", null)
-        object RESOURCE: PreferenceKeys<ResourceType>("resource", ResourceType.Groups)
-        object GROUPS: PreferenceKeys<List<String>?>("groups", null)
-        object OLD_GROUPS: PreferenceKeys<List<String>?>("old_groups", null)
-        object CALENDAR_MODE: PreferenceKeys<CalendarMode>("calendar_mode", CalendarMode.default())
-        object NOTIFICATION: PreferenceKeys<Boolean>("actual_notification", true)
-        object FIRST_LAUNCH: PreferenceKeys<Boolean>("actual_first_launch", true)
-        object CODE_VERSION: PreferenceKeys<Int>("actual_code_version", 0)
+        object THEME : PreferenceKeys<ThemePreference>("theme", ThemePreference.SMARTPHONE)
+        object SCHOOL : PreferenceKeys<String?>("school", null)
+        object RESOURCE : PreferenceKeys<ResourceType>("resource", ResourceType.Groups)
+        object GROUPS : PreferenceKeys<List<String>?>("groups", null)
+        object OLD_GROUPS : PreferenceKeys<List<String>?>("old_groups", null)
+        object CALENDAR_MODE : PreferenceKeys<CalendarMode>("calendar_mode", CalendarMode.default())
+        object NOTIFICATION : PreferenceKeys<Boolean>("actual_notification", true)
+        object FIRST_LAUNCH : PreferenceKeys<Boolean>("actual_first_launch", true)
+        object CODE_VERSION : PreferenceKeys<Int>("actual_code_version", 0)
 
-        object DEPRECATED_FIRST_LAUNCH: PreferenceKeys<Boolean>("first_launch", true)
-        object DEPRECATED_NOTIFICATION: PreferenceKeys<Boolean>("notification", true)
+        object DEPRECATED_FIRST_LAUNCH : PreferenceKeys<Boolean>("first_launch", true)
+        object DEPRECATED_NOTIFICATION : PreferenceKeys<Boolean>("notification", true)
     }
 
 
-    var theme : ThemePreference by simplePreference.Delegate(
+    var theme: ThemePreference by simplePreference.Delegate(
         key = PreferenceKeys.THEME.key,
         defValue = PreferenceKeys.THEME.defValue.toString(),
         converter = ThemePreferenceConverter,
         manager = ThemePreferenceManager
     )
 
-    var school : School.Info? by simplePreference.Delegate(
+    var school: School.Info? by simplePreference.Delegate(
         key = PreferenceKeys.SCHOOL.key,
         defValue = PreferenceKeys.SCHOOL.defValue,
         converter = InfoConverter,
         manager = InfoManager
     )
 
-    var resourceType : ResourceType by simplePreference.Delegate(
+    var resourceType: ResourceType by simplePreference.Delegate(
         key = PreferenceKeys.RESOURCE.key,
         defValue = PreferenceKeys.RESOURCE.defValue.toString(),
         converter = ResourceTypeConverter,
         manager = ResourceTypeManager
     )
 
-    var groups : List<String>? by simplePreference.Delegate <List<String>?, String>(
+    var groups: List<String>? by simplePreference.Delegate<List<String>?, String>(
         key = PreferenceKeys.GROUPS.key,
         defValue = PreferenceKeys.GROUPS.defValue.toString(),
         converter = StringListConverter,
         manager = NullableStringListManager
     )
 
-    var oldGroups : List<String>? by simplePreference.Delegate(
+    var oldGroups: List<String>? by simplePreference.Delegate(
         key = PreferenceKeys.OLD_GROUPS.key,
         defValue = PreferenceKeys.OLD_GROUPS.defValue.toString(),
         converter = StringListConverter,
         manager = NullableStringListManager
     )
 
-    var calendarMode : CalendarMode by simplePreference.Delegate(
+    var calendarMode: CalendarMode by simplePreference.Delegate(
         key = PreferenceKeys.CALENDAR_MODE.key,
-        defValue = Json.encodeToString(PreferenceKeys.CALENDAR_MODE.defValue),
+        defValue = objectMapper.writeValueAsString(PreferenceKeys.CALENDAR_MODE.defValue),
         converter = CalendarModeConverter,
         manager = CalendarModeManager
     )
 
-    var notification : Boolean by simplePreference.Delegate(
+    var notification: Boolean by simplePreference.Delegate(
         key = PreferenceKeys.NOTIFICATION.key,
         defValue = PreferenceKeys.NOTIFICATION.defValue,
         converter = BooleanConverter,
         manager = BooleanManager
     )
 
-    private var firstLaunch : Boolean by simplePreference.Delegate(
+    private var firstLaunch: Boolean by simplePreference.Delegate(
         key = PreferenceKeys.FIRST_LAUNCH.key,
         defValue = PreferenceKeys.FIRST_LAUNCH.defValue,
         converter = BooleanConverter,
         manager = BooleanManager
     )
 
-    var codeVersion : Int by simplePreference.Delegate(
+    var codeVersion: Int by simplePreference.Delegate(
         key = PreferenceKeys.CODE_VERSION.key,
         defValue = PreferenceKeys.CODE_VERSION.defValue,
         converter = IntConverter,
         manager = IntManager
     )
 
-    var deprecated_notification : String by simplePreference.Delegate(
+    var deprecated_notification: String by simplePreference.Delegate(
         key = PreferenceKeys.DEPRECATED_NOTIFICATION.key,
         defValue = PreferenceKeys.DEPRECATED_NOTIFICATION.defValue.toString(),
         converter = StringConverter,
         manager = StringManager
     )
 
-    var deprecated_firstLaunch : String by simplePreference.Delegate(
+    var deprecated_firstLaunch: String by simplePreference.Delegate(
         key = PreferenceKeys.DEPRECATED_FIRST_LAUNCH.key,
         defValue = PreferenceKeys.DEPRECATED_FIRST_LAUNCH.defValue.toString(),
         converter = StringConverter,

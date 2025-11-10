@@ -5,10 +5,10 @@ import com.edt.ut3.backend.background_services.updaters.ResourceType
 import com.edt.ut3.backend.calendar.CalendarMode
 import com.edt.ut3.backend.formation_choice.School
 import com.edt.ut3.backend.preferences.simple_preference.SimplePreference
+import com.edt.ut3.backend.requests.objectMapper
 import com.edt.ut3.ui.preferences.ThemePreference
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import com.fasterxml.jackson.module.kotlin.readValue
+
 
 /**
  * Used to convert a [Boolean].
@@ -58,24 +58,26 @@ object ResourceTypeConverter : SimplePreference.Converter<ResourceType, String>(
  * Used to convert a [School.Info].
  */
 object InfoConverter : SimplePreference.Converter<School.Info?, String?>() {
-    override fun deserialize(value: String?) = Json.decodeFromString<School.Info?>(value.toString())
-    override fun serialize(value: School.Info?) = Json.encodeToString(value)
+    override fun deserialize(value: String?) =
+        objectMapper.readValue<School.Info?>(value.toString())
+
+    override fun serialize(value: School.Info?) = objectMapper.writeValueAsString(value)
 }
 
 /**
  * Used to convert a list of [String]
  */
 object StringListConverter : SimplePreference.Converter<List<String>?, String>() {
-    override fun deserialize(value: String) = Json.decodeFromString<List<String>?>(value)
-    override fun serialize(value: List<String>?) = Json.encodeToString(value)
+    override fun deserialize(value: String) = objectMapper.readValue<List<String>?>(value)
+    override fun serialize(value: List<String>?) = objectMapper.writeValueAsString(value)
 }
 
 /**
  * Used to convert a [CalendarMode]
  */
-object CalendarModeConverter: SimplePreference.Converter<CalendarMode, String>() {
-    override fun deserialize(value: String) = Json.decodeFromString<CalendarMode>(value)
-    override fun serialize(value: CalendarMode) = Json.encodeToString(value)
+object CalendarModeConverter : SimplePreference.Converter<CalendarMode, String>() {
+    override fun deserialize(value: String) = objectMapper.readValue<CalendarMode>(value)
+    override fun serialize(value: CalendarMode) = objectMapper.writeValueAsString(value)
 }
 
 fun getBooleanFromPreferences(pref: SharedPreferences, key: String, def: String): String {
