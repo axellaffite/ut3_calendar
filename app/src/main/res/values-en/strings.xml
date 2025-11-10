@@ -60,22 +60,26 @@
     <string name="reminder_hour">1 hour before</string>
     <string name="reminder_custom">Custom</string>
     <string name="about_us_text">
-        Developed by\n
-        Axel Laffite: axel.laffite@univ-tlse3.fr\n
-        Antony Dalmière: antony.dalmiere@univ-tlse3.fr\n
+        📅 UT3 Calendar\n
         \n
-        A question ? Any suggestion ?\n
-        axel.dev.andr@gmail.com\n
-        or\n
-        Via our Discord (see below) !\n
-        \n\n
-        You wish to be involved in the project by becoming a beta tester,
-        a developer or simply by helping with translation, documentation or
-        anything else ? Join the app\'s Discord !\n
+        Developed by:\n
+        • Axel Laffite - https://github.com/axellaffite\n
+        • Antony Dalmière - https://github.com/AntonyDalmiere\n
+        \n
+        🙏 Thanks to our contributors:\n
+        • ElDonad - https://github.com/ElDonad\n
+        • rara4 - https://github.com/rara4\n
+        • nath-roset - https://github.com/nath-roset\n
+        \n
+        💬 Questions? Suggestions?\n
+        Join our community on Discord:\n
         https://discord.gg/6KPZmQa\n
         \n
-        The source code is available on our Github:\n
-        https://github.com/axellaffite/ut3_calendar
+        💻 Open source project\n
+        Source code available on GitHub:\n
+        https://github.com/axellaffite/ut3_calendar\n
+        \n
+        Contributions and translations are welcome!
     </string>
     <string name="no_location_found">No place found or theirs locations are unknown</string>
     <string name="new_event_added">%s</string>
