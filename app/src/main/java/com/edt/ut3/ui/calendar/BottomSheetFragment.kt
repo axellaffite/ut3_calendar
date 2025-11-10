@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_HIDDEN
 import java.lang.ref.WeakReference
 
 
@@ -22,11 +23,9 @@ open class BottomSheetFragment: Fragment() {
         private val bottomSheets = mutableSetOf<WeakReference<View>>()
 
         fun hasVisibleSheet() : Boolean {
-            return bottomSheets.map { ref ->
-                ref.get()?.let { v ->
-                    BottomSheetBehavior.from(v).state
-                }
-            }.contains(STATE_EXPANDED)
+            return bottomSheets
+                .mapNotNull { it.get() }
+                .any { BottomSheetBehavior.from(it).state == STATE_EXPANDED }
         }
 
         /**
@@ -47,7 +46,7 @@ open class BottomSheetFragment: Fragment() {
                     if (view === bottomSheet) {
                         behavior.state = STATE_EXPANDED
                     } else {
-                        behavior.state = STATE_COLLAPSED
+                        behavior.state = STATE_HIDDEN
                     }
                 }
             }

@@ -124,6 +124,19 @@ class CalendarFragment : BottomSheetFragment(),
 
     private fun setupBottomSheetManager() {
         bottomSheetManager.add(binding.optionsContainer, binding.eventDetailsContainer)
+
+        // Initialize the event details bottom sheet as hidden
+        binding.eventDetailsContainer.let {
+            BottomSheetBehavior.from(it).apply {
+                state = BottomSheetBehavior.STATE_HIDDEN
+            }
+        }
+
+        binding.optionsContainer.let {
+            BottomSheetBehavior.from(it).apply {
+                state = BottomSheetBehavior.STATE_HIDDEN
+            }
+        }
     }
 
     /**
@@ -215,7 +228,7 @@ class CalendarFragment : BottomSheetFragment(),
             BottomSheetBehavior.from(it).addBottomSheetCallback(object:
                 BottomSheetBehavior.BottomSheetCallback() {
                 override fun onStateChanged(bottomSheet: View, newState: Int) {
-                    if (newState == STATE_COLLAPSED) {
+                    if (newState == STATE_COLLAPSED || newState == BottomSheetBehavior.STATE_HIDDEN) {
                         calendarViewModel.selectedEvent.value = null
                     }
                 }
