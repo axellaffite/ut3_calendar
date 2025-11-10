@@ -52,6 +52,11 @@ android {
 
     buildFeatures {
         viewBinding = true
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.4.8"
     }
     namespace 'com.edt.ut3'
 
@@ -177,6 +182,15 @@ dependencies {
     implementation "io.insert-koin:koin-androidx-workmanager:$koin_version"
     // Koin for Jetpack Compose
     implementation "io.insert-koin:koin-androidx-compose:$koin_version"
+
+    // Jetpack Compose
+    def compose_version = "1.4.3"
+    implementation "androidx.compose.ui:ui:$compose_version"
+    implementation "androidx.compose.material:material:$compose_version"
+    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
+    implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
+    implementation "androidx.activity:activity-compose:1.7.2"
+    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
 
 
     def ktor_version = "2.3.4"
