@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlin.time.Duration.Companion.seconds
 
 class FragmentNotesViewModel(application: Application) : AndroidViewModel(application) {
-
     private val noteDao = AppDatabase.getInstance(application).noteDao()
 
     val selectedEvent = MutableLiveData<Event>(null)
@@ -27,4 +26,9 @@ class FragmentNotesViewModel(application: Application) : AndroidViewModel(applic
         started = SharingStarted.WhileSubscribed(5.seconds),
         initialValue = emptyList()
     )
+
+    fun clearState() {
+        selectedNote.value = null
+        selectedEvent.value = null
+    }
 }

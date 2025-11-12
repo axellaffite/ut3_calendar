@@ -1,8 +1,14 @@
 package com.edt.ut3.backend.database.daos
 
 import androidx.lifecycle.LiveData
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import com.edt.ut3.backend.note.Note
+import kotlinx.coroutines.flow.Flow
 
 
 @Dao
@@ -22,6 +28,9 @@ interface NoteDao {
 
     @Query("SELECT * FROM note")
     suspend fun selectAll(): List<Note>
+
+    @Query("SELECT * FROM note ORDER BY date")
+    fun getAllFlow(): Flow<List<Note>>
 
     @Query("SELECT * FROM note ORDER BY date")
     fun selectAllLD(): LiveData<List<Note>>
