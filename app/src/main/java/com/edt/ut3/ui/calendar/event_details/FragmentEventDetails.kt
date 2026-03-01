@@ -10,17 +10,20 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.*
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.DatePicker
 import android.widget.TimePicker
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.*
@@ -36,17 +39,13 @@ import com.edt.ut3.backend.note.Note
 import com.edt.ut3.backend.note.Note.Reminder.ReminderType
 import com.edt.ut3.backend.note.Picture
 import com.edt.ut3.backend.preferences.PreferencesManager
-import com.edt.ut3.databinding.FragmentEventDetailsBinding
 import com.edt.ut3.misc.extensions.onBackPressed
 import com.edt.ut3.misc.extensions.set
 import com.edt.ut3.misc.extensions.setTime
-import com.edt.ut3.ui.custom_views.image_preview.ImagePreviewAdapter
 import com.edt.ut3.ui.map.MapsViewModel
 import com.edt.ut3.ui.preferences.Theme
+import com.edt.ut3.ui.theme.UT3Theme
 import com.elzozor.yoda.utils.DateExtensions.get
-import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipDrawable
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -70,13 +69,14 @@ class FragmentEventDetails : Fragment() {
     private var firstNoteUpdate = true
 
     private lateinit var currentNote: Note
-    private lateinit var binding: FragmentEventDetailsBinding
 
     private var pictureFile: File? = null
-
     private var pictureName: String? = null
 
     var onReady : (() -> Unit)? = null
+
+    var composeState by mutableStateOf(EventDetailsState())
+    val snackbarHostState = SnackbarHostState()
 
     var listenTo = MutableLiveData<Event>(null)
         set(value) {
@@ -90,41 +90,6 @@ class FragmentEventDetails : Fragment() {
             field = value
         }
 
-    private var spinnerObserver = SpinnerObserver().apply {
-        onItemSelectedListener = { parent: AdapterView<*>?, view: View?, index: Int, id: Long ->
-            fun process() {
-                val type = ReminderType.values()[index]
-                when (type) {
-                    ReminderType.NONE -> currentNote.reminder.disable()
-                    ReminderType.FIFTEEN_MINUTES -> currentNote.reminder.setFifteenMinutesBefore()
-                    ReminderType.THIRTY_MINUTES -> currentNote.reminder.setThirtyMinutesBefore()
-                    ReminderType.ONE_HOUR -> currentNote.reminder.setOneHourBefore()
-                    ReminderType.CUSTOM -> askUserForDateTime(currentNote.date) { date: Date ->
-                        currentNote.reminder.setCustomReminder(date)
-                        lifecycleScope.launch { saveNote() }
-                    }
-                }
-
-                // We do not want to save the note
-                // 2 times, especially if the dialog is
-                // actually shown which is almost always the
-                // case at this point.
-                if (type != ReminderType.CUSTOM) {
-                    lifecycleScope.launch { saveNote() }
-                }
-            }
-
-            if (!firstNoteUpdate) {
-                process()
-            }
-        }
-    }
-
-    /**
-     * Used to launch an Intent that will take
-     * a picture a write the result into the
-     * provided file (pictureFile).
-     */
     private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success) {
             addPictureToNote(pictureName!!, pictureFile!!)
@@ -133,11 +98,6 @@ class FragmentEventDetails : Fragment() {
         }
     }
 
-    /**
-     * Used to request a permission (in this case a CAMERA permission).
-     * If the permission is granted, takePicture is called
-     * otherwise, the previously created picture file is deleted.
-     */
     private val grantCameraPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) {
             pictureFile?.let {
@@ -153,6 +113,7 @@ class FragmentEventDetails : Fragment() {
         outState.putSerializable("pictureFile", pictureFile)
         super.onSaveInstanceState(outState)
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -162,14 +123,11 @@ class FragmentEventDetails : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        binding = FragmentEventDetailsBinding.inflate(inflater)
-        return binding.root.also { root ->
-            // Load asynchronously the attached note.
-            // Once it's done, the contents
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        return ComposeView(requireContext()).also {
             lifecycleScope.launch {
-                if (mapsViewModel.getPlaces(root.context).value.isNullOrEmpty()) {
-                    mapsViewModel.launchDataUpdate(root.context)
+                if (mapsViewModel.getPlaces(requireContext()).value.isNullOrEmpty()) {
+                    mapsViewModel.launchDataUpdate(requireContext())
                 }
             }
         }
@@ -177,6 +135,19 @@ class FragmentEventDetails : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        (view as ComposeView).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                UT3Theme {
+                    EventDetailsScreen(
+                        state = composeState,
+                        callbacks = buildCallbacks(),
+                        snackbarHostState = snackbarHostState
+                    )
+                }
+            }
+        }
 
         if (listenTo.value == null && isVisible) {
             onBackPressed()
@@ -188,6 +159,15 @@ class FragmentEventDetails : Fragment() {
             }
         })
     }
+
+    private fun buildCallbacks() = EventDetailsCallbacks(
+        onClose = { requireActivity().onBackPressed() },
+        onPlaceClick = ::handlePlaceClick,
+        onReminderSelected = ::handleReminderSelection,
+        onPictureClick = ::handlePictureClick,
+        onAddPictureClick = ::takePicture,
+        onNoteTextChanged = ::handleNoteTextChanged
+    )
 
     private fun setupNewEvent(event: Event) {
         this.event = event
@@ -213,30 +193,13 @@ class FragmentEventDetails : Fragment() {
         }
     }
 
-
-    /**
-     * Setup the view contents.
-     */
     private fun setupContent() {
-        binding.noteContainer.visibility = INVISIBLE
-        binding.noteLoading.visibility = VISIBLE
+        composeState = composeState.copy(isLoading = true)
 
-        when (PreferencesManager.getInstance(requireContext()).currentTheme()) {
-            Theme.LIGHT -> {
-                event.lightBackgroundColor(requireContext()).let {
-                    binding.titleContainer.setCardBackgroundColor(it)
-                }
-            }
-
-            Theme.DARK -> {
-                event.darkBackgroundColor(requireContext()).let {
-                    binding.titleContainer.setCardBackgroundColor(it)
-                }
-            }
+        val indicatorColor = when (PreferencesManager.getInstance(requireContext()).currentTheme()) {
+            Theme.LIGHT -> Color(event.lightBackgroundColor(requireContext()))
+            Theme.DARK -> Color(event.darkBackgroundColor(requireContext()))
         }
-
-        binding.title.text = event.courseOrCategory(requireContext())
-        binding.fromTo.text = generateDateText()
 
         val descriptionBuilder = StringBuilder()
         event.categoryWithEmotions()?.let { descriptionBuilder.append(it).append("\n") }
@@ -250,9 +213,14 @@ class FragmentEventDetails : Fragment() {
         descriptionBuilder.append("\n")
 
         event.description?.let { descriptionBuilder.append(it) }
-        binding.description.text = descriptionBuilder.toString()
-    }
 
+        composeState = composeState.copy(
+            title = event.courseOrCategory(requireContext()),
+            dateText = generateDateText(),
+            descriptionText = descriptionBuilder.toString(),
+            indicatorColor = indicatorColor
+        )
+    }
 
     private fun updateNoteContents(newNote: Note?) {
         if (firstNoteUpdate) {
@@ -262,14 +230,13 @@ class FragmentEventDetails : Fragment() {
                 if (currentNote.pictures != it.pictures) {
                     currentNote.pictures.clear()
                     currentNote.pictures.addAll(it.pictures)
-
-                    binding.pictures.adapter?.notifyDataSetChanged()
+                    updateComposeStatePictures()
                 }
 
                 if (currentNote.reminder != newNote.reminder) {
                     currentNote.reminder.setupFrom(newNote.reminder)
-                    binding.reminderSpinner.setSelection(
-                        ReminderType.values().indexOf(currentNote.reminder.getReminderType())
+                    composeState = composeState.copy(
+                        selectedReminderIndex = ReminderType.values().indexOf(currentNote.reminder.getReminderType())
                     )
                 }
             } ?: run {
@@ -279,115 +246,26 @@ class FragmentEventDetails : Fragment() {
     }
 
     private fun clearSpinner() {
-        spinnerObserver.shouldSkipNextUpdate = true
-        binding.reminderSpinner.setSelection(0)
+        composeState = composeState.copy(selectedReminderIndex = 0)
     }
 
     private fun initialNoteSetup(newNote: Note?) {
         currentNote = newNote ?: Note.generateEmptyNote(event)
 
-        if (binding.eventNote.text.toString() != newNote?.contents) {
-            binding.eventNote.setText(newNote?.contents)
-        }
+        val reminderOptions = ReminderType.values().map { getString(reminderText(it)) }
+        val typeIndex = ReminderType.values().indexOf(currentNote.reminder.getReminderType())
 
-
-        // Setup the adapter contents and the item "onclick" callbacks.
-        // Use the StfalconImageViewer library to display a fullscreen
-        // image.
-        binding.pictures.adapter = ImagePreviewAdapter(currentNote.pictures).apply {
-            onItemClickListener = { _, picture, pictures ->
-                val overlayLayout = ImageOverlayLayout(requireContext())
-
-                val fragment = FastGallery.Builder<Picture>()
-                    .withBackgroundResource(R.color.backgroundColor)
-                    .withImages(currentNote.pictures)
-                    .withInitialPosition(pictures.indexOf(picture))
-                    .withOffscreenLimit(2)
-                    .withSlideAnimation(SlideAnimations.zoomOutAnimation())
-                    .withOverlay(overlayLayout)
-                    .withConverter { displayedPicture, imageLoader ->
-                        lifecycleScope.launchWhenResumed {
-                            imageLoader.fromFile(File(displayedPicture.picture).toUri())
-                        }
-                    }.build()
-
-                overlayLayout.onDeleteRequest = {
-                    AlertDialog.Builder(requireContext())
-                        .setTitle(R.string.delete_image)
-                        .setPositiveButton(R.string.action_ok) { _,_ ->
-                            val viewPager = fragment.getViewPager()
-                            viewPager?.run {
-                                val itemPosition = currentItem
-                                currentNote.removePictureAt(itemPosition)
-
-                                lifecycleScope.launchWhenResumed {
-                                    saveNote {
-                                        binding.pictures.notifyDataSetChanged()
-                                        if (currentNote.pictures.isEmpty()) {
-                                            fragment.dismiss()
-                                        } else {
-                                            adapter?.notifyItemRemoved(itemPosition)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        .setNegativeButton(R.string.action_cancel) { _,_ -> }
-                        .also {
-                            it.show()
-                        }
-                }
-
-                fragment.show(parentFragmentManager, "eventDetailsGallery")
-            }
-
-
-            // The "take picture" button callback
-            onAddPictureClickListener = {
-                takePicture()
-            }
-        }
-
-        // Add all the note event picture to the view model variable
-        // It is used into several cases to add and delete pictures
-        // to the current note.
-        binding.pictures.notifyDataSetChanged()
-
-        // The adapter is an extension of the ArrayAdapter class.
-        // It's made like this to override the getView() function
-        // in order to remove the left and right padding of the
-        // spinner.
-        val adapterValues = ReminderType.values().map { getString(reminderText(it)) }
-        binding.reminderSpinner.adapter = object: ArrayAdapter<String>(requireContext(), android.R.layout.simple_list_item_1, adapterValues) {
-            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-                return super.getView(position, convertView, parent).apply {
-                    setPadding(0, paddingTop, 0, paddingBottom)
-                }
-            }
-        }
-
-        // This variable is set to avoid observer from
-        // being called every time a new event is
-        // selected.
-        spinnerObserver.shouldSkipNextUpdate = true
-        updateReminderSpinner(currentNote)
-
-
+        composeState = composeState.copy(
+            isLoading = false,
+            noteText = currentNote.contents,
+            pictures = currentNote.pictures.toList(),
+            selectedReminderIndex = typeIndex,
+            reminderOptions = reminderOptions
+        )
 
         firstNoteUpdate = false
-        binding.noteLoading.visibility = INVISIBLE
-        binding.noteContainer.visibility = VISIBLE
     }
 
-
-    /**
-     * Returns the textual representation
-     * (from strings.xml, not .toString())
-     * of the given ReminderType.
-     *
-     * @param type The reminder type to convert
-     * @return Its textual representation
-     */
     private fun reminderText(type: ReminderType): Int = when (type) {
         ReminderType.NONE -> R.string.reminder_none
         ReminderType.FIFTEEN_MINUTES -> R.string.reminder_fifteen
@@ -399,9 +277,9 @@ class FragmentEventDetails : Fragment() {
     private fun updateReminderSpinner(newNote: Note?) {
         newNote?.let {
             val typeIndex = ReminderType.values().indexOf(newNote.reminder.getReminderType())
-            binding.reminderSpinner.setSelection(typeIndex)
+            composeState = composeState.copy(selectedReminderIndex = typeIndex)
         } ?: run {
-            binding.reminderSpinner.setSelection(0)
+            composeState = composeState.copy(selectedReminderIndex = 0)
         }
     }
 
@@ -419,26 +297,10 @@ class FragmentEventDetails : Fragment() {
 
                 whenResumed {
                     withContext(Main) {
-                        refreshLocations(requireContext(), matchingPlaces)
+                        composeState = composeState.copy(matchingPlaces = matchingPlaces)
                     }
                 }
             }
-        }
-    }
-
-    private fun refreshLocations(context: Context, places: List<Place>) {
-        if (places.isNotEmpty()) {
-            binding.locationsContainer.removeAllViews()
-
-            places.forEach {
-                binding.locationsContainer.addView(PlaceChip(context, it))
-            }
-
-            binding.locationsContainer.visibility = VISIBLE
-            binding.locationsNotFoundLabel.visibility = GONE
-        } else {
-            binding.locationsContainer.visibility = GONE
-            binding.locationsNotFoundLabel.visibility = VISIBLE
         }
     }
 
@@ -457,23 +319,95 @@ class FragmentEventDetails : Fragment() {
     }
 
     private fun setupListeners() {
-        binding.closeButton.setOnClickListener {
-            requireActivity().onBackPressed()
-        }
+        mapsViewModel.getPlaces(requireContext()).observe(viewLifecycleOwner, Observer {
+            refreshLocations(it)
+        })
+    }
 
-        // Save the current note at each modification.
-        binding.eventNote.doOnTextChanged { text, _, _, _ ->
-            if (currentNote.contents != text) {
-                currentNote.contents = text.toString()
+    private fun handleReminderSelection(index: Int) {
+        val type = ReminderType.values()[index]
+        when (type) {
+            ReminderType.NONE -> currentNote.reminder.disable()
+            ReminderType.FIFTEEN_MINUTES -> currentNote.reminder.setFifteenMinutesBefore()
+            ReminderType.THIRTY_MINUTES -> currentNote.reminder.setThirtyMinutesBefore()
+            ReminderType.ONE_HOUR -> currentNote.reminder.setOneHourBefore()
+            ReminderType.CUSTOM -> askUserForDateTime(currentNote.date) { date: Date ->
+                currentNote.reminder.setCustomReminder(date)
                 lifecycleScope.launch { saveNote() }
             }
         }
 
-        binding.reminderSpinner.onItemSelectedListener = spinnerObserver
+        if (type != ReminderType.CUSTOM) {
+            lifecycleScope.launch { saveNote() }
+        }
+    }
 
-        mapsViewModel.getPlaces(requireContext()).observe(viewLifecycleOwner, Observer {
-            refreshLocations(it)
-        })
+    private fun handlePictureClick(picture: Picture) {
+        val overlayLayout = ImageOverlayLayout(requireContext())
+
+        val fragment = FastGallery.Builder<Picture>()
+            .withBackgroundResource(R.color.backgroundColor)
+            .withImages(currentNote.pictures)
+            .withInitialPosition(currentNote.pictures.indexOf(picture))
+            .withOffscreenLimit(2)
+            .withSlideAnimation(SlideAnimations.zoomOutAnimation())
+            .withOverlay(overlayLayout)
+            .withConverter { displayedPicture, imageLoader ->
+                lifecycleScope.launchWhenResumed {
+                    imageLoader.fromFile(File(displayedPicture.picture).toUri())
+                }
+            }.build()
+
+        overlayLayout.onDeleteRequest = {
+            AlertDialog.Builder(requireContext())
+                .setTitle(R.string.delete_image)
+                .setPositiveButton(R.string.action_ok) { _, _ ->
+                    val viewPager = fragment.getViewPager()
+                    viewPager?.run {
+                        val itemPosition = currentItem
+                        currentNote.removePictureAt(itemPosition)
+
+                        lifecycleScope.launchWhenResumed {
+                            saveNote {
+                                updateComposeStatePictures()
+                                if (currentNote.pictures.isEmpty()) {
+                                    fragment.dismiss()
+                                }
+                            }
+                        }
+                    }
+                }
+                .setNegativeButton(R.string.action_cancel) { _, _ -> }
+                .also {
+                    it.show()
+                }
+        }
+
+        fragment.show(parentFragmentManager, "eventDetailsGallery")
+    }
+
+    private fun handleNoteTextChanged(text: String) {
+        if (currentNote.contents != text) {
+            currentNote.contents = text
+            composeState = composeState.copy(noteText = text)
+            lifecycleScope.launch { saveNote() }
+        }
+    }
+
+    private fun handlePlaceClick(place: Place) {
+        activity?.let {
+            MapsUtils.routeFromTo(it, place.geolocalisation, place.title) {
+                lifecycleScope.launch {
+                    snackbarHostState.showSnackbar(
+                        getString(R.string.unable_to_launch_googlemaps)
+                    )
+                }
+            }
+        }
+    }
+
+    private fun updateComposeStatePictures() {
+        composeState = composeState.copy(pictures = currentNote.pictures.toList())
     }
 
     private fun askUserForDateTime(date: Date, callback: (Date) -> Unit) {
@@ -511,11 +445,6 @@ class FragmentEventDetails : Fragment() {
         }.show()
     }
 
-    /**
-     * Generate the date text depending on
-     * the event status (all day or classic)
-     * and its start and end dates.
-     */
     private fun generateDateText(): String {
         val date =
             SimpleDateFormat("EEEE dd/MM/yyyy", Locale.getDefault()).format(event.start)
@@ -543,20 +472,11 @@ class FragmentEventDetails : Fragment() {
         return "$date\n$time"
     }
 
-    /**
-     * Generates the output file, assign
-     * the picture name and file variables
-     * to the result, check the camera permission
-     * and depending on the camera permission
-     * call the takePicture variable or the
-     * grandCameraPermission one.
-     */
     private fun takePicture() {
         if (!canTakePicture) {
-            binding.eventDetailsSnackbar.let { snackbarContainer ->
-                Snackbar.make(snackbarContainer, R.string.unable_take_while_saving, Snackbar.LENGTH_SHORT).show()
+            lifecycleScope.launch {
+                snackbarHostState.showSnackbar(getString(R.string.unable_take_while_saving))
             }
-
             return
         }
 
@@ -574,24 +494,9 @@ class FragmentEventDetails : Fragment() {
         }
     }
 
-    /**
-     * Simply generate an URI from a given file.
-     *
-     * @param file The concerned file
-     */
     private fun uriFromFile(file: File) =
         FileProvider.getUriForFile(requireContext(), "com.edt.ut3.fileprovider", file)
 
-    /**
-     * Save the current note and create the
-     * file that will store the picture.
-     * This function is executed in a separate thread.
-     *
-     * Once it's done, call the provided callback
-     * with these information.
-     *
-     * @param callback The action to execute once done.
-     */
     private fun generateOutputFile(callback: ((name: String, file: File) -> Unit)) {
         lifecycleScope.launch {
             saveNote {
@@ -606,18 +511,6 @@ class FragmentEventDetails : Fragment() {
         }
     }
 
-
-    /**
-     * Generate the thumbnail and add it to the
-     * current note.
-     * The results are stored into a Picture class.
-     *
-     * The thumbnail name is generated with the
-     * provided name. It just add "_thumbnail" to it.
-     *
-     * @param name The picture name
-     * @param file The picture file
-     */
     private fun addPictureToNote(name: String, file: File) {
         lifecycleScope.launch {
             canTakePicture = false
@@ -627,7 +520,7 @@ class FragmentEventDetails : Fragment() {
             currentNote.pictures.add(generated)
 
             saveNote {
-                binding.pictures.notifyDataSetChanged()
+                updateComposeStatePictures()
                 canTakePicture = true
             }
 
@@ -635,18 +528,10 @@ class FragmentEventDetails : Fragment() {
         }
     }
 
-
-
     private val save = Mutex()
     private val add = Mutex()
     private val callbackStack = Stack<(Note) -> Unit>()
-    /**
-     * Save the provided note into the database
-     * and assign the old one to the result.
-     * Call the callback once done if it's defined.
-     *
-     * @param callback The action to execute once done
-     */
+
     private suspend fun saveNote(callback: ((Note) -> Unit)? = null) {
         withContext(Default) {
             add.lock()
@@ -672,56 +557,6 @@ class FragmentEventDetails : Fragment() {
                 save.unlock()
                 add.unlock()
             }
-        }
-    }
-
-    private class SpinnerObserver: AdapterView.OnItemSelectedListener {
-        var shouldSkipNextUpdate = false
-        var onItemSelectedListener: ((parent: AdapterView<*>?, view: View?, position: Int, id: Long) -> Unit)? = null
-
-        override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-            if (shouldSkipNextUpdate) {
-                shouldSkipNextUpdate = false
-                return
-            }
-
-            onItemSelectedListener?.invoke(parent, view, position, id)
-        }
-
-        override fun onNothingSelected(parent: AdapterView<*>?) {
-
-        }
-    }
-
-
-    private inner class PlaceChip(context: Context, val place: Place) : Chip(context) {
-        init {
-            setChipDrawable(
-                ChipDrawable.createFromAttributes(
-                    context,
-                    null,
-                    0,
-                    R.style.Widget_MaterialComponents_Chip_Action
-                )
-            )
-
-            setOnClickListener {
-                activity?.let {
-                    MapsUtils.routeFromTo(it, place.geolocalisation, place.title) {
-                        binding.eventDetailsMain.let { mainView ->
-                            Snackbar.make(
-                                mainView,
-                                R.string.unable_to_launch_googlemaps,
-                                Snackbar.LENGTH_LONG
-                            ).show()
-                        }
-                    }
-                }
-            }
-
-            setChipBackgroundColorResource(R.color.foregroundColor)
-
-            text = place.title.uppercase(Locale.FRENCH)
         }
     }
 }
