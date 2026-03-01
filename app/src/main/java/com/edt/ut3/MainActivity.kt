@@ -14,7 +14,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
-import com.edt.ut3.backend.firebase_services.FirebaseMessagingHandler
 import com.edt.ut3.backend.preferences.PreferencesManager
 import com.edt.ut3.compatibility.CompatibilityManager
 import com.edt.ut3.misc.extensions.hideKeyboard
@@ -70,8 +69,6 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
                 else -> hideBottomNav(navView)
             }
         }
-
-        FirebaseMessagingHandler.ensureGroupRegistration(this)
     }
 
     private fun showBottomNav(bottomNav : BottomNavigationView) {

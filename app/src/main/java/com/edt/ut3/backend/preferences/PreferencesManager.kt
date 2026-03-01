@@ -52,7 +52,6 @@ class PreferencesManager private constructor(
         object SCHOOL: PreferenceKeys<String?>("school", null)
         object RESOURCE: PreferenceKeys<ResourceType>("resource", ResourceType.Groups)
         object GROUPS: PreferenceKeys<List<String>?>("groups", null)
-        object OLD_GROUPS: PreferenceKeys<List<String>?>("old_groups", null)
         object CALENDAR_MODE: PreferenceKeys<CalendarMode>("calendar_mode", CalendarMode.default())
         object NOTIFICATION: PreferenceKeys<Boolean>("actual_notification", true)
         object FIRST_LAUNCH: PreferenceKeys<Boolean>("actual_first_launch", true)
@@ -87,13 +86,6 @@ class PreferencesManager private constructor(
     var groups : List<String>? by simplePreference.Delegate <List<String>?, String>(
         key = PreferenceKeys.GROUPS.key,
         defValue = PreferenceKeys.GROUPS.defValue.toString(),
-        converter = StringListConverter,
-        manager = NullableStringListManager
-    )
-
-    var oldGroups : List<String>? by simplePreference.Delegate(
-        key = PreferenceKeys.OLD_GROUPS.key,
-        defValue = PreferenceKeys.OLD_GROUPS.defValue.toString(),
         converter = StringListConverter,
         manager = NullableStringListManager
     )

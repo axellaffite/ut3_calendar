@@ -15,7 +15,6 @@ import com.edt.ut3.MainActivity
 import com.edt.ut3.R
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.note.Note
-import com.google.firebase.messaging.RemoteMessage
 import java.util.*
 
 
@@ -38,7 +37,6 @@ class NotificationManager private constructor(val context: Context) {
     init {
         createReminderChannel()
         createUpdateChannel()
-        createFirebaseChannel()
     }
 
     /**
@@ -78,13 +76,6 @@ class NotificationManager private constructor(val context: Context) {
      * channel is created.
      */
     private fun createReminderChannel() = createUpdateNotificationChannel(NotificationChannelInformation.ReminderChannel)
-
-
-    /**
-     * Ensure that the firebase
-     * channel is created.
-     */
-    private fun createFirebaseChannel() = createUpdateNotificationChannel(NotificationChannelInformation.FirebaseChannel)
 
 
     /**
@@ -302,22 +293,6 @@ class NotificationManager private constructor(val context: Context) {
 
             notify(channel.summaryID, summary)
             notify(id, notification)
-        }
-    }
-
-    fun displayFirebaseNotification(firebaseNotification: RemoteMessage.Notification) {
-        val channel = NotificationChannelInformation.FirebaseChannel
-
-        NotificationManagerCompat.from(context).run {
-            val notification = NotificationCompat.Builder(context, channel.id)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle(firebaseNotification.title)
-                .setContentText(firebaseNotification.body)
-                .setGroup(channel.id)
-                .build()
-
-
-            notify(Objects.hash(firebaseNotification.body, firebaseNotification.title), notification)
         }
     }
 }
