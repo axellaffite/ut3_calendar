@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="PlaceInfoView"/>
-
     <attr name="calendarColor" format="color" type="color"/>
     <attr name="customForegroundColor" format="color" type="color"/>
     <attr name="customBackgroundColor" format="color" type="color"/>
