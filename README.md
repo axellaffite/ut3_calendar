@@ -1,11 +1,20 @@
 # EDT UT3 ![Logo](https://github.com/axellaffite/ut3_calendar/blob/master/logo/ic_launcher/res/mipmap-mdpi/ic_launcher.png?raw=true)
 
+## EDT UT3, c'est terminé !
+
+Quelques années après avoir quitté l'université, je ne peux maintenant plus maintenir le projet.  
+Que ce soit d'un point de vue personnel ou bien même car je n'ai tout simplement plus accès à un compte Celcat pour tester l'application.
+
+Merci à tous ceux qui ont participé au maintien de l'application pendant toutes ces années, en espérant que le projet aura été utile aux étudiants 🙂
+
+---
+
 Cette application permet de consulter le calendrier Celcat de l'université Paul Sabatier directement sur votre téléphone.  
 Disponible pour Android --> [ici](https://play.google.com/store/apps/details?id=com.edt.ut3&hl=ln) <-- !
 
-## Faites parti du projet !  
+## Faites partie du projet !  
 Nous avons ouvert un Discord pour les bêtas afin que les testeurs puissent nous contacter plus facilement.  
-Il est possible que l'application soit portée sur IOS, nous sommes donc à la recherche de développeurs qui pourraient nous aider à le concevoir en Flutter. N'hésitez donc pas à rejoindre le serveur pour nous en parler :)
+Il est possible que l'application soit portée sur iOS, nous sommes donc à la recherche de développeurs qui pourraient nous aider à la concevoir en Flutter. N'hésitez donc pas à rejoindre le serveur pour nous en parler :)
 
 Server Discord --> [ici](https://discord.gg/6KPZmQa) <--
 
@@ -13,14 +22,14 @@ Server Discord --> [ici](https://discord.gg/6KPZmQa) <--
 
 L'application a été entièrement repensée et entièrement re-codée en Kotlin, l'ancienne version étant en Java.  
 Elle profite d'une interface refaite à neuf ainsi que de nouvelles fonctionnalités.  
-Parmis elles on pourra noter :
- - L'application est disponible en Français et en Anglais ! Étant donné le nombre d'étudiants étrangers qui pourraient ne pas être à l'aise avec le Français, nous avons décidé de traduire l'application. D'autres langues pourront être proposées mais nous n'effectuerons pas la traduction nous-même.
+Parmi elles, on pourra noter :
+ - L'application est disponible en Français et en Anglais ! Étant donné le nombre d'étudiants étrangers qui pourraient ne pas être à l'aise avec le Français, nous avons décidé de traduire l'application. D'autres langues pourront être proposées mais nous n'effectuerons pas la traduction nous-mêmes.
  On notera cependant que les événements ne sont pas traduits car les données affichées sont celles reçues depuis Celcat.
  - L'enregistrement des notes se fait en temps réel pendant l'édition de ces dernières.
  - Il est possible de prendre des photos pour accompagner les notes.
  - Il est maintenant possible de cacher les cours qui ne nous intéressent pas (pour un redoublant par exemple).
- - L'emploi du temps est maintenant affiché d'une manière différente, deux événements à la même heure seront positionnés côte-à-côte (voir screens plus bas).
- - La vue semaine est elle disponible à la fois en mode portrait et en mode paysage. La vue agenda n'est elle disponible qu'en portrait pour des raisons esthétiques.
+ - L'emploi du temps est maintenant affiché d'une manière différente, deux événements à la même heure seront positionnés côte à côte (voir screens plus bas).
+ - La vue semaine est disponible à la fois en mode portrait et en mode paysage. La vue agenda n'est disponible qu'en portrait pour des raisons esthétiques.
  - Un fragment affichant une carte interactive à la manière de Google Maps (pour l'instant avec [OSMDroid](https://github.com/osmdroid/osmdroid)) montre les différents bâtiments de l'université ainsi que ceux du Crous. La recherche de chemin se fait par contre via l'application Google Maps pour des questions de coût, les APIs de ce genre étant pour la plupart payantes. La carte a été restreinte aux bornes de l'université pour ne pas télécharger trop de _Tiles_ auprès du _tile provider_.
  - Il est possible de trouver une salle libre.
 
@@ -33,8 +42,8 @@ Le calendrier (et l'application en général) dispose d'un thème sombre et d'un
 :---------------:|:-----------------:
 <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_dark.jpg" height="600" alt="Theme sombre">
 
-Les événements sont maintenant disposés côte à côte lorsque qu'ils sont à la même heure ou bien qu'ils se chevauchent.  
-Cela évite donc les "multi-event" utilisés dans l'ancienne version qui demandaient de cliquer dessus puis de traverser les différents événement pour réellement voir quels étaient les cours. Ceci est rendu possible grâce à la librarie [Yoda](https://github.com/axellaffite/yoda), codée pour ce projet.  
+Les événements sont maintenant disposés côte à côte lorsqu'ils sont à la même heure ou bien qu'ils se chevauchent.  
+Cela évite donc les "multi-event" utilisés dans l'ancienne version qui demandaient de cliquer dessus puis de parcourir les différents événements pour réellement voir quels étaient les cours. Ceci est rendu possible grâce à la librairie [Yoda](https://github.com/axellaffite/yoda), codée pour ce projet.  
 À noter qu'une vue __agenda__ est configurée de base et une vue __semaine__ est disponible d'un simple clic grâce à la barre d'action affichée en haut ! La vue __agenda__ n'est cependant disponible qu'en mode portrait pour des raisons esthétiques.
 
    Thème Clair   |   Thème sombre
@@ -43,7 +52,7 @@ Cela évite donc les "multi-event" utilisés dans l'ancienne version qui demanda
 <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_evenements_white_week.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/calendrier_evenements_dark_week.jpg" height="600" alt="Theme sombre">
 
 
-Lors d'un clic sur un événement un fragment s'ouvre par le bas, affichant les détails et la note associée à cet événement (s'il y en a une).  
+Lors d'un clic sur un événement, un fragment s'ouvre par le bas, affichant les détails et la note associée à cet événement (s'il y en a une).  
 Ce fragment permet par ailleurs de prendre des photos qui seront associées à la note.
 
    Thème Clair   |   Thème sombre
@@ -51,7 +60,7 @@ Ce fragment permet par ailleurs de prendre des photos qui seront associées à l
 <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/event_details_white.jpg" height="600" alt="Theme clair"> | <img src="https://raw.githubusercontent.com/axellaffite/ut3_calendar/master/previews/event_details_dark.jpg" height="600" alt="Theme sombre">
 
 
-Les matières peuvent être cachées. Il suffit de cliquer sur l'icône en forme d'oeil que l'on voit dans la barre d'action en haut pour que la page de sélection apparaisse.  
+Les matières peuvent être cachées. Il suffit de cliquer sur l'icône en forme d'œil que l'on voit dans la barre d'action en haut pour que la page de sélection apparaisse.  
 
    Thème Clair   |   Thème sombre
 :---------------:|:-----------------:
